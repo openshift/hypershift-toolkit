@@ -1,0 +1,33 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: openshift-apiserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openshift-apiserver
+  template:
+    metadata:
+      labels:
+        app: openshift-apiserver
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: openshift-apiserver
+        image: ${OPENSHIFT_APISERVER_IMAGE}
+        args:
+        - "start"
+        - "--config=/etc/kubernetes/config.yaml"
+        volumeMounts:
+        - mountPath: /etc/kubernetes/
+          name: secret
+        - mountPath: /var/run/kubernetes
+          name: logs
+        workingDir: /var/run/kubernetes
+      volumes:
+      - secret:
+          secretName: openshift-apiserver
+        name: secret
+      - emptyDir: {}
+        name: logs

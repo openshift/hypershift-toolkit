@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cluster-version-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: cluster-version-operator
+  template:
+    metadata:
+      name: cluster-version-operator
+      labels:
+        k8s-app: cluster-version-operator
+    spec:
+      initContainers:
+      - name: setup
+        image: quay.io/csrwng/origin-cluster-version-operator:hosted
+        command:
+        - "/bin/bash"
+        args:
+        - "-c"
+        - |-
+          cp $(which cluster-version-operator) /work/
+        volumeMounts:
+        - mountPath: /work
+          name: work
+      containers:
+      - name: cluster-version-operator
+        image: ${RELEASE_IMAGE}
+        imagePullPolicy: Always
+        command:
+          - "/work/cluster-version-operator"
+        args:
+          - "start"
+          - "--release-image=${RELEASE_IMAGE}"
+          - "--enable-auto-update=false"
+          - "--enable-default-cluster-version=true"
+          - "--kubeconfig=/etc/kubernetes/kubeconfig"
+          - "--v=4"
+          - '--exclude-manifests=.*_cluster-version-operator_.*deployment.*'
+          - '--exclude-manifests=.*_cluster-version-operator_.*service.*'
+          - "--exclude-manifests=.*_kube-apiserver-operator_.*"
+          - "--exclude-manifests=.*_kube-controller-manager-operator_.*"
+          - "--exclude-manifests=.*_kube-scheduler-operator_.*"
+          - "--exclude-manifests=.*_machine-api-operator_.*"
+          - "--exclude-manifests=.*_openshift-apiserver-operator_.*"
+          - "--exclude-manifests=.*_cluster-autoscaler-operator_.*"
+          - "--exclude-manifests=.*_cluster-machine-approver_.*"
+          - "--exclude-manifests=.*_openshift-controller-manager-operator_.*"
+          - "--exclude-manifests=.*_cluster-openshift-controller-manager-operator_.*"
+          - "--exclude-manifests=.*_insights-operator_.*"
+          - "--exclude-manifests=.*_machine-config-operator_.*"
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+          - mountPath: /etc/cvo/updatepayloads
+            name: etc-cvo-updatepayloads
+            readOnly: true
+          - mountPath: /etc/kubernetes
+            name: secrets
+            readOnly: true
+          - mountPath: /work
+            name: work
+            readOnly: true
+        env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+      volumes:
+        - name: work
+          emptyDir: {}
+        - name: etc-cvo-updatepayloads
+          emptyDir: {}
+        - name: secrets
+          secret:
+            secretName: cluster-version-operator

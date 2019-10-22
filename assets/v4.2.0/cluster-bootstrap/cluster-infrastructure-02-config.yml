@@ -1,0 +1,16 @@
+apiVersion: config.openshift.io/v1
+kind: Infrastructure
+metadata:
+  creationTimestamp: null
+  name: cluster
+spec:
+  cloudConfig:
+    name: ""
+status:
+  apiServerInternalURI: https://${EXTERNAL_API_DNS_NAME}:${EXTERNAL_API_PORT}
+  apiServerURL: https://${EXTERNAL_API_DNS_NAME}:${EXTERNAL_API_PORT}
+  etcdDiscoveryDomain: ${BASE_DOMAIN}
+  infrastructureName: kubernetes
+  platform: None
+  platformStatus:
+    type: None

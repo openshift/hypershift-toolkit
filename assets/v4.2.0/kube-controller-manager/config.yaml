@@ -1,0 +1,59 @@
+apiVersion: kubecontrolplane.config.openshift.io/v1
+kind: KubeControllerManagerConfig
+extendedArguments:
+  authentication-kubeconfig:
+  - "/etc/kubernetes/kubeconfig"
+  authorization-kubeconfig:
+  - "/etc/kubernetes/kubeconfig"
+  allocate-node-cidrs:
+  - 'true'
+  cert-dir:
+  - "/var/run/kubernetes"
+  cluster-cidr:
+  - ${POD_NETWORK_CIDR}
+  cluster-signing-cert-file:
+  - "/etc/kubernetes/cluster-signer.crt"
+  cluster-signing-key-file:
+  - "/etc/kubernetes/cluster-signer.key"
+  configure-cloud-routes:
+  - 'false'
+  controllers:
+  - "*"
+  - "-ttl"
+  - "-bootstrapsigner"
+  - "-tokencleaner"
+  enable-dynamic-provisioning:
+  - 'true'
+  experimental-cluster-signing-duration:
+  - 720h
+  feature-gates:
+  - ExperimentalCriticalPodAnnotation=true
+  - RotateKubeletServerCertificate=true
+  - SupportPodPidsLimit=true
+  - LocalStorageCapacityIsolation=false
+  flex-volume-plugin-dir:
+  - "/etc/kubernetes/kubelet-plugins/volume/exec"
+  kube-api-burst:
+  - '300'
+  kube-api-qps:
+  - '150'
+  leader-elect-resource-lock:
+  - configmaps
+  leader-elect:
+  - 'true'
+  leader-elect-retry-period:
+  - 3s
+  port:
+  - '0'
+  root-ca-file:
+  - "/etc/kubernetes/ca.crt"
+  secure-port:
+  - '10257'
+  service-account-private-key-file:
+  - "/etc/kubernetes/service-account"
+  service-cluster-ip-range:
+  - ${SERVICE_NETWORK_CIDR}
+  use-service-account-credentials:
+  - 'true'
+serviceServingCert:
+  certFile: "/etc/kubernetes/ca.crt"
