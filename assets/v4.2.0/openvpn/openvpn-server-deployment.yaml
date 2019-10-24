@@ -1,0 +1,38 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: openvpn-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openvpn-server
+  template:
+    metadata:
+      labels:
+        app: openvpn-server
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: openvpn-server
+        image: quay.io/sjenning/poc:openvpn
+        imagePullPolicy: Always
+        command:
+        - /usr/sbin/openvpn
+        - --config
+        - /etc/openvpn/server/server.conf
+        workingDir: /etc/openvpn/server
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - mountPath: /etc/openvpn/server
+          name: server
+        - mountPath: /etc/openvpn/ccd
+          name: ccd
+      volumes:
+      - secret:
+          secretName: openvpn-server
+        name: server
+      - secret:
+          secretName: openvpn-ccd
+        name: ccd

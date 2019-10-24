@@ -1,0 +1,56 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: user-manifests-bootstrapper
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: user-manifests-bootstrapper
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+- kind: ServiceAccount
+  name: user-manifests-bootstrapper
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: manifests-bootstrapper
+spec:
+  containers:
+  - image: ${CLI_IMAGE}
+    imagePullPolicy: IfNotPresent
+    name: bootstrapper
+    workingDir: /work
+    command:
+    - /bin/bash
+    args:
+    - -c
+    - |-
+      #!/bin/bash
+      set -eu
+      for name in $(oc get cm | grep '^user-manifest-' | awk '{ print $1 }'); do
+         oc get cm ${name} -o jsonpath='{ .data.data }' > "${name}.yaml"
+      done
+      export KUBECONFIG=/var/run/secrets/kubeconfig/kubeconfig
+      oc apply -f $(pwd)
+      # Create the global certs configmap here because it's too large to oc apply
+      oc create configmap -n openshift-controller-manager openshift-global-ca --from-file ca-bundle.crt=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubeconfig
+      name: kubeconfig
+      readOnly: true
+    - mountPath: /work
+      name: work
+  restartPolicy: OnFailure
+  serviceAccountName: user-manifests-bootstrapper
+  volumes:
+  - name: kubeconfig
+    secret:
+      secretName: kube-service-kubeconfig
+  - name: work
+    emptyDir: {}

@@ -1,0 +1,10 @@
+apiVersion: kubescheduler.config.k8s.io/v1alpha1
+kind: KubeSchedulerConfiguration
+clientConnection:
+  kubeconfig: "/etc/kubernetes/kubeconfig"
+leaderElection:
+  leaderElect: true
+  # TODO: OOTB kube-scheduler cluster role does not allow updating
+  # configmpas in kube-system.  kube-apiserver won't allow creation of
+  # rolebinding in the user cluster without an operational openshift-apiserver.
+  #resourceLock: configmaps

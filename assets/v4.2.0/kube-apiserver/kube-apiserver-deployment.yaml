@@ -1,0 +1,65 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: kube-apiserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kube-apiserver
+  template:
+    metadata:
+      labels:
+        app: kube-apiserver
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: kube-apiserver
+        image: ${HYPERKUBE_IMAGE}
+        command:
+        - hyperkube
+        - kube-apiserver
+        args:
+        - "--openshift-config=/etc/kubernetes/config.yaml"
+        workingDir: /var/log/kube-apiserver
+        livenessProbe:
+          httpGet:
+            scheme: HTTPS
+            port: 6443
+            path: healthz
+          initialDelaySeconds: 45
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            scheme: HTTPS
+            port: 6443
+            path: healthz
+          initialDelaySeconds: 10
+          timeoutSeconds: 10
+        volumeMounts:
+        - mountPath: /etc/kubernetes/
+          name: kube-apiserver-secret
+        - mountPath: /var/log/kube-apiserver/
+          name: logs
+      - name: openvpn-client
+        image: quay.io/sjenning/poc:openvpn
+        imagePullPolicy: Always
+        command:
+        - /usr/sbin/openvpn
+        - --config
+        - /etc/openvpn/client.conf
+        workingDir: /etc/openvpn/
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - mountPath: /etc/openvpn/
+          name: openvpn-client-secret
+      volumes:
+      - secret:
+          secretName: kube-apiserver
+        name: kube-apiserver-secret
+      - emptyDir: {}
+        name: logs
+      - secret:
+          secretName: openvpn-client
+        name: openvpn-client-secret

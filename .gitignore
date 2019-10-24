@@ -5,6 +5,8 @@
 *.so
 *.dylib
 
+hypershift
+
 # Test binary, build with `go test -c`
 *.test
 
