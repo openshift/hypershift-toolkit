@@ -29,7 +29,7 @@ func NewPKICommand() *cobra.Command {
 				os.Exit(1)
 			}
 
-			if err := pki.GeneratePKI(params, "/tmp"); err != nil {
+			if err := pki.GeneratePKI(params, outputDir); err != nil {
 				fmt.Fprintf(os.Stderr, "Error generating PKI: %s\n", err)
 				os.Exit(1)
 			}
