@@ -15,7 +15,7 @@ spec:
       automountServiceAccountToken: false
       containers:
       - name: openshift-apiserver
-        image: ${OPENSHIFT_APISERVER_IMAGE}
+        image: {{ imageFor "openshift-apiserver" }}
         args:
         - "start"
         - "--config=/etc/kubernetes/config.yaml"

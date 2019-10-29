@@ -10,12 +10,12 @@ spec:
   externalTrafficPolicy: Local
   ports:
   - name: http
-    nodePort: ${ROUTER_NODEPORT_HTTP}
+    nodePort: {{ .RouterNodePortHTTP }}
     port: 80
     protocol: TCP
     targetPort: http
   - name: https
-    nodePort: ${ROUTER_NODEPORT_HTTPS}
+    nodePort: {{ .RouterNodePortHTTPS }}
     port: 443
     protocol: TCP
     targetPort: https

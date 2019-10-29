@@ -5,7 +5,10 @@
 *.so
 *.dylib
 
-hypershift
+/manifests
+/pki
+/bin
+/pull-secret.txt
 
 # Test binary, build with `go test -c`
 *.test

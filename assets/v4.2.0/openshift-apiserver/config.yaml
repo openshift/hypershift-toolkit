@@ -60,7 +60,7 @@ imagePolicyConfig:
 projectConfig:
   projectRequestMessage: ''
 routingConfig:
-  subdomain: ${INGRESS_SUBDOMAIN}
+  subdomain: {{ .IngressSubdomain }}
 storageConfig:
   urls:
   - https://etcd-client:2379

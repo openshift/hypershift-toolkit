@@ -1,2 +1,2 @@
-iroute ${SERVICE_NETWORK} ${SERVICE_NETWORK_MASK}
-iroute ${POD_NETWORK} ${POD_NETWORK_MASK}
+iroute {{ address .ServiceCIDR }} {{ mask .ServiceCIDR }}
+iroute {{ address .PodCIDR }} {{ mask .PodCIDR }}

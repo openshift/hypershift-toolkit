@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: openshift-apiserver
 spec:
-  clusterIP: ${API_CLUSTERIP}
+  clusterIP: {{ .OpenShiftAPIClusterIP }}
   selector:
     app: openshift-apiserver
   ports:

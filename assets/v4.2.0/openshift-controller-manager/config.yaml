@@ -4,10 +4,10 @@ build:
   buildDefaults:
     resources: {}
   imageTemplateFormat:
-    format: ${DOCKER_BUILDER_IMAGE}
+    format: {{ imageFor "docker-builder" }}
 deployer:
   imageTemplateFormat:
-    format: ${DEPLOYER_IMAGE}
+    format: {{ imageFor "deployer" }}
 dockerPullSecret:
   internalRegistryHostname: image-registry.openshift-image-registry.svc:5000
 ingress:

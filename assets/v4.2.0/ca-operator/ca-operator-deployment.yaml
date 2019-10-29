@@ -31,7 +31,7 @@ spec:
         app: ca-operator
     spec:
       containers:
-      - image: {{ imageFor cli }}
+      - image: {{ imageFor "cli" }}
         imagePullPolicy: IfNotPresent
         name: ca-operator
         command:
