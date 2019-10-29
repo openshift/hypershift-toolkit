@@ -3,12 +3,14 @@ package main
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/openshift/hypershift-toolkit/pkg/cmd"
+	"github.com/openshift/hypershift-toolkit/pkg/cmd/pki"
+	"github.com/openshift/hypershift-toolkit/pkg/cmd/render"
 )
 
 func main() {
 	rootCmd := newHypershiftCommand()
-	rootCmd.AddCommand(cmd.NewPKICommand())
+	rootCmd.AddCommand(pki.NewPKICommand())
+	rootCmd.AddCommand(render.NewRenderCommand())
 	rootCmd.Execute()
 }
 

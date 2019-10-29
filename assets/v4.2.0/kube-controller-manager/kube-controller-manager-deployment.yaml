@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: kube-controller-manager
-        image: ${HYPERKUBE_IMAGE}
+        image: {{ imageFor "hyperkube" }}
         command:
         - hyperkube
         - kube-controller-manager

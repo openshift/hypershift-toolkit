@@ -4,7 +4,7 @@ metadata:
   name: auto-approver
 spec:
   containers:
-  - image: {{ imageFor cli }}
+  - image: {{ imageFor "cli" }}
     env:
     - name: KUBECONFIG
       value: /var/run/secrets/kubeconfig/kubeconfig
@@ -31,4 +31,4 @@ spec:
   volumes:
   - name: kubeconfig
     secret:
-      secretName: kube-service-kubeconfig
+      secretName: auto-approver-secret

@@ -22,7 +22,7 @@ metadata:
   name: manifests-bootstrapper
 spec:
   containers:
-  - image: ${CLI_IMAGE}
+  - image: {{ imageFor "cli" }}
     imagePullPolicy: IfNotPresent
     name: bootstrapper
     workingDir: /work
@@ -34,7 +34,7 @@ spec:
       #!/bin/bash
       set -eu
       for name in $(oc get cm | grep '^user-manifest-' | awk '{ print $1 }'); do
-         oc get cm ${name} -o jsonpath='{ .data.data }' > "${name}.yaml"
+         oc get cm ${name} -o jsonpath='{ .binaryData.data }' > "${name}.yaml"
       done
       export KUBECONFIG=/var/run/secrets/kubeconfig/kubeconfig
       oc apply -f $(pwd)
@@ -51,6 +51,6 @@ spec:
   volumes:
   - name: kubeconfig
     secret:
-      secretName: kube-service-kubeconfig
+      secretName: user-manifests-bootstrapper-secret
   - name: work
     emptyDir: {}

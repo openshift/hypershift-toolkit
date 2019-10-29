@@ -5,7 +5,7 @@ metadata:
   namespace: default
 subsets:
 - addresses:
-  - ip: ${API_CLUSTERIP}
+  - ip: {{ .OpenShiftAPIClusterIP }}
   ports:
   - name: https
     port: 443

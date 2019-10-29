@@ -15,7 +15,7 @@ spec:
       automountServiceAccountToken: false
       containers:
       - name: kube-apiserver
-        image: ${HYPERKUBE_IMAGE}
+        image: {{ imageFor "hyperkube" }}
         command:
         - hyperkube
         - kube-apiserver

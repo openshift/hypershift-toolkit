@@ -15,8 +15,8 @@ admission:
         apiVersion: network.openshift.io/v1
         kind: RestrictedEndpointsAdmissionConfig
         restrictedCIDRs:
-        - ${POD_NETWORK_CIDR}
-        - ${SERVICE_NETWORK_CIDR}
+        - {{ .PodCIDR }}
+        - {{ .ServiceCIDR }}
 aggregatorConfig:
   proxyClientInfo:
     certFile: "/etc/kubernetes/proxy-client.crt"
@@ -39,7 +39,7 @@ apiServerArguments:
   storage-media-type:
   - application/vnd.kubernetes.protobuf
   advertise-address:
-  - "${EXTERNAL_API_IP_ADDRESS}"
+  - "{{ .ExternalAPIIPAddress }}"
 auditConfig:
   auditFilePath: "/var/log/kube-apiserver/audit.log"
   enabled: true
@@ -106,7 +106,7 @@ projectConfig:
 serviceAccountPublicKeyFiles:
 - "/etc/kubernetes/service-account.pub"
 servicesNodePortRange: 30000-32767
-servicesSubnet: ${SERVICE_NETWORK_CIDR}
+servicesSubnet: {{ .ServiceCIDR }}
 servingInfo:
   bindAddress: 0.0.0.0:6443
   bindNetwork: tcp4

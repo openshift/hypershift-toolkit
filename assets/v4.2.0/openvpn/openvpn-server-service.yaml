@@ -7,7 +7,7 @@ spec:
   - port: 1194
     protocol: UDP
     targetPort: 1194
-    nodePort: ${OPENVPN_NODEPORT}
+    nodePort: {{ .OpenVPNNodePort }}
   selector:
     app: openvpn-server
   type: NodePort

@@ -6,7 +6,7 @@ metadata:
   name: cluster
 spec:
   defaultRoute: false
-  httpSecret: ${IMAGE_REGISTRY_HTTP_SECRET}
+  httpSecret: {{ .ImageRegistryHTTPSecret }}
   logging: 2
   managementState: Managed
   proxy:

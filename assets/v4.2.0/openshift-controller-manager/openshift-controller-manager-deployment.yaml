@@ -15,7 +15,7 @@ spec:
       automountServiceAccountToken: false
       containers:
       - name: openshift-controller-manager
-        image: ${OPENSHIFT_CONTROLLER_MANAGER_IMAGE}
+        image: {{ imageFor "openshift-controller-manager" }}
         command:
         - "openshift-controller-manager"
         args:

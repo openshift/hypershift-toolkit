@@ -54,7 +54,7 @@ func GeneratePKI(params *api.ClusterParams, outputDir string) error {
 				"etcd-client",
 				"localhost",
 			}, nil),
-		cert("etcd-server", "root-ca", "etcd-server", "kubernetes",
+		cert("etcd-peer", "root-ca", "etcd-peer", "kubernetes",
 			[]string{
 				fmt.Sprintf("*.etcd.%s.svc", params.Namespace),
 				fmt.Sprintf("*.etcd.%s.svc.cluster.local", params.Namespace),
