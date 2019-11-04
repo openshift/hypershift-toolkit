@@ -13,6 +13,6 @@ pushd ${REPO_DIR} &> /dev/null
 GO111MODULE=off GOPATH="${TMP_GOPATH}" go install "./vendor/github.com/jteeuwen/go-bindata/..."
 popd &> /dev/null
 
-"${TMP_GOPATH}/bin/go-bindata" -prefix assets/v4.2.0 -pkg v420_assets -o "${OUTPUTFILE}" "${REPO_DIR}/assets/v4.2.0/..."
+"${TMP_GOPATH}/bin/go-bindata" -nocompress -nometadata -prefix assets/v4.2.0 -pkg v420_assets -o "${OUTPUTFILE}" "${REPO_DIR}/assets/v4.2.0/..."
 
 gofmt -s -w "${OUTPUTFILE}"
