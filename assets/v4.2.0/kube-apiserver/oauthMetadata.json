@@ -1,7 +1,7 @@
 {
-  "issuer": "https://{{ .OAuthRoute }}",
-  "authorization_endpoint": "https://{{ .OAuthRoute }}/oauth/authorize",
-  "token_endpoint": "https://{{ .OAuthRoute }}/oauth/token",
+  "issuer": "https://oauth-openshift.{{ .IngressSubdomain }}",
+  "authorization_endpoint": "https://oauth-openshift.{{ .IngressSubdomain }}/oauth/authorize",
+  "token_endpoint": "https://oauth-openshift.{{ .IngressSubdomain }}/oauth/token",
   "scopes_supported": [
     "user:check-access",
     "user:full",
