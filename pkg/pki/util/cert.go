@@ -7,6 +7,9 @@ import (
 	"crypto/x509/pkix"
 	"io/ioutil"
 	"net"
+
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 func GenerateCert(commonName, organization string, hostNames, addresses []string, ca *CA) (*Cert, error) {
@@ -24,7 +27,7 @@ func GenerateCert(commonName, organization string, hostNames, addresses []string
 	}
 	key, crt, err := GenerateSignedCertificate(ca.Key, ca.Cert, cfg)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to generate signed certificate for cn=%s,o=%s", commonName, organization)
 	}
 	return &Cert{
 		Parent: ca,
@@ -41,11 +44,13 @@ type Cert struct {
 
 func (c *Cert) WriteTo(fileName string, appendParent bool) error {
 	if CertExists(fileName) {
+		log.Infof("Skipping certificate file %s because it already exists", fileName)
 		return nil
 	}
+	log.Infof("Writing certificate and key to %s", fileName)
 	keyBytes := PrivateKeyToPem(c.Key)
 	if err := ioutil.WriteFile(fileName+".key", keyBytes, 0644); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to write key for certificate %s", fileName)
 	}
 
 	certBytes := CertToPem(c.Cert)
@@ -53,7 +58,7 @@ func (c *Cert) WriteTo(fileName string, appendParent bool) error {
 		certBytes = bytes.Join([][]byte{certBytes, CertToPem(c.Parent.Cert)}, []byte("\n"))
 	}
 	if err := ioutil.WriteFile(fileName+".crt", certBytes, 0644); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to write certificate %s", fileName)
 	}
 	return nil
 }

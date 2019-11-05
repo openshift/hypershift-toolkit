@@ -1,13 +1,12 @@
 package pki
 
 import (
-	"fmt"
-	"log"
-	"os"
 	"path/filepath"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/openshift/hypershift-toolkit/pkg/cmd/util"
 	"github.com/openshift/hypershift-toolkit/pkg/config"
 	"github.com/openshift/hypershift-toolkit/pkg/pki"
 )
@@ -18,20 +17,15 @@ func NewPKICommand() *cobra.Command {
 		Use:   "pki",
 		Short: "Generates PKI artifacts given an output directory",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := ensureDir(outputDir); err != nil {
-				fmt.Fprintf(os.Stderr, "Cannot create output directory: %v\n", err)
-				os.Exit(1)
-			}
+			util.EnsureDir(outputDir)
 
 			params, err := config.ReadFrom(configFile)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Cannot read config file: %v\n", err)
-				os.Exit(1)
+				log.WithError(err).Fatal("Cannot read config file")
 			}
 
 			if err := pki.GeneratePKI(params, outputDir); err != nil {
-				fmt.Fprintf(os.Stderr, "Error generating PKI: %s\n", err)
-				os.Exit(1)
+				log.WithError(err).Fatal("Failed to generate PKI")
 			}
 		},
 	}
@@ -41,21 +35,9 @@ func NewPKICommand() *cobra.Command {
 }
 
 func defaultOutputDir() string {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("Cannot get current working directory: %v", err)
-	}
-	return filepath.Join(dir, "pki")
+	return filepath.Join(util.WorkingDir(), "pki")
 }
 
 func defaultConfigFile() string {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("Cannot get current working directory: %v", err)
-	}
-	return filepath.Join(dir, "cluster.yaml")
-}
-
-func ensureDir(dirName string) error {
-	return os.MkdirAll(dirName, 0755)
+	return filepath.Join(util.WorkingDir(), "cluster.yaml")
 }

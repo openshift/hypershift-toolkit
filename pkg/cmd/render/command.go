@@ -1,13 +1,12 @@
 package render
 
 import (
-	"fmt"
-	"log"
-	"os"
 	"path/filepath"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/openshift/hypershift-toolkit/pkg/cmd/util"
 	"github.com/openshift/hypershift-toolkit/pkg/config"
 	"github.com/openshift/hypershift-toolkit/pkg/render"
 )
@@ -25,8 +24,7 @@ func NewRenderCommand() *cobra.Command {
 		Use: "render",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := opt.Run(); err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v", err)
-				os.Exit(1)
+				log.WithError(err).Fatal("Error occurred rendering manifests")
 			}
 		},
 	}
@@ -38,49 +36,26 @@ func NewRenderCommand() *cobra.Command {
 }
 
 func (o *RenderOptions) Run() error {
-	if err := ensureDir(o.OutputDir); err != nil {
-		fmt.Fprintf(os.Stderr, "Cannot create output directory: %v\n", err)
-		os.Exit(1)
-	}
+	util.EnsureDir(o.OutputDir)
 	params, err := config.ReadFrom(o.ConfigFile)
 	if err != nil {
-		return err
+		log.WithError(err).Fatalf("Error occurred reading configuration")
 	}
 	return render.RenderClusterManifests(params, o.PullSecretFile, o.OutputDir, o.PKIDir)
 }
 
 func defaultManifestsDir() string {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("Cannot get current working directory: %v", err)
-	}
-	return filepath.Join(dir, "manifests")
+	return filepath.Join(util.WorkingDir(), "manifests")
 }
 
 func defaultPKIDir() string {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("Cannot get current working directory: %v", err)
-	}
-	return filepath.Join(dir, "pki")
+	return filepath.Join(util.WorkingDir(), "pki")
 }
 
 func defaultConfigFile() string {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("Cannot get current working directory: %v", err)
-	}
-	return filepath.Join(dir, "cluster.yaml")
+	return filepath.Join(util.WorkingDir(), "cluster.yaml")
 }
 
 func defaultPullSecretFile() string {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("Cannot get current working directory: %v", err)
-	}
-	return filepath.Join(dir, "pull-secret.txt")
-}
-
-func ensureDir(dirName string) error {
-	return os.MkdirAll(dirName, 0755)
+	return filepath.Join(util.WorkingDir(), "pull-secret.txt")
 }
