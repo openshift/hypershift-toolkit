@@ -19,10 +19,14 @@ spec:
         - hyperkube
         - kube-controller-manager
         args:
-        - "--openshift-config=/etc/kubernetes/config.yaml"
-        - "--kubeconfig=/etc/kubernetes/kubeconfig"
+        - "--openshift-config=/etc/kubernetes/cmconfig/config.yaml"
+        - "--kubeconfig=/etc/kubernetes/kubeconfig/kubeconfig"
         volumeMounts:
-        - mountPath: /etc/kubernetes/
+        - mountPath: /etc/kubernetes/cmconfig
+          name: cmconfig
+        - mountPath: /etc/kubernetes/config
+          name: config
+        - mountPath: /etc/kubernetes/secret
           name: secret
         - mountPath: /var/run/kubernetes
           name: certdir
@@ -33,6 +37,12 @@ spec:
       - secret:
           secretName: kube-controller-manager
         name: secret
+      - configMap:
+          name: kube-controller-manager-config
+        name: cmconfig
+      - configMap:
+          name: kube-controller-manager
+        name: config
       - emptyDir: {}
         name: logs
       - emptyDir: {}

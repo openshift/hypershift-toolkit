@@ -120,7 +120,7 @@ func GeneratePKI(params *api.ClusterParams, outputDir string) error {
 	if err := writeCombinedCA([]string{"root-ca", "cluster-signer"}, caMap, outputDir, "combined-ca"); err != nil {
 		return err
 	}
-	if err := writeRSAKey(outputDir, "service-account-key"); err != nil {
+	if err := writeRSAKey(outputDir, "service-account"); err != nil {
 		return err
 	}
 	if err := writeDHParams(outputDir, "openvpn-dh"); err != nil {

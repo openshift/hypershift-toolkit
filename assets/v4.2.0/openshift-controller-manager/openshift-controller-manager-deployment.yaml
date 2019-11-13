@@ -20,11 +20,21 @@ spec:
         - "openshift-controller-manager"
         args:
         - "start"
-        - "--config=/etc/kubernetes/config.yaml"
+        - "--config=/etc/kubernetes/cmconfig/config.yaml"
         volumeMounts:
-        - mountPath: /etc/kubernetes/
+        - mountPath: /etc/kubernetes/secret
           name: secret
+        - mountPath: /etc/kubernetes/cmconfig
+          name: cmconfig
+        - mountPath: /etc/kubernetes/config
+          name: config
       volumes:
       - secret:
           secretName: openshift-controller-manager
         name: secret
+      - configMap:
+          name: openshift-controller-manager
+        name: config
+      - configMap:
+          name: openshift-controller-manager-config
+        name: cmconfig

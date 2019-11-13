@@ -20,21 +20,26 @@ spec:
         - hyperkube
         - kube-scheduler
         args:
-        - "--config=/etc/kubernetes/config.yaml"
+        - "--config=/etc/kubernetes/config/config.yaml"
         - "--cert-dir=/var/run/kubernetes"
         - "--port=0"
-        - "--authentication-kubeconfig=/etc/kubernetes/kubeconfig"
-        - "--authorization-kubeconfig=/etc/kubernetes/kubeconfig"
+        - "--authentication-kubeconfig=/etc/kubernetes/secret/kubeconfig"
+        - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "-v=2"
         volumeMounts:
-        - mountPath: /etc/kubernetes/
+        - mountPath: /etc/kubernetes/secret
           name: secret
+        - mountPath: /etc/kubernetes/config
+          name: config
         - mountPath: /var/run/kubernetes/
           name: cert
         workDir: /var/run/kubernetes
       volumes:
       - secret:
-          secretName: kube-scheduler
+          secretName: service-admin-kubeconfig
         name: secret
+      - configMap:
+          name: kube-scheduler-config
+        name: config
       - emptyDir: {}
         name: cert

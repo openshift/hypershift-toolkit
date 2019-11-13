@@ -15,7 +15,7 @@ spec:
     spec:
       initContainers:
       - name: setup
-        image: quay.io/csrwng/origin-cluster-version-operator:hosted
+        image: quay.io/csrwng/origin-cluster-version-operator:hosted_annotations
         command:
         - "/bin/bash"
         args:
@@ -27,37 +27,24 @@ spec:
           name: work
       containers:
       - name: cluster-version-operator
-        image: ${RELEASE_IMAGE}
+        image: {{ imageFor "cluster-version-operator" }}
         imagePullPolicy: Always
         command:
           - "/work/cluster-version-operator"
         args:
           - "start"
-          - "--release-image=${RELEASE_IMAGE}"
+          - "--release-image={{ imageFor "cluster-version-operator" }}"
           - "--enable-auto-update=false"
           - "--enable-default-cluster-version=true"
-          - "--kubeconfig=/etc/kubernetes/kubeconfig"
+          - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
           - "--v=4"
-          - '--exclude-manifests=.*_cluster-version-operator_.*deployment.*'
-          - '--exclude-manifests=.*_cluster-version-operator_.*service.*'
-          - "--exclude-manifests=.*_kube-apiserver-operator_.*"
-          - "--exclude-manifests=.*_kube-controller-manager-operator_.*"
-          - "--exclude-manifests=.*_kube-scheduler-operator_.*"
-          - "--exclude-manifests=.*_machine-api-operator_.*"
-          - "--exclude-manifests=.*_openshift-apiserver-operator_.*"
-          - "--exclude-manifests=.*_cluster-autoscaler-operator_.*"
-          - "--exclude-manifests=.*_cluster-machine-approver_.*"
-          - "--exclude-manifests=.*_openshift-controller-manager-operator_.*"
-          - "--exclude-manifests=.*_cluster-openshift-controller-manager-operator_.*"
-          - "--exclude-manifests=.*_insights-operator_.*"
-          - "--exclude-manifests=.*_machine-config-operator_.*"
         terminationMessagePolicy: FallbackToLogsOnError
         volumeMounts:
           - mountPath: /etc/cvo/updatepayloads
             name: etc-cvo-updatepayloads
             readOnly: true
-          - mountPath: /etc/kubernetes
-            name: secrets
+          - mountPath: /etc/openshift/kubeconfig
+            name: kubeconfig
             readOnly: true
           - mountPath: /work
             name: work
@@ -67,11 +54,13 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+          - name: EXCLUDE_MANIFESTS
+            value: internal-openshift-hosted
       volumes:
         - name: work
           emptyDir: {}
         - name: etc-cvo-updatepayloads
           emptyDir: {}
-        - name: secrets
+        - name: kubeconfig
           secret:
-            secretName: cluster-version-operator
+            secretName: service-network-admin-kubeconfig

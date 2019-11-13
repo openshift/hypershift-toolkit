@@ -152,9 +152,10 @@ func writeCombinedCA(cas []string, caMap map[string]*util.CA, outputDir, fileNam
 }
 
 func writeRSAKey(outputDir, name string) error {
-	fileName := filepath.Join(outputDir, name+".pem")
-	if util.FileExists(fileName) {
-		log.Infof("Skipping RSA key %s because it already exists", fileName)
+	privateFilename := filepath.Join(outputDir, name+".key")
+	publicFilename := filepath.Join(outputDir, name+".pub")
+	if util.FileExists(privateFilename) && util.FileExists(publicFilename) {
+		log.Infof("Skipping RSA key %s because it already exists", name)
 		return nil
 	}
 	key, err := util.PrivateKey()
@@ -162,9 +163,16 @@ func writeRSAKey(outputDir, name string) error {
 		return err
 	}
 	b := util.PrivateKeyToPem(key)
-	log.Infof("Writing RSA key %s", fileName)
-	if err := ioutil.WriteFile(fileName, b, 0644); err != nil {
-		return errors.Wrapf(err, "failed to write RSA key %s", fileName)
+	log.Infof("Writing RSA private key %s", privateFilename)
+	if err := ioutil.WriteFile(privateFilename, b, 0644); err != nil {
+		return errors.Wrapf(err, "failed to write RSA private key %s", privateFilename)
+	}
+	b, err = util.PublicKeyToPem(&key.PublicKey)
+	if err != nil {
+		errors.Wrapf(err, "cannot create public key for %s", name)
+	}
+	if err := ioutil.WriteFile(publicFilename, b, 0644); err != nil {
+		return errors.Wrapf(err, "failed to write RSA public key %s", publicFilename)
 	}
 	return nil
 }

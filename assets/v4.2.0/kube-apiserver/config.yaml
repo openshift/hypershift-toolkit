@@ -19,8 +19,8 @@ admission:
         - {{ .ServiceCIDR }}
 aggregatorConfig:
   proxyClientInfo:
-    certFile: "/etc/kubernetes/proxy-client.crt"
-    keyFile: "/etc/kubernetes/proxy-client.key"
+    certFile: "/etc/kubernetes/secret/proxy-client.crt"
+    keyFile: "/etc/kubernetes/secret/proxy-client.key"
 apiServerArguments:
   enable-aggregator-routing:
   - 'true'
@@ -76,9 +76,9 @@ auditConfig:
       omitStages:
       - RequestReceived
 authConfig:
-  oauthMetadataFile: "/etc/kubernetes/oauthMetadata"
+  oauthMetadataFile: "/etc/kubernetes/oauth/oauthMetadata.json"
   requestHeader:
-    clientCA: "/etc/kubernetes/ca.crt"
+    clientCA: "/etc/kubernetes/config/aggregator-client-ca.crt"
     clientCommonNames:
     - kube-apiserver-proxy
     - system:kube-apiserver-proxy
@@ -97,28 +97,28 @@ corsAllowedOrigins:
 imagePolicyConfig:
   internalRegistryHostname: image-registry.openshift-image-registry.svc:5000
 kubeletClientInfo:
-  ca: "/etc/kubernetes/ca.crt"
-  certFile: "/etc/kubernetes/kubelet-client.crt"
-  keyFile: "/etc/kubernetes/kubelet-client.key"
+  ca: "/etc/kubernetes/config/kubelet-client-ca.crt"
+  certFile: "/etc/kubernetes/secret/kubelet-client.crt"
+  keyFile: "/etc/kubernetes/secret/kubelet-client.key"
   port: 10250
 projectConfig:
   defaultNodeSelector: ''
 serviceAccountPublicKeyFiles:
-- "/etc/kubernetes/service-account.pub"
+- "/etc/kubernetes/config/service-account.pub"
 servicesNodePortRange: 30000-32767
 servicesSubnet: {{ .ServiceCIDR }}
 servingInfo:
   bindAddress: 0.0.0.0:6443
   bindNetwork: tcp4
-  clientCA: "/etc/kubernetes/ca.crt"
-  certFile: "/etc/kubernetes/server.crt"
-  keyFile: "/etc/kubernetes/server.key"
+  clientCA: "/etc/kubernetes/config/serving-ca.crt"
+  certFile: "/etc/kubernetes/secret/server.crt"
+  keyFile: "/etc/kubernetes/secret/server.key"
   maxRequestsInFlight: 1200
   requestTimeoutSeconds: 3600
 storageConfig:
-  ca: "/etc/kubernetes/ca.crt"
-  certFile: "/etc/kubernetes/etcd-client.crt"
-  keyFile: "/etc/kubernetes/etcd-client.key"
+  ca: "/etc/kubernetes/config/etcd-ca.crt"
+  certFile: "/etc/kubernetes/secret/etcd-client.crt"
+  keyFile: "/etc/kubernetes/secret/etcd-client.key"
   urls:
   - https://etcd-client:2379
 userAgentMatchingConfig:

@@ -10,7 +10,7 @@ import (
 func main() {
 	rootCmd := newHypershiftCommand()
 	rootCmd.AddCommand(pki.NewPKICommand())
-	rootCmd.AddCommand(render.NewRenderCommand())
+	rootCmd.AddCommand(render.NewRenderManifestsCommand())
 	rootCmd.Execute()
 }
 
