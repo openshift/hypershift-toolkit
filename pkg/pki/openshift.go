@@ -4,10 +4,15 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/openshift/hypershift-toolkit/pkg/api"
 )
 
 func GeneratePKI(params *api.ClusterParams, outputDir string) error {
+	log.Info("Generating PKI artifacts")
+
 	cas := []caSpec{
 		ca("root-ca", "root-ca", "openshift"),
 		ca("cluster-signer", "cluster-signer", "openshift"),
@@ -23,7 +28,7 @@ func GeneratePKI(params *api.ClusterParams, outputDir string) error {
 
 	_, serviceIPNet, err := net.ParseCIDR(params.ServiceCIDR)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to parse service CIDR: %q", params.ServiceCIDR)
 	}
 	kubeIP := firstIP(serviceIPNet)
 	certs := []certSpec{
@@ -115,7 +120,7 @@ func GeneratePKI(params *api.ClusterParams, outputDir string) error {
 	if err := writeCombinedCA([]string{"root-ca", "cluster-signer"}, caMap, outputDir, "combined-ca"); err != nil {
 		return err
 	}
-	if err := writeRSAKey(outputDir, "service-account-key"); err != nil {
+	if err := writeRSAKey(outputDir, "service-account"); err != nil {
 		return err
 	}
 	if err := writeDHParams(outputDir, "openvpn-dh"); err != nil {
@@ -123,79 +128,3 @@ func GeneratePKI(params *api.ClusterParams, outputDir string) error {
 	}
 	return nil
 }
-
-/*
-# generate CAs
-generate_ca "root-ca"
-generate_ca "cluster-signer"
-
-# admin kubeconfig           CA       Name       USER           ORG          HOSTNAME   SERVERADDRESS
-generate_client_kubeconfig "root-ca" "admin" "system:admin" "system:masters" "" "${EXTERNAL_API_DNS_NAME}:${EXTERNAL_API_PORT}"
-
-# kubelet bootstrapper kubeconfig
-generate_client_kubeconfig "cluster-signer" "kubelet-bootstrap" "system:bootstrapper" "system:bootstrappers" "" "${EXTERNAL_API_DNS_NAME}:${EXTERNAL_API_PORT}"
-
-# service client admin kubeconfig
-generate_client_kubeconfig "root-ca" "service-admin" "system:admin" "system:masters" "kube-apiserver"
-
-# kube-controller-manager
-generate_client_kubeconfig "root-ca" "kube-controller-manager" "system:admin" "system:masters" "kube-apiserver"
-if [ ! -e "service-account-key.pem" ]; then
-  openssl genrsa -out service-account-key.pem 2048
-  openssl rsa -in service-account-key.pem -pubout > service-account.pem
-fi
-
-# kube-scheduler
-generate_client_kubeconfig "root-ca" "kube-scheduler" "system:admin" "system:masters"
-
-# kube-apiserver            CA       NAME                    USER           ORG           HOSTS
-generate_client_key_cert "root-ca" "kube-apiserver-server" "kubernetes" "kubernetes" "${EXTERNAL_API_DNS_NAME},172.31.0.1,${EXTERNAL_API_IP_ADDRESS},kubernetes,kubernetes.default.svc,kubernetes.default.svc.cluster.local,kube-apiserver,kube-apiserver.${NAMESPACE}.svc,kube-apiserver.${NAMESPACE}.svc.cluster.local"
-generate_client_key_cert "root-ca" "kube-apiserver-kubelet" "system:kube-apiserver" "kubernetes"
-generate_client_key_cert "root-ca" "kube-apiserver-aggregator-proxy-client" "system:openshift-aggregator" "kubernetes"
-
-# etcd
-generate_client_key_cert "root-ca" "etcd-client" "etcd-client" "kubernetes"
-generate_client_key_cert "root-ca" "etcd-server" "etcd-server" "kubernetes" "
-*.etcd.${NAMESPACE}.svc,
-etcd-client.${NAMESPACE}.svc,
-etcd,
-etcd-client,
-localhost"
-generate_client_key_cert "root-ca" "etcd-peer" "etcd-peer" "kubernetes" "
-
-*.etcd.${NAMESPACE}.svc,
-*.etcd.${NAMESPACE}.svc.cluster.local"
-
-# openshift-apiserver
-generate_client_key_cert "root-ca" "openshift-apiserver-server" "openshift-apiserver" "openshift"
-"openshift-apiserver,
-openshift-apiserver.${NAMESPACE}.svc,
-openshift-controller-manager.${NAMESPACE}.svc.cluster.local,
-openshift-apiserver.default.svc,
-openshift-apiserver.default.svc.cluster.local"
-
-# openshift-controller-manager
-generate_client_key_cert "root-ca" "openshift-controller-manager-server" "openshift-controller-manager" "openshift"
-"openshift-controller-manager",
-"openshift-controller-manager.${NAMESPACE}.svc",
-"openshift-controller-manager.${NAMESPACE}.svc.cluster.local",
-
-cat root-ca.pem cluster-signer.pem > combined-ca.pem
-
-rm -f *.csr
-
-# openvpn assets
-generate_ca "openvpn-ca"
-generate_client_key_cert "openvpn-ca" "openvpn-server" "server" "kubernetes"
-
-"openvpn-server,
-openvpn-server.${NAMESPACE}.svc,
-${EXTERNAL_API_DNS_NAME}:${OPENVPN_NODEPORT}"
-
-generate_client_key_cert "openvpn-ca" "openvpn-kube-apiserver-client" "kube-apiserver" "kubernetes"
-generate_client_key_cert "openvpn-ca" "openvpn-worker-client" "worker" "kubernetes"
-if [ ! -e "openvpn-dh.pem" ]; then
-  # this might be slow, lots of entropy required
-  openssl dhparam -out openvpn-dh.pem 2048
-fi
-*/

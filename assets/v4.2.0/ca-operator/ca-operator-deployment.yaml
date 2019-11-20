@@ -31,7 +31,7 @@ spec:
         app: ca-operator
     spec:
       containers:
-      - image: {{ imageFor "cli" }}
+      - image: ${CLI_IMAGE}
         imagePullPolicy: IfNotPresent
         name: ca-operator
         command:
@@ -41,36 +41,39 @@ spec:
         - |-
           #!/bin/bash
           set -e
-
           while(true); do
-            # Use the internal cluster's kubeconfig to collect router CA
-            # The need for this is a bug in the console component
-            # https://bugzilla.redhat.com/show_bug.cgi?id=1764704
-            export KUBECONFIG=/etc/kubernetes/kubeconfig
+            # Use the internal cluster's kubeconfig to collect router and service CA
+            export KUBECONFIG=/etc/kubernetes/kubeconfig/kubeconfig
             if ! oc get cm -n openshift-config-managed router-ca -o jsonpath='{ .data.ca-bundle\.crt }' > /tmp/router.ca; then
                echo "Cannot fetch router-ca yet. Will continue to wait"
                sleep 30
                continue
             fi
-            cat /etc/kubernetes/ca.crt /tmp/router.ca > /tmp/kcm.ca
-
+            if ! oc get cm -n openshift-config-managed service-ca -o jsonpath='{ .data.ca-bundle\.crt }' > /tmp/service.ca; then
+               echo "Cannot fetch service-ca yet. Will continue to wait"
+               sleep 30
+               continue
+            fi
+            cat /etc/kubernetes/config/initial-ca.crt /tmp/router.ca /tmp/service.ca > /tmp/kcm.ca
             CHECKSUM="$(python -c "import hashlib;print hashlib.md5(open('/tmp/kcm.ca').read()).hexdigest()")"
-
             # Switch to the management cluster and apply latest CA
             unset KUBECONFIG
             export KCM_CA="$(cat /tmp/kcm.ca | base64 | tr -d '\n')"
             oc patch secret kube-controller-manager --type=json --patch "[{\"op\": \"replace\", \"path\": \"/data/ca.crt\", \"value\":\"${KCM_CA}\"}]"
             oc patch deployment kube-controller-manager  --type=json --patch "[{\"op\": \"replace\", \"path\": \"/spec/template/metadata/annotations\", \"value\":{\"ca-checksum\":\"${CHECKSUM}\"}}]"
-
             sleep 30
           done
         volumeMounts:
-        - mountPath: /etc/kubernetes
-          name: secret
-          readOnly: true
+        - mountPath: /etc/kubernetes/kubeconfig
+          name: kubeconfig
+        - mountPath: /etc/kubernetes/config
+          name: config
       restartPolicy: Always
       serviceAccountName: ca-operator
       volumes:
-      - name: secret
+      - name: kubeconfig
         secret:
-          secretName: ca-operator-secret
+          secretName: service-network-admin-kubeconfig
+      - name: config
+        configMap:
+          name: ca-operator

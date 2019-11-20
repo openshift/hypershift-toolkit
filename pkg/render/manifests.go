@@ -3,101 +3,69 @@ package render
 import (
 	"bytes"
 	"encoding/base64"
-	"io/ioutil"
 	"path"
-	"path/filepath"
 	"strings"
 	"text/template"
-
-	"github.com/pkg/errors"
 
 	"github.com/openshift/hypershift-toolkit/pkg/api"
 	assets "github.com/openshift/hypershift-toolkit/pkg/assets/v420_assets"
 	"github.com/openshift/hypershift-toolkit/pkg/release"
 )
 
-type renderContext struct {
-	outputDir         string
-	params            *api.ClusterParams
-	funcs             template.FuncMap
-	manifestFiles     []string
-	manifests         map[string]string
-	userManifestFiles []string
-	userManifests     map[string]string
-}
-
-func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir, pkiDir string) error {
+// RenderClusterManifests renders manifests for a hosted control plane cluster
+func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, etcd bool, autoApprover bool, vpn bool) error {
 	images, err := release.GetReleaseImagePullRefs(params.ReleaseImage, pullSecretFile)
 	if err != nil {
 		return err
 	}
-	renderContext := &renderContext{
-		params:        params,
-		outputDir:     outputDir,
-		manifests:     make(map[string]string),
+	ctx := newClusterManifestContext(images, params, outputDir, vpn)
+	ctx.setupManifests(etcd, autoApprover, vpn)
+	return ctx.renderManifests()
+}
+
+type clusterManifestContext struct {
+	*renderContext
+	userManifestFiles []string
+	userManifests     map[string]string
+}
+
+func newClusterManifestContext(images map[string]string, params interface{}, outputDir string, includeVPN bool) *clusterManifestContext {
+	ctx := &clusterManifestContext{
+		renderContext: newRenderContext(params, outputDir),
 		userManifests: make(map[string]string),
 	}
-	renderContext.funcs = template.FuncMap{
-		"imageFor": imageFunc(images),
-		"pki":      pkiFunc(pkiDir),
-		"base64":   base64Func(params, renderContext),
-		"address":  cidrAddress,
-		"mask":     cidrMask,
+	ctx.setFuncs(template.FuncMap{
+		"imageFor":   imageFunc(images),
+		"base64":     base64Func(params, ctx.renderContext),
+		"address":    cidrAddress,
+		"mask":       cidrMask,
+		"include":    includeFileFunc(params, ctx.renderContext),
+		"includeVPN": includeVPNFunc(includeVPN),
+	})
+	return ctx
+}
+
+func (c *clusterManifestContext) setupManifests(etcd bool, autoApprover bool, vpn bool) {
+	if etcd {
+		c.etcd()
 	}
-	renderContext.setupManifests()
-	return renderContext.renderManifests()
-}
-
-func (c *renderContext) renderManifests() error {
-	for _, f := range c.manifestFiles {
-		outputFile := filepath.Join(c.outputDir, path.Base(f))
-		content, err := c.substituteParams(c.params, f)
-		if err != nil {
-			return errors.Wrapf(err, "cannot render %s", f)
-		}
-		ioutil.WriteFile(outputFile, []byte(content), 0644)
-	}
-
-	for name, content := range c.manifests {
-		outputFile := filepath.Join(c.outputDir, name)
-		ioutil.WriteFile(outputFile, []byte(content), 0644)
-	}
-
-	return nil
-}
-
-func (c *renderContext) addManifestFiles(name ...string) {
-	c.manifestFiles = append(c.manifestFiles, name...)
-}
-
-func (c *renderContext) addManifest(name, content string) {
-	c.manifests[name] = content
-}
-
-func (c *renderContext) addUserManifestFiles(name ...string) {
-	c.userManifestFiles = append(c.userManifestFiles, name...)
-}
-
-func (c *renderContext) addUserManifest(name, content string) {
-	c.userManifests[name] = content
-}
-
-func (c *renderContext) setupManifests() {
-	c.etcd()
 	c.kubeAPIServer()
 	c.kubeControllerManager()
 	c.kubeScheduler()
 	c.clusterBootstrap()
 	c.openshiftAPIServer()
 	c.openshiftControllerManager()
-	c.openVPN()
+	if vpn {
+		c.openVPN()
+	}
 	c.clusterVersionOperator()
-	c.autoApprover()
-	c.caOperator()
+	if autoApprover {
+		c.autoApprover()
+	}
 	c.userManifestsBootstrapper()
 }
 
-func (c *renderContext) etcd() {
+func (c *clusterManifestContext) etcd() {
 	c.addManifestFiles(
 		"etcd/etcd-cluster-crd.yaml",
 		"etcd/etcd-cluster.yaml",
@@ -106,47 +74,32 @@ func (c *renderContext) etcd() {
 		"etcd/etcd-operator.yaml",
 	)
 
-	for _, secret := range []string{"etcd-client", "server", "peer"} {
-		file := secret
-		if file != "etcd-client" {
-			file = "etcd-" + secret
-		}
-		params := map[string]string{
-			"secret": secret,
-			"file":   file,
-		}
-		content, err := c.substituteParams(params, "etcd/etcd-secret-template.yaml")
-		if err != nil {
-			panic(err.Error())
-		}
-		c.addManifest(file+"-tls-secret.yaml", content)
-	}
 }
 
-func (c *renderContext) kubeAPIServer() {
+func (c *clusterManifestContext) kubeAPIServer() {
 	c.addManifestFiles(
 		"kube-apiserver/kube-apiserver-deployment.yaml",
 		"kube-apiserver/kube-apiserver-service.yaml",
-		"kube-apiserver/kube-apiserver-secret.yaml",
-		"kube-apiserver/openvpn-client-secret.yaml",
+		"kube-apiserver/kube-apiserver-config-configmap.yaml",
+		"kube-apiserver/kube-apiserver-oauth-metadata-configmap.yaml",
 	)
 }
 
-func (c *renderContext) kubeControllerManager() {
+func (c *clusterManifestContext) kubeControllerManager() {
 	c.addManifestFiles(
 		"kube-controller-manager/kube-controller-manager-deployment.yaml",
-		"kube-controller-manager/kube-controller-manager-secret.yaml",
+		"kube-controller-manager/kube-controller-manager-config-configmap.yaml",
 	)
 }
 
-func (c *renderContext) kubeScheduler() {
+func (c *clusterManifestContext) kubeScheduler() {
 	c.addManifestFiles(
 		"kube-scheduler/kube-scheduler-deployment.yaml",
-		"kube-scheduler/kube-scheduler-secret.yaml",
+		"kube-scheduler/kube-scheduler-config-configmap.yaml",
 	)
 }
 
-func (c *renderContext) clusterBootstrap() {
+func (c *clusterManifestContext) clusterBootstrap() {
 	manifests, err := assets.AssetDir("cluster-bootstrap")
 	if err != nil {
 		panic(err.Error())
@@ -156,11 +109,11 @@ func (c *renderContext) clusterBootstrap() {
 	}
 }
 
-func (c *renderContext) openshiftAPIServer() {
+func (c *clusterManifestContext) openshiftAPIServer() {
 	c.addManifestFiles(
 		"openshift-apiserver/openshift-apiserver-deployment.yaml",
 		"openshift-apiserver/openshift-apiserver-service.yaml",
-		"openshift-apiserver/openshift-apiserver-secret.yaml",
+		"openshift-apiserver/openshift-apiserver-config-configmap.yaml",
 	)
 	c.addUserManifestFiles(
 		"openshift-apiserver/openshift-apiserver-user-service.yaml",
@@ -193,10 +146,10 @@ func (c *renderContext) openshiftAPIServer() {
 	c.addUserManifest("openshift-apiserver-apiservices.yaml", apiServices.String())
 }
 
-func (c *renderContext) openshiftControllerManager() {
+func (c *clusterManifestContext) openshiftControllerManager() {
 	c.addManifestFiles(
 		"openshift-controller-manager/openshift-controller-manager-deployment.yaml",
-		"openshift-controller-manager/openshift-controller-manager-secret.yaml",
+		"openshift-controller-manager/openshift-controller-manager-config-configmap.yaml",
 	)
 	c.addUserManifestFiles(
 		"openshift-controller-manager/00-openshift-controller-manager-namespace.yaml",
@@ -204,47 +157,37 @@ func (c *renderContext) openshiftControllerManager() {
 	)
 }
 
-func (c *renderContext) openVPN() {
+func (c *clusterManifestContext) caOperator() {
 	c.addManifestFiles(
-		"openvpn/openvpn-server-secret.yaml",
-		"openvpn/openvpn-ccd-secret.yaml",
+		"ca-operator/ca-operator-deployment.yaml",
+	)
+}
+
+func (c *clusterManifestContext) openVPN() {
+	c.addManifestFiles(
 		"openvpn/openvpn-server-deployment.yaml",
 		"openvpn/openvpn-server-service.yaml",
-		"openvpn/openvpn-client-secret.yaml",
 	)
 	c.addUserManifestFiles(
 		"openvpn/openvpn-client-deployment.yaml",
 	)
 }
 
-func (c *renderContext) clusterVersionOperator() {
+func (c *clusterManifestContext) clusterVersionOperator() {
 	c.addManifestFiles(
-		"cluster-version-operator/cluster-version-operator-secret.yaml",
 		"cluster-version-operator/cluster-version-operator-deployment.yaml",
 	)
-	c.addUserManifestFiles(
-		"cluster-version-operator/cluster-version-namespace.yaml",
-	)
 }
 
-func (c *renderContext) autoApprover() {
+func (c *clusterManifestContext) autoApprover() {
 	c.addManifestFiles(
 		"auto-approver/auto-approver-deployment.yaml",
-		"auto-approver/auto-approver-secret.yaml",
 	)
 }
 
-func (c *renderContext) caOperator() {
-	c.addManifestFiles(
-		"ca-operator/ca-operator-deployment.yaml",
-		"ca-operator/ca-operator-secret.yaml",
-	)
-}
-
-func (c *renderContext) userManifestsBootstrapper() {
+func (c *clusterManifestContext) userManifestsBootstrapper() {
 	c.addManifestFiles(
 		"user-manifests-bootstrapper/user-manifests-bootstrapper-pod.yaml",
-		"user-manifests-bootstrapper/user-manifests-bootstrapper-secret.yaml",
 	)
 	for _, file := range c.userManifestFiles {
 		data, err := c.substituteParams(c.params, file)
@@ -276,15 +219,12 @@ func (c *renderContext) userManifestsBootstrapper() {
 	}
 }
 
-func (c *renderContext) substituteParams(data interface{}, fileName string) (string, error) {
-	out := &bytes.Buffer{}
-	asset := assets.MustAsset(fileName)
-	t := template.Must(template.New("template").Funcs(c.funcs).Parse(string(asset)))
-	err := t.Execute(out, data)
-	if err != nil {
-		panic(err.Error())
-	}
-	return out.String(), nil
+func (c *clusterManifestContext) addUserManifestFiles(name ...string) {
+	c.userManifestFiles = append(c.userManifestFiles, name...)
+}
+
+func (c *clusterManifestContext) addUserManifest(name, content string) {
+	c.userManifests[name] = content
 }
 
 func trimFirstSegment(s string) string {

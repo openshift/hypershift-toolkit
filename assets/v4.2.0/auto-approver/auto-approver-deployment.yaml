@@ -7,7 +7,7 @@ spec:
   - image: {{ imageFor "cli" }}
     env:
     - name: KUBECONFIG
-      value: /var/run/secrets/kubeconfig/kubeconfig
+      value: /etc/openshift/kubeconfig/kubeconfig
     imagePullPolicy: IfNotPresent
     name: autoapprover
     command:
@@ -24,11 +24,11 @@ spec:
          sleep 10
       done
     volumeMounts:
-    - mountPath: /var/run/secrets/kubeconfig
+    - mountPath: /etc/openshift/kubeconfig
       name: kubeconfig
       readOnly: true
   restartPolicy: Always
   volumes:
   - name: kubeconfig
     secret:
-      secretName: auto-approver-secret
+      secretName: service-network-admin-kubeconfig

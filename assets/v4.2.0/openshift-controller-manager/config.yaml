@@ -13,8 +13,8 @@ dockerPullSecret:
 ingress:
   ingressIPNetworkCIDR: ''
 kubeClientConfig:
-  kubeConfig: /etc/kubernetes/kubeconfig
+  kubeConfig: /etc/kubernetes/secret/kubeconfig
 servingInfo:
-  certFile: /etc/kubernetes/server.crt
-  keyFile: /etc/kubernetes/server.key
-  clientCA: /etc/kubernetes/ca.crt
+  certFile: /etc/kubernetes/secret/server.crt
+  keyFile: /etc/kubernetes/secret/server.key
+  clientCA: /etc/kubernetes/config/serving-ca.crt

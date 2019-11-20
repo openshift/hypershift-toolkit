@@ -36,12 +36,12 @@ spec:
       for name in $(oc get cm | grep '^user-manifest-' | awk '{ print $1 }'); do
          oc get cm ${name} -o jsonpath='{ .binaryData.data }' > "${name}.yaml"
       done
-      export KUBECONFIG=/var/run/secrets/kubeconfig/kubeconfig
+      export KUBECONFIG=/etc/openshift/kubeconfig
       oc apply -f $(pwd)
       # Create the global certs configmap here because it's too large to oc apply
       oc create configmap -n openshift-controller-manager openshift-global-ca --from-file ca-bundle.crt=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
     volumeMounts:
-    - mountPath: /var/run/secrets/kubeconfig
+    - mountPath: /etc/openshift
       name: kubeconfig
       readOnly: true
     - mountPath: /work
@@ -51,6 +51,6 @@ spec:
   volumes:
   - name: kubeconfig
     secret:
-      secretName: user-manifests-bootstrapper-secret
+      secretName: service-network-admin-kubeconfig
   - name: work
     emptyDir: {}

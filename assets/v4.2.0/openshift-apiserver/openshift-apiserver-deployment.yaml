@@ -18,10 +18,14 @@ spec:
         image: {{ imageFor "openshift-apiserver" }}
         args:
         - "start"
-        - "--config=/etc/kubernetes/config.yaml"
+        - "--config=/etc/kubernetes/apiserver-config/config.yaml"
         volumeMounts:
-        - mountPath: /etc/kubernetes/
+        - mountPath: /etc/kubernetes/secret
           name: secret
+        - mountPath: /etc/kubernetes/apiserver-config
+          name: apiserver-config
+        - mountPath: /etc/kubernetes/config
+          name: config
         - mountPath: /var/run/kubernetes
           name: logs
         workingDir: /var/run/kubernetes
@@ -29,5 +33,11 @@ spec:
       - secret:
           secretName: openshift-apiserver
         name: secret
+      - configMap:
+          name: openshift-apiserver
+        name: config
+      - configMap:
+          name: openshift-apiserver-config
+        name: apiserver-config
       - emptyDir: {}
         name: logs

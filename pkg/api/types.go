@@ -11,7 +11,6 @@ type ClusterParams struct {
 	PodCIDR                 string `json:"podCIDR"`
 	ReleaseImage            string `json:"releaseImage"`
 	APINodePort             uint   `json:"apiNodePort"`
-	OAuthRoute              string `json:"oauthRoute"`
 	IngressSubdomain        string `json:"ingressSubdomain"`
 	OpenShiftAPIClusterIP   string `json:"openshiftAPIClusterIP"`
 	ImageRegistryHTTPSecret string `json:"imageRegistryHTTPSecret"`
