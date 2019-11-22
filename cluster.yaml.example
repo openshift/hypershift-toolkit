@@ -5,6 +5,11 @@ externalAPIAddress: 10.0.0.1
 externalVPNDNSName: vpn.hosted.example.com
 externalVPNPort: 3118
 serviceCIDR: 172.31.0.0/16
+namedCerts:
+  - namedCertPrefix: /etc/kubernetes/secret/cert1
+    namedCertDomain: c1.hosted.example.com
+  - namedCertPrefix: /etc/kubernetes/secret/cert2
+    namedCertDomain: c2.hosted.example.com
 podCIDR: 10.32.0.0/14
 releaseImage: quay.io/openshift-release-dev/ocp-release:4.2.0
 apiNodePort: 32323

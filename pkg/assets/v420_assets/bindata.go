@@ -12992,7 +12992,7 @@ admission:
       configuration:
         allowIngressIP: false
         apiVersion: network.openshift.io/v1
-        externalIPNetworkCIDRs: 
+        externalIPNetworkCIDRs:
         kind: ExternalIPRangerAdmissionConfig
       location: ''
     network.openshift.io/RestrictedEndpointsAdmission:
@@ -13074,7 +13074,7 @@ authConfig:
     - X-Remote-Group
     usernameHeaders:
     - X-Remote-User
-  webhookTokenAuthenticators: 
+  webhookTokenAuthenticators:
 consolePublicURL: ''
 corsAllowedOrigins:
 - "//127\\.0\\.0\\.1(:|$)"
@@ -13100,6 +13100,15 @@ servingInfo:
   keyFile: "/etc/kubernetes/secret/server.key"
   maxRequestsInFlight: 1200
   requestTimeoutSeconds: 3600
+{{ if .NamedCerts }}
+  namedCertificates:
+  {{ range .NamedCerts }}
+  - certFile: {{ .NamedCertPrefix }}.crt
+    keyFile: {{ .NamedCertPrefix }}.key
+    names:
+    - {{ .NamedCertDomain }}
+  {{ end }}
+{{ end }}
 storageConfig:
   ca: "/etc/kubernetes/config/etcd-ca.crt"
   certFile: "/etc/kubernetes/secret/etcd-client.crt"
@@ -13108,9 +13117,8 @@ storageConfig:
   - https://etcd-client:2379
 userAgentMatchingConfig:
   defaultRejectionMessage: ''
-  deniedClients: 
-  requiredClients: 
-`)
+  deniedClients:
+  requiredClients:`)
 
 func kubeApiserverConfigYamlBytes() ([]byte, error) {
 	return _kubeApiserverConfigYaml, nil
@@ -13160,7 +13168,7 @@ data:
 {{ include_pki "root-ca.crt" 4 }}
   kubelet-client-ca.crt: |-
 {{ include_pki "root-ca.crt" 4 }}
-  service-account.crt: |-
+  service-account.pub: |-
 {{ include_pki "service-account.pub" 4 }}
   serving-ca.crt: |-
 {{ include_pki "combined-ca.crt" 4 }}
