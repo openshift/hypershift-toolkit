@@ -19,8 +19,9 @@ type ClusterParams struct {
 	RouterNodePortHTTPS     string       `json:"routerNodePortHTTPS"`
 	OpenVPNNodePort         string       `json:"openVPNNodePort"`
 	BaseDomain              string       `json:"baseDomain"`
-	NetworkType				string		 `json:"networkType"`
-	Replicas				string 	     `json:"replicas"`
+	NetworkType             string       `json:"networkType"`
+	Replicas                string       `json:"replicas"`
+	EtcdClientName          string       `json:"etcdClientName"`
 }
 
 type NamedCert struct {

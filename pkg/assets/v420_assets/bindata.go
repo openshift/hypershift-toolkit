@@ -13114,7 +13114,7 @@ storageConfig:
   certFile: "/etc/kubernetes/secret/etcd-client.crt"
   keyFile: "/etc/kubernetes/secret/etcd-client.key"
   urls:
-  - https://etcd-client:2379
+  - https://{{ .EtcdClientName }}:2379
 userAgentMatchingConfig:
   defaultRejectionMessage: ''
   deniedClients:
@@ -13863,7 +13863,7 @@ routingConfig:
   subdomain: {{ .IngressSubdomain }}
 storageConfig:
   urls:
-  - https://etcd-client:2379
+  - https://{{ .EtcdClientName }}:2379
   certFile: /etc/kubernetes/secret/etcd-client.crt
   keyFile: /etc/kubernetes/secret/etcd-client.key
   ca: /etc/kubernetes/config/etcd-ca.crt

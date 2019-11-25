@@ -2,8 +2,10 @@ namespace: hosted
 externalAPIDNSName: api.hosted.example.com
 externalAPIPort: 6443
 externalAPIAddress: 10.0.0.1
+externalVPNDNSName: vpn.hosted.example.com
+externalVPNPort: 3118
 serviceCIDR: 172.31.0.0/16
-x namedCerts:
+namedCerts:
   - namedCertPrefix: /etc/kubernetes/secret/cert1
     namedCertDomain: c1.hosted.example.com
   - namedCertPrefix: /etc/kubernetes/secret/cert2
@@ -11,9 +13,10 @@ x namedCerts:
 podCIDR: 10.32.0.0/14
 releaseImage: quay.io/openshift-release-dev/ocp-release:4.2.0
 apiNodePort: 32323
-x openVPNNodePort: 32324
+openVPNNodePort: 32324
 ingressSubdomain: apps.hosted.example.com
 openshiftAPIClusterIP: 172.30.0.20
 baseDomain: example.com
 networkType: OpenShiftSDN
 replicas: 1
+etcdClientName: etcd-client
