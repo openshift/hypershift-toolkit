@@ -3,7 +3,7 @@ apiVersion: apps/v1
 metadata:
   name: openshift-apiserver
 spec:
-  replicas: 1
+  replicas: {{ .Replicas }}
   selector:
     matchLabels:
       app: openshift-apiserver
