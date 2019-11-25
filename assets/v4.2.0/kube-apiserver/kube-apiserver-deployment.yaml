@@ -43,8 +43,6 @@ spec:
           name: apiserver-config
         - mountPath: /etc/kubernetes/config/
           name: config
-        - mountPath:
-          name:
         - mountPath: /etc/kubernetes/oauth/
           name: oauth
         - mountPath: /var/log/kube-apiserver/
