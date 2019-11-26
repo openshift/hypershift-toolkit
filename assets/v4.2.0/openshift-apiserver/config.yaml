@@ -5,7 +5,7 @@ aggregatorConfig:
   - kube-apiserver-proxy
   - system:kube-apiserver-proxy
   - system:openshift-aggregator
-  clientCA: "/etc/kubernetes/config/aggregator-ca.crt"
+  clientCA: "/etc/kubernetes/config/aggregator-client-ca.crt"
   extraHeaderPrefixes:
   - X-Remote-Extra-
   groupHeaders:

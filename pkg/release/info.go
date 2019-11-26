@@ -29,14 +29,12 @@ func GetReleaseImagePullRefs(image string, originReleasePrefix string, pullSecre
 	var newImagePrefix string
 	if !strings.Contains(image, originReleasePrefix) {
 		newImagePrefix = strings.Replace(image, ":", "-", -1)
-		fmt.Println(newImagePrefix)
 	}
 	result := make(map[string]string)
 	for _, tag := range info.References.Spec.Tags {
 		name := tag.From.Name
 		if len(newImagePrefix) > 0 {
 			name = fmt.Sprintf("%s@%s", newImagePrefix, strings.Split(tag.From.Name, "@")[1])
-			fmt.Println("NAME", name)
 		}
 
 		result[tag.Name] = name

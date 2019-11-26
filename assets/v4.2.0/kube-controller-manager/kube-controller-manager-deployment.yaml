@@ -20,7 +20,7 @@ spec:
         - kube-controller-manager
         args:
         - "--openshift-config=/etc/kubernetes/cmconfig/config.yaml"
-        - "--kubeconfig=/etc/kubernetes/kubeconfig/kubeconfig"
+        - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
         volumeMounts:
         - mountPath: /etc/kubernetes/cmconfig
           name: cmconfig

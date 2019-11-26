@@ -36,7 +36,7 @@ spec:
         workDir: /var/run/kubernetes
       volumes:
       - secret:
-          secretName: service-admin-kubeconfig
+          secretName: service-network-admin-kubeconfig
         name: secret
       - configMap:
           name: kube-scheduler-config

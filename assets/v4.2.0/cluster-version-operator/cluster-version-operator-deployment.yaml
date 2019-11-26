@@ -27,13 +27,13 @@ spec:
           name: work
       containers:
       - name: cluster-version-operator
-        image: {{ imageFor "cluster-version-operator" }}
+        image: {{ .ReleaseImage }}
         imagePullPolicy: Always
         command:
           - "/work/cluster-version-operator"
         args:
           - "start"
-          - "--release-image={{ imageFor "cluster-version-operator" }}"
+          - "--release-image={{ .ReleaseImage }}"
           - "--enable-auto-update=false"
           - "--enable-default-cluster-version=true"
           - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
