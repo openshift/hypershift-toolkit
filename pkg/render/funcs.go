@@ -103,3 +103,12 @@ func cidrMask(cidr string) string {
 	}
 	return fmt.Sprintf("%d.%d.%d.%d", m[0], m[1], m[2], m[3])
 }
+
+// randomString uses RawURLEncoding to ensure we do not get / characters or trailing ='s
+func randomString(size int) string {
+	// each byte (8 bits) gives us 4/3 base64 (6 bits) characters
+	// we account for that conversion and add one to handle truncation
+	b64size := base64.RawURLEncoding.DecodedLen(size) + 1
+	// trim down to the original requested size since we added one above
+	return base64.RawURLEncoding.EncodeToString(randomBytes(b64size))[:size]
+}

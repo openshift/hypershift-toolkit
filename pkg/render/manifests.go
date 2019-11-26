@@ -35,17 +35,18 @@ func newClusterManifestContext(images map[string]string, params interface{}, out
 		userManifests: make(map[string]string),
 	}
 	ctx.setFuncs(template.FuncMap{
-		"imageFor":   imageFunc(images),
-		"base64":     base64Func(params, ctx.renderContext),
-		"address":    cidrAddress,
-		"mask":       cidrMask,
-		"include":    includeFileFunc(params, ctx.renderContext),
-		"includeVPN": includeVPNFunc(includeVPN),
+		"imageFor":     imageFunc(images),
+		"base64":       base64Func(params, ctx.renderContext),
+		"address":      cidrAddress,
+		"mask":         cidrMask,
+		"include":      includeFileFunc(params, ctx.renderContext),
+		"includeVPN":   includeVPNFunc(includeVPN),
+		"randomString": randomString,
 	})
 	return ctx
 }
 
-func (c *clusterManifestContext) setupManifests(etcd bool, autoApprover bool, vpn bool) {
+func (c *clusterManifestContext) setupManifests(etcd bool, autoApprover bool, vpn bool, externalOauth bool) {
 	if etcd {
 		c.etcd()
 	}
@@ -55,6 +56,9 @@ func (c *clusterManifestContext) setupManifests(etcd bool, autoApprover bool, vp
 	c.clusterBootstrap()
 	c.openshiftAPIServer()
 	c.openshiftControllerManager()
+	if externalOauth {
+		c.oauthOpenshiftServer()
+	}
 	if vpn {
 		c.openVPN()
 	}
@@ -72,6 +76,19 @@ func (c *clusterManifestContext) etcd() {
 		"etcd/etcd-operator-cluster-role-binding.yaml",
 		"etcd/etcd-operator-cluster-role.yaml",
 		"etcd/etcd-operator.yaml",
+	)
+
+}
+
+func (c *clusterManifestContext) oauthOpenshiftServer() {
+	c.addManifestFiles(
+		"oauth-openshift/oauth-browser-client.yaml",
+		"oauth-openshift/oauth-challenging-client.yaml",
+		"oauth-openshift/oauth-server-configmap.yaml",
+		"oauth-openshift/oauth-server-deployment.yaml",
+		"oauth-openshift/oauth-server-secret.yaml",
+		"oauth-openshift/oauth-server-service.yaml",
+		"oauth-openshift/v4-0-config-system-branding.yaml",
 	)
 
 }
