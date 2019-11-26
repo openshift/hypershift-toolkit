@@ -90,7 +90,6 @@ func (c *clusterManifestContext) oauthOpenshiftServer() {
 		"oauth-openshift/oauth-server-service.yaml",
 		"oauth-openshift/v4-0-config-system-branding.yaml",
 	)
-
 }
 
 func (c *clusterManifestContext) kubeAPIServer() {
