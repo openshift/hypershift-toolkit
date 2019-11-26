@@ -23,13 +23,13 @@ spec:
               matchExpressions:
                 - key: app
                   operator: In
-                  values: ["openshift-controller-manager"]
+                  values: ["kube-controller-manager"]
             topologyKey: "kubernetes.io/hostname"
           - labelSelector:
               matchExpressions:
                 - key: app
                   operator: In
-                  values: ["openshift-controller-manager"]
+                  values: ["kube-controller-manager"]
             topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
       - name: kube-controller-manager

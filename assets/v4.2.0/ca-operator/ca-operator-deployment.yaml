@@ -41,13 +41,13 @@ spec:
               matchExpressions:
                 - key: app
                   operator: In
-                  values: ["openshift-controller-manager"]
+                  values: ["ca-operator"]
             topologyKey: "kubernetes.io/hostname"
           - labelSelector:
               matchExpressions:
                 - key: app
                   operator: In
-                  values: ["openshift-controller-manager"]
+                  values: ["ca-operator"]
             topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
       - image: ${CLI_IMAGE}
