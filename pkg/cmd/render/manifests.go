@@ -34,7 +34,7 @@ func NewRenderManifestsCommand() *cobra.Command {
 			}
 		},
 	}
-	cmd.Flags().StringVar(&opt.OutputDir, "output-dir", defaultManifestsDir(), "Specify the directory where PKI artifacts should be output")
+	cmd.Flags().StringVar(&opt.OutputDir, "output-dir", defaultManifestsDir(), "Specify the directory where manifest files should be output")
 	cmd.Flags().StringVar(&opt.ConfigFile, "config", defaultConfigFile(), "Specify the config file for this cluster")
 	cmd.Flags().StringVar(&opt.PullSecretFile, "pull-secret", defaultPullSecretFile(), "Specify the config file for this cluster")
 	cmd.Flags().StringVar(&opt.PKIDir, "pki-dir", defaultPKIDir(), "Specify the directory where the input PKI files have been placed")

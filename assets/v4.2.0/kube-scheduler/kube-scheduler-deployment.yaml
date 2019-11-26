@@ -3,7 +3,7 @@ apiVersion: apps/v1
 metadata:
   name: kube-scheduler
 spec:
-  replicas: 1
+  replicas: {{ .Replicas }}
   selector:
     matchLabels:
       app: kube-scheduler
@@ -12,6 +12,25 @@ spec:
       labels:
         app: kube-scheduler
     spec:
+      tolerations:
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values: ["kube-scheduler"]
+            topologyKey: "kubernetes.io/hostname"
+          - labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values: ["kube-scheduler"]
+            topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
       containers:
       - name: kube-scheduler
@@ -36,7 +55,7 @@ spec:
         workDir: /var/run/kubernetes
       volumes:
       - secret:
-          secretName: service-admin-kubeconfig
+          secretName: service-network-admin-kubeconfig
         name: secret
       - configMap:
           name: kube-scheduler-config
