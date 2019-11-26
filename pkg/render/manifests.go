@@ -14,7 +14,7 @@ import (
 
 // RenderClusterManifests renders manifests for a hosted control plane cluster
 func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, etcd bool, autoApprover bool, vpn bool) error {
-	images, err := release.GetReleaseImagePullRefs(params.ReleaseImage, pullSecretFile)
+	images, err := release.GetReleaseImagePullRefs(params.ReleaseImage, params.OriginReleasePrefix, pullSecretFile)
 	if err != nil {
 		return err
 	}
