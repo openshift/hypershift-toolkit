@@ -13,6 +13,25 @@ spec:
       labels:
         k8s-app: cluster-version-operator
     spec:
+      tolerations:
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values: ["openshift-controller-manager"]
+            topologyKey: "kubernetes.io/hostname"
+          - labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values: ["openshift-controller-manager"]
+            topologyKey: "failure-domain.beta.kubernetes.io/zone"
       initContainers:
       - name: setup
         image: quay.io/csrwng/origin-cluster-version-operator:hosted_annotations
