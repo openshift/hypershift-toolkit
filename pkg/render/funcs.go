@@ -121,3 +121,12 @@ func randomBytes(size int) []byte {
 	}
 	return b
 }
+
+func indent(spaces int, v string) string {
+	pad := strings.Repeat(" ", spaces)
+	return pad + strings.Replace(v, "\n", "\n"+pad, -1)
+}
+
+func base64StringEncode(inputString string) string {
+	return base64.StdEncoding.EncodeToString([]byte(inputString))
+}

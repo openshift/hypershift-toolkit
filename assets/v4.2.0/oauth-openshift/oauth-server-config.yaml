@@ -25,12 +25,10 @@ oauthConfig:
   grantConfig:
     method: deny
     serviceAccountMethod: prompt
-{{ if .IdentityProviders }}
-identityProviders:
-  {{ .IdentityProviders }}
-{{else}}
-  identityProviders: []
-{{end}}
+{{ if .IdentityProviders }}  identityProviders:
+{{ .IdentityProviders | indent 2 }}
+{{- else }}  identityProviders: []
+{{- end -}}
   loginURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalAPIPort }}
   masterCA: "/etc/oauth-openshift-config/ca.crt"
   masterPublicURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}

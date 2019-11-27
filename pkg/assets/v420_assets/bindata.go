@@ -14021,15 +14021,13 @@ oauthConfig:
   grantConfig:
     method: deny
     serviceAccountMethod: prompt
-{{ if .IdentityProviders }}
-identityProviders:
-  {{ .IdentityProviders }}
-{{else}}
-  identityProviders: []
-{{end}}
+{{ if .IdentityProviders }}  identityProviders:
+{{ .IdentityProviders | indent 2 }}
+{{- else }}  identityProviders: []
+{{- end -}}
   loginURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalAPIPort }}
   masterCA: "/etc/oauth-openshift-config/ca.crt"
-  masterPublicURL: https://{{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}
+  masterPublicURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}
   masterURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}
   sessionConfig:
     sessionMaxAgeSeconds: 300
@@ -14279,7 +14277,7 @@ kind: Secret
 metadata:
   name: oauth-openshift-sessionsecret
 data:
-  v4-0-config-system-session: {{ include "oauth-openshift/v4-0-config-system-session.json" | base64  }}
+  v4-0-config-system-session: {{ include "oauth-openshift/v4-0-config-system-session.json" 0 | base64String  }}
 `)
 
 func oauthOpenshiftOauthServerSessionsecretSecretYamlBytes() ([]byte, error) {
@@ -14327,7 +14325,7 @@ var _oauthOpenshiftV40ConfigSystemSessionJson = []byte(`{
   "apiVersion": "v1",
   "secrets": [
     {
-      "authentication": "{{ randomString 64  }}",
+      "authentication": "{{ randomString 64 }}",
       "encryption": "{{ randomString 32  }}"
     }
   ]

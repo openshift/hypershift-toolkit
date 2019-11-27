@@ -21,7 +21,7 @@ openshiftAPIClusterIP: 172.30.0.20
 baseDomain: example.com
 networkType: OpenShiftSDN
 replicas: 1
-identityProviders : |-
+identityProviders: |
   - challenge: true
     login: true
     mappingMethod: lookup
@@ -51,4 +51,5 @@ identityProviders : |-
         authorize: https://iam.test.cloud.ibm.com/identity/authorize
         token: https://iam.test.cloud.ibm.com/identity/token
         userInfo: https://iam.test.cloud.ibm.com/identity/userinfo
+
 

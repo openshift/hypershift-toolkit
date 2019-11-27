@@ -40,7 +40,8 @@ func newClusterManifestContext(images map[string]string, params interface{}, out
 	}
 	ctx.setFuncs(template.FuncMap{
 		"imageFor":     imageFunc(images),
-		"base64":       base64Func(params, ctx.renderContext),
+		"base64String": base64StringEncode,
+		"indent": indent,
 		"address":      cidrAddress,
 		"mask":         cidrMask,
 		"include":      includeFileFunc(params, ctx.renderContext),
@@ -91,8 +92,8 @@ func (c *clusterManifestContext) oauthOpenshiftServer() {
 		"oauth-openshift/oauth-server-config-configmap.yaml",
 		"oauth-openshift/oauth-server-deployment.yaml",
 		"oauth-openshift/oauth-server-service.yaml",
-		"oauth-openshift/oauth-server-sessionsecret-secret.yaml",
 		"oauth-openshift/v4-0-config-system-branding.yaml",
+		"oauth-openshift/oauth-server-sessionsecret-secret.yaml",
 	)
 }
 
