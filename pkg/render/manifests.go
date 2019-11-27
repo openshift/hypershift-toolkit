@@ -19,7 +19,11 @@ func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir
 		return err
 	}
 	ctx := newClusterManifestContext(images, params, outputDir, vpn)
-	ctx.setupManifests(etcd, autoApprover, vpn)
+	externalOauth := false
+	if params.ExternalOauthPort != 0 {
+		externalOauth = true
+	}
+	ctx.setupManifests(etcd, autoApprover, vpn, externalOauth)
 	return ctx.renderManifests()
 }
 

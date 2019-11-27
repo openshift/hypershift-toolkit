@@ -21,7 +21,6 @@ type RenderManifestsOptions struct {
 	IncludeEtcd         bool
 	IncludeAutoApprover bool
 	IncludeVPN          bool
-	ExternalOauth       bool
 }
 
 func NewRenderManifestsCommand() *cobra.Command {
@@ -42,7 +41,6 @@ func NewRenderManifestsCommand() *cobra.Command {
 	cmd.Flags().BoolVar(&opt.IncludeEtcd, "include-etcd", false, "If true, Etcd manifests will be included in rendered manifests")
 	cmd.Flags().BoolVar(&opt.IncludeAutoApprover, "include-autoapprover", false, "If true, includes a simple autoapprover pod in manifests")
 	cmd.Flags().BoolVar(&opt.IncludeVPN, "include-vpn", false, "If true, includes a VPN server, sidecar and client")
-	cmd.Flags().BoolVar(&opt.ExternalOauth, "external-oauth", false, "If true, deploy oauth server in the management cluster and disables the cluster authentication operator")
 	return cmd
 }
 

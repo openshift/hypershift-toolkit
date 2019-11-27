@@ -3,6 +3,7 @@ package render
 import (
 	"bufio"
 	"bytes"
+	"crypto/rand"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
@@ -111,4 +112,12 @@ func randomString(size int) string {
 	b64size := base64.RawURLEncoding.DecodedLen(size) + 1
 	// trim down to the original requested size since we added one above
 	return base64.RawURLEncoding.EncodeToString(randomBytes(b64size))[:size]
+}
+
+func randomBytes(size int) []byte {
+	b := make([]byte, size)
+	if _, err := rand.Read(b); err != nil {
+		panic(err) // rand should never fail
+	}
+	return b
 }
