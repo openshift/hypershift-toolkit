@@ -33,7 +33,7 @@ identityProviders:
 {{end}}
   loginURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalAPIPort }}
   masterCA: "/etc/oauth-openshift-config/ca.crt"
-  masterPublicURL: https://{{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}
+  masterPublicURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}
   masterURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}
   sessionConfig:
     sessionMaxAgeSeconds: 300

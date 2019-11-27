@@ -66,11 +66,13 @@
 // assets/v4.2.0/kube-scheduler/kube-scheduler-secret.yaml
 // assets/v4.2.0/oauth-openshift/oauth-browser-client.yaml
 // assets/v4.2.0/oauth-openshift/oauth-challenging-client.yaml
+// assets/v4.2.0/oauth-openshift/oauth-server-config-configmap.yaml
 // assets/v4.2.0/oauth-openshift/oauth-server-config.yaml
 // assets/v4.2.0/oauth-openshift/oauth-server-configmap.yaml
 // assets/v4.2.0/oauth-openshift/oauth-server-deployment.yaml
 // assets/v4.2.0/oauth-openshift/oauth-server-secret.yaml
 // assets/v4.2.0/oauth-openshift/oauth-server-service.yaml
+// assets/v4.2.0/oauth-openshift/oauth-server-sessionsecret-secret.yaml
 // assets/v4.2.0/oauth-openshift/v4-0-config-system-branding.yaml
 // assets/v4.2.0/oauth-openshift/v4-0-config-system-session.json
 // assets/v4.2.0/openshift-apiserver/config.yaml
@@ -13968,6 +13970,30 @@ func oauthOpenshiftOauthChallengingClientYaml() (*asset, error) {
 	return a, nil
 }
 
+var _oauthOpenshiftOauthServerConfigConfigmapYaml = []byte(`apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth-openshift-config
+data:
+  config.yaml: |-
+{{ include "oauth-openshift/oauth-server-config.yaml" 4 }}
+`)
+
+func oauthOpenshiftOauthServerConfigConfigmapYamlBytes() ([]byte, error) {
+	return _oauthOpenshiftOauthServerConfigConfigmapYaml, nil
+}
+
+func oauthOpenshiftOauthServerConfigConfigmapYaml() (*asset, error) {
+	bytes, err := oauthOpenshiftOauthServerConfigConfigmapYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "oauth-openshift/oauth-server-config-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _oauthOpenshiftOauthServerConfigYaml = []byte(`apiVersion: osin.config.openshift.io/v1
 auditConfig:
   auditFilePath: ''
@@ -14008,7 +14034,7 @@ identityProviders:
   sessionConfig:
     sessionMaxAgeSeconds: 300
     sessionName: ssn
-    sessionSecretsFile: "/etc/oauth-openshift-secrets/v4-0-config-system-session"
+    sessionSecretsFile: "/etc/oauth-openshift-sessionsecret/v4-0-config-system-session"
   templates:
     error: "/var/config/system/secrets/v4-0-config-system-ocp-branding-template/errors.html"
     login: "/var/config/system/secrets/v4-0-config-system-ocp-branding-template/login.html"
@@ -14068,8 +14094,6 @@ kind: ConfigMap
 metadata:
   name: oauth-openshift
 data:
-  config.yaml: |-
-{{ include "oauth-openshift/oauth-server-config.yaml" 4 }}
   ca.crt: |-
 {{ include_pki "combined-ca.crt" 4 }}
 `)
@@ -14134,12 +14158,16 @@ spec:
           image: {{ imageFor "oauth-server" }}
           args:
             - "osinserver"
-            - "--config=/etc/oauth-openshift-config/config.yaml"
+            - "--config=/etc/oauth-openshift-configfile/config.yaml"
           volumeMounts:
             - mountPath: /etc/oauth-openshift-secrets/
               name: oauth-openshift-secrets
+            - mountPath: /etc/oauth-openshift-sessionsecret/
+              name: oauth-openshift-sessionsecret
             - mountPath: /etc/oauth-openshift-config/
               name: oauth-openshift-config
+            - mountPath: /etc/oauth-openshift-configfile/
+              name: oauth-openshift-configfile
             - mountPath: /var/run/kubernetes
               name: logs
             - mountPath: /var/config/system/secrets/v4-0-config-system-ocp-branding-template
@@ -14153,9 +14181,16 @@ spec:
         secret:
           defaultMode: 420
           secretName: oauth-openshift
+      - name: oauth-openshift-sessionsecret
+        secret:
+          defaultMode: 420
+          secretName: oauth-openshift-sessionsecret
       - name: oauth-openshift-config
         configMap:
           name: oauth-openshift
+      - name: oauth-openshift-configfile
+        configMap:
+          name: oauth-openshift-config
       - name: v4-0-config-system-ocp-branding-template
         secret:
           defaultMode: 420
@@ -14192,7 +14227,6 @@ data:
   kubeconfig: {{ pki "internal-admin.kubeconfig" }}
   server.crt: {{ pki "oauth-openshift.crt" }}
   server.key: {{ pki "oauth-openshift.key" }}
-  v4-0-config-system-session: {{ include "oauth-openshift/v4-0-config-system-session.json" | base64  }}
 `)
 
 func oauthOpenshiftOauthServerSecretYamlBytes() ([]byte, error) {
@@ -14221,6 +14255,7 @@ spec:
   - name: https
     port: 443
     targetPort: 6443
+    nodePort: {{ .ExternalOauthPort }}
   type: NodePort
 `)
 
@@ -14235,6 +14270,29 @@ func oauthOpenshiftOauthServerServiceYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "oauth-openshift/oauth-server-service.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _oauthOpenshiftOauthServerSessionsecretSecretYaml = []byte(`apiVersion: v1
+kind: Secret
+metadata:
+  name: oauth-openshift-sessionsecret
+data:
+  v4-0-config-system-session: {{ include "oauth-openshift/v4-0-config-system-session.json" | base64  }}
+`)
+
+func oauthOpenshiftOauthServerSessionsecretSecretYamlBytes() ([]byte, error) {
+	return _oauthOpenshiftOauthServerSessionsecretSecretYaml, nil
+}
+
+func oauthOpenshiftOauthServerSessionsecretSecretYaml() (*asset, error) {
+	bytes, err := oauthOpenshiftOauthServerSessionsecretSecretYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "oauth-openshift/oauth-server-sessionsecret-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -14269,7 +14327,7 @@ var _oauthOpenshiftV40ConfigSystemSessionJson = []byte(`{
   "apiVersion": "v1",
   "secrets": [
     {
-      "authentication": {{ randomString 64  }},
+      "authentication": "{{ randomString 64  }}",
       "encryption": "{{ randomString 32  }}"
     }
   ]
@@ -15439,11 +15497,13 @@ var _bindata = map[string]func() (*asset, error){
 	"kube-scheduler/kube-scheduler-secret.yaml":                                            kubeSchedulerKubeSchedulerSecretYaml,
 	"oauth-openshift/oauth-browser-client.yaml":                                            oauthOpenshiftOauthBrowserClientYaml,
 	"oauth-openshift/oauth-challenging-client.yaml":                                        oauthOpenshiftOauthChallengingClientYaml,
+	"oauth-openshift/oauth-server-config-configmap.yaml":                                   oauthOpenshiftOauthServerConfigConfigmapYaml,
 	"oauth-openshift/oauth-server-config.yaml":                                             oauthOpenshiftOauthServerConfigYaml,
 	"oauth-openshift/oauth-server-configmap.yaml":                                          oauthOpenshiftOauthServerConfigmapYaml,
 	"oauth-openshift/oauth-server-deployment.yaml":                                         oauthOpenshiftOauthServerDeploymentYaml,
 	"oauth-openshift/oauth-server-secret.yaml":                                             oauthOpenshiftOauthServerSecretYaml,
 	"oauth-openshift/oauth-server-service.yaml":                                            oauthOpenshiftOauthServerServiceYaml,
+	"oauth-openshift/oauth-server-sessionsecret-secret.yaml":                               oauthOpenshiftOauthServerSessionsecretSecretYaml,
 	"oauth-openshift/v4-0-config-system-branding.yaml":                                     oauthOpenshiftV40ConfigSystemBrandingYaml,
 	"oauth-openshift/v4-0-config-system-session.json":                                      oauthOpenshiftV40ConfigSystemSessionJson,
 	"openshift-apiserver/config.yaml":                                                      openshiftApiserverConfigYaml,
@@ -15600,15 +15660,17 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"kube-scheduler-secret.yaml":           {kubeSchedulerKubeSchedulerSecretYaml, map[string]*bintree{}},
 	}},
 	"oauth-openshift": {nil, map[string]*bintree{
-		"oauth-browser-client.yaml":        {oauthOpenshiftOauthBrowserClientYaml, map[string]*bintree{}},
-		"oauth-challenging-client.yaml":    {oauthOpenshiftOauthChallengingClientYaml, map[string]*bintree{}},
-		"oauth-server-config.yaml":         {oauthOpenshiftOauthServerConfigYaml, map[string]*bintree{}},
-		"oauth-server-configmap.yaml":      {oauthOpenshiftOauthServerConfigmapYaml, map[string]*bintree{}},
-		"oauth-server-deployment.yaml":     {oauthOpenshiftOauthServerDeploymentYaml, map[string]*bintree{}},
-		"oauth-server-secret.yaml":         {oauthOpenshiftOauthServerSecretYaml, map[string]*bintree{}},
-		"oauth-server-service.yaml":        {oauthOpenshiftOauthServerServiceYaml, map[string]*bintree{}},
-		"v4-0-config-system-branding.yaml": {oauthOpenshiftV40ConfigSystemBrandingYaml, map[string]*bintree{}},
-		"v4-0-config-system-session.json":  {oauthOpenshiftV40ConfigSystemSessionJson, map[string]*bintree{}},
+		"oauth-browser-client.yaml":              {oauthOpenshiftOauthBrowserClientYaml, map[string]*bintree{}},
+		"oauth-challenging-client.yaml":          {oauthOpenshiftOauthChallengingClientYaml, map[string]*bintree{}},
+		"oauth-server-config-configmap.yaml":     {oauthOpenshiftOauthServerConfigConfigmapYaml, map[string]*bintree{}},
+		"oauth-server-config.yaml":               {oauthOpenshiftOauthServerConfigYaml, map[string]*bintree{}},
+		"oauth-server-configmap.yaml":            {oauthOpenshiftOauthServerConfigmapYaml, map[string]*bintree{}},
+		"oauth-server-deployment.yaml":           {oauthOpenshiftOauthServerDeploymentYaml, map[string]*bintree{}},
+		"oauth-server-secret.yaml":               {oauthOpenshiftOauthServerSecretYaml, map[string]*bintree{}},
+		"oauth-server-service.yaml":              {oauthOpenshiftOauthServerServiceYaml, map[string]*bintree{}},
+		"oauth-server-sessionsecret-secret.yaml": {oauthOpenshiftOauthServerSessionsecretSecretYaml, map[string]*bintree{}},
+		"v4-0-config-system-branding.yaml":       {oauthOpenshiftV40ConfigSystemBrandingYaml, map[string]*bintree{}},
+		"v4-0-config-system-session.json":        {oauthOpenshiftV40ConfigSystemSessionJson, map[string]*bintree{}},
 	}},
 	"openshift-apiserver": {nil, map[string]*bintree{
 		"config.yaml": {openshiftApiserverConfigYaml, map[string]*bintree{}},
