@@ -9,4 +9,5 @@ spec:
   - name: https
     port: 443
     targetPort: 6443
+    nodePort: {{ .ExternalOauthPort }}
   type: NodePort

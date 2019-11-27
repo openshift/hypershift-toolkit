@@ -38,7 +38,7 @@ identityProviders:
   sessionConfig:
     sessionMaxAgeSeconds: 300
     sessionName: ssn
-    sessionSecretsFile: "/etc/oauth-openshift-secrets/v4-0-config-system-session"
+    sessionSecretsFile: "/etc/oauth-openshift-sessionsecret/v4-0-config-system-session"
   templates:
     error: "/var/config/system/secrets/v4-0-config-system-ocp-branding-template/errors.html"
     login: "/var/config/system/secrets/v4-0-config-system-ocp-branding-template/login.html"

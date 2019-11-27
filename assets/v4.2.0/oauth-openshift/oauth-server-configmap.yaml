@@ -3,7 +3,5 @@ kind: ConfigMap
 metadata:
   name: oauth-openshift
 data:
-  config.yaml: |-
-{{ include "oauth-openshift/oauth-server-config.yaml" 4 }}
   ca.crt: |-
 {{ include_pki "combined-ca.crt" 4 }}
