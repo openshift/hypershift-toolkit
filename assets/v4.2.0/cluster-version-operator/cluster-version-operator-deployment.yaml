@@ -52,7 +52,7 @@ spec:
           - "/work/cluster-version-operator"
         args:
           - "start"
-          - "--release-image=${RELEASE_IMAGE}"
+          - "--release-image={{ .ReleaseImage }}"
           - "--enable-auto-update=false"
           - "--enable-default-cluster-version=true"
           - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
