@@ -50,12 +50,13 @@ func (o *RenderManifestsOptions) Run() error {
 	if err != nil {
 		log.WithError(err).Fatalf("Error occurred reading configuration")
 	}
-	err = render.RenderClusterManifests(params, o.PullSecretFile, o.OutputDir, o.IncludeEtcd, o.IncludeAutoApprover, o.IncludeVPN)
+	externalOauth := params.ExternalOauthPort != 0
+	err = render.RenderClusterManifests(params, o.PullSecretFile, o.OutputDir, o.IncludeEtcd, o.IncludeAutoApprover, o.IncludeVPN, externalOauth)
 	if err != nil {
 		return err
 	}
 	if o.IncludeSecrets {
-		render.RenderPKISecrets(o.PKIDir, o.OutputDir, o.IncludeEtcd, o.IncludeVPN)
+		render.RenderPKISecrets(o.PKIDir, o.OutputDir, o.IncludeEtcd, o.IncludeVPN, externalOauth)
 	}
 	return nil
 }

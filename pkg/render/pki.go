@@ -4,9 +4,9 @@ import (
 	"text/template"
 )
 
-func RenderPKISecrets(pkiDir, outputDir string, etcd, vpn bool) {
+func RenderPKISecrets(pkiDir, outputDir string, etcd, vpn bool, externalOauth bool) {
 	ctx := newPKIRenderContext(pkiDir, outputDir)
-	ctx.setupManifests(etcd, vpn)
+	ctx.setupManifests(etcd, vpn, externalOauth)
 	ctx.renderManifests()
 }
 

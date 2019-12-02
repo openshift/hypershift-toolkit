@@ -13,16 +13,12 @@ import (
 )
 
 // RenderClusterManifests renders manifests for a hosted control plane cluster
-func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, etcd bool, autoApprover bool, vpn bool) error {
+func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, etcd bool, autoApprover bool, vpn bool, externalOauth bool) error {
 	images, err := release.GetReleaseImagePullRefs(params.ReleaseImage, params.OriginReleasePrefix, pullSecretFile)
 	if err != nil {
 		return err
 	}
 	ctx := newClusterManifestContext(images, params, outputDir, vpn)
-	externalOauth := false
-	if params.ExternalOauthPort != 0 {
-		externalOauth = true
-	}
 	ctx.setupManifests(etcd, autoApprover, vpn, externalOauth)
 	return ctx.renderManifests()
 }
