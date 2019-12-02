@@ -90,6 +90,9 @@ func GeneratePKI(params *api.ClusterParams, outputDir string) error {
 				fmt.Sprintf("openvpn-server.%s.svc", params.Namespace),
 				fmt.Sprintf("%s:%d", params.ExternalOpenVPNDNSName, params.ExternalOpenVPNPort),
 			}, nil),
+		// oauth server
+		cert("oauth-openshift", "root-ca", params.ExternalAPIDNSName, "kubernetes",
+			[]string{}, nil),
 		cert("openvpn-kube-apiserver-client", "openvpn-ca", "kube-apiserver", "kubernetes", nil, nil),
 		cert("openvpn-worker-client", "openvpn-ca", "kube-apiserver", "kubernetes", nil, nil),
 	}

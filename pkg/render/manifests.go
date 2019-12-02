@@ -41,7 +41,7 @@ func newClusterManifestContext(images map[string]string, params interface{}, out
 	ctx.setFuncs(template.FuncMap{
 		"imageFor":     imageFunc(images),
 		"base64String": base64StringEncode,
-		"indent": indent,
+		"indent":       indent,
 		"address":      cidrAddress,
 		"mask":         cidrMask,
 		"include":      includeFileFunc(params, ctx.renderContext),
