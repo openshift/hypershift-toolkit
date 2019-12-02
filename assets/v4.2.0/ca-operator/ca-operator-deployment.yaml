@@ -50,7 +50,7 @@ spec:
                   values: ["ca-operator"]
             topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
-      - image: ${CLI_IMAGE}
+      - image: {{ imageFor "cli" }}
         imagePullPolicy: IfNotPresent
         name: ca-operator
         command:
