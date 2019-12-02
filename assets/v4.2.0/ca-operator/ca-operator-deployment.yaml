@@ -30,6 +30,25 @@ spec:
       labels:
         app: ca-operator
     spec:
+      tolerations:
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values: ["ca-operator"]
+            topologyKey: "kubernetes.io/hostname"
+          - labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values: ["ca-operator"]
+            topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
       - image: ${CLI_IMAGE}
         imagePullPolicy: IfNotPresent

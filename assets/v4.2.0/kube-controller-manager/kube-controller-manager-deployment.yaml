@@ -3,7 +3,7 @@ apiVersion: apps/v1
 metadata:
   name: kube-controller-manager
 spec:
-  replicas: 1
+  replicas: {{ .Replicas }}
   selector:
     matchLabels:
       app: kube-controller-manager
@@ -12,6 +12,25 @@ spec:
       labels:
         app: kube-controller-manager
     spec:
+      tolerations:
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values: ["kube-controller-manager"]
+            topologyKey: "kubernetes.io/hostname"
+          - labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values: ["kube-controller-manager"]
+            topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
       - name: kube-controller-manager
         image: {{ imageFor "hyperkube" }}
@@ -20,7 +39,7 @@ spec:
         - kube-controller-manager
         args:
         - "--openshift-config=/etc/kubernetes/cmconfig/config.yaml"
-        - "--kubeconfig=/etc/kubernetes/kubeconfig/kubeconfig"
+        - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
         volumeMounts:
         - mountPath: /etc/kubernetes/cmconfig
           name: cmconfig
