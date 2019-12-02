@@ -25,11 +25,14 @@ func newPKIRenderContext(pkiDir, outputDir string) *pkiRenderContext {
 	return ctx
 }
 
-func (c *pkiRenderContext) setupManifests(etcd bool, vpn bool) {
+func (c *pkiRenderContext) setupManifests(etcd bool, vpn bool, externalOauth bool) {
 	c.serviceAdminKubeconfig()
 	c.kubeAPIServer()
 	if etcd {
 		c.etcd()
+	}
+	if externalOauth {
+		c.oauthOpenshiftServer()
 	}
 	c.kubeControllerManager()
 	c.openshiftAPIServer()
