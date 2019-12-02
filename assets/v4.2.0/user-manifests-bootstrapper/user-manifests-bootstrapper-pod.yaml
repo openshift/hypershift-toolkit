@@ -34,7 +34,7 @@ spec:
       #!/bin/bash
       set -eu
       for name in $(oc get cm | grep '^user-manifest-' | awk '{ print $1 }'); do
-         oc get cm ${name} -o jsonpath='{ .binaryData.data }' > "${name}.yaml"
+         oc get cm ${name} -o jsonpath='{ .data.data }' > "${name}.yaml"
       done
       export KUBECONFIG=/etc/openshift/kubeconfig
       oc apply -f $(pwd)

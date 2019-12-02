@@ -2,7 +2,6 @@ package render
 
 import (
 	"bytes"
-	"encoding/base64"
 	"path"
 	"strings"
 	"text/template"
@@ -43,6 +42,7 @@ func newClusterManifestContext(images map[string]string, params interface{}, out
 		"include":      includeFileFunc(params, ctx.renderContext),
 		"includeVPN":   includeVPNFunc(includeVPN),
 		"randomString": randomString,
+		"includeData":  includeDataFunc(),
 	})
 	return ctx
 }
@@ -213,7 +213,7 @@ func (c *clusterManifestContext) userManifestsBootstrapper() {
 		}
 		name := path.Base(file)
 		params := map[string]string{
-			"data": base64.StdEncoding.EncodeToString([]byte(data)),
+			"data": data,
 			"name": userConfigMapName(name),
 		}
 		manifest, err := c.substituteParams(params, "user-manifests-bootstrapper/user-manifest-template.yaml")
@@ -225,7 +225,7 @@ func (c *clusterManifestContext) userManifestsBootstrapper() {
 
 	for name, data := range c.userManifests {
 		params := map[string]string{
-			"data": base64.StdEncoding.EncodeToString([]byte(data)),
+			"data": data,
 			"name": userConfigMapName(name),
 		}
 		manifest, err := c.substituteParams(params, "user-manifests-bootstrapper/user-manifest-template.yaml")

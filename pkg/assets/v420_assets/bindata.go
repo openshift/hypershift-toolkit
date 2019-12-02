@@ -15285,8 +15285,9 @@ var _userManifestsBootstrapperUserManifestTemplateYaml = []byte(`kind: ConfigMap
 apiVersion: v1
 metadata:
   name: {{ .name }}
-binaryData:
-  data: {{ .data }}
+data:
+  data: |-
+{{ includeData .data 4 }}
 `)
 
 func userManifestsBootstrapperUserManifestTemplateYamlBytes() ([]byte, error) {
@@ -15340,7 +15341,7 @@ spec:
       #!/bin/bash
       set -eu
       for name in $(oc get cm | grep '^user-manifest-' | awk '{ print $1 }'); do
-         oc get cm ${name} -o jsonpath='{ .binaryData.data }' > "${name}.yaml"
+         oc get cm ${name} -o jsonpath='{ .data.data }' > "${name}.yaml"
       done
       export KUBECONFIG=/etc/openshift/kubeconfig
       oc apply -f $(pwd)

@@ -69,19 +69,26 @@ func base64Func(params interface{}, rc *renderContext) func(string) string {
 	}
 }
 
-func includeFileFunc(params interface{}, rc *renderContext) func(string, int) string {
-	return func(fileName string, indent int) string {
-		result, err := rc.substituteParams(params, fileName)
-		if err != nil {
-			panic(err.Error())
-		}
-		input := bytes.NewBufferString(result)
+func includeDataFunc() func(string, int) string {
+	return func(data string, indent int) string {
+		input := bytes.NewBufferString(data)
 		output := &bytes.Buffer{}
 		scanner := bufio.NewScanner(input)
 		for scanner.Scan() {
 			fmt.Fprintf(output, "%s%s\n", strings.Repeat(" ", indent), scanner.Text())
 		}
 		return output.String()
+	}
+}
+
+func includeFileFunc(params interface{}, rc *renderContext) func(string, int) string {
+	return func(fileName string, indent int) string {
+		result, err := rc.substituteParams(params, fileName)
+		if err != nil {
+			panic(err.Error())
+		}
+		includeFn := includeDataFunc()
+		return includeFn(result, indent)
 	}
 }
 
