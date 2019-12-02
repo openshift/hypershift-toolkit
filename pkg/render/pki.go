@@ -58,6 +58,12 @@ func (c *pkiRenderContext) etcd() {
 	}
 }
 
+func (c *pkiRenderContext) oauthOpenshiftServer() {
+	c.addManifestFiles(
+		"oauth-openshift/oauth-server-secret.yaml",
+	)
+}
+
 func (c *pkiRenderContext) kubeAPIServer() {
 	c.addManifestFiles(
 		"kube-apiserver/kube-apiserver-secret.yaml",
