@@ -2,5 +2,6 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: {{ .name }}
-binaryData:
-  data: {{ .data }}
+data:
+  data: |-
+{{ includeData .data 4 }}
