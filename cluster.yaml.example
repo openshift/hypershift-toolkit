@@ -21,6 +21,7 @@ openshiftAPIClusterIP: 172.30.0.20
 baseDomain: example.com
 networkType: OpenShiftSDN
 replicas: 1
+etcdClientName: etcd-client
 identityProviders: |
   - challenge: true
     login: true
