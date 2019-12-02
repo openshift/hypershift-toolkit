@@ -4,9 +4,9 @@ import (
 	"text/template"
 )
 
-func RenderPKISecrets(pkiDir, outputDir string, etcd, vpn bool) {
+func RenderPKISecrets(pkiDir, outputDir string, etcd, vpn bool, externalOauth bool) {
 	ctx := newPKIRenderContext(pkiDir, outputDir)
-	ctx.setupManifests(etcd, vpn)
+	ctx.setupManifests(etcd, vpn, externalOauth)
 	ctx.renderManifests()
 }
 
@@ -25,11 +25,14 @@ func newPKIRenderContext(pkiDir, outputDir string) *pkiRenderContext {
 	return ctx
 }
 
-func (c *pkiRenderContext) setupManifests(etcd bool, vpn bool) {
+func (c *pkiRenderContext) setupManifests(etcd bool, vpn bool, externalOauth bool) {
 	c.serviceAdminKubeconfig()
 	c.kubeAPIServer()
 	if etcd {
 		c.etcd()
+	}
+	if externalOauth {
+		c.oauthOpenshiftServer()
 	}
 	c.kubeControllerManager()
 	c.openshiftAPIServer()
@@ -56,6 +59,12 @@ func (c *pkiRenderContext) etcd() {
 		}
 		c.addManifest(file+"-tls-secret.yaml", content)
 	}
+}
+
+func (c *pkiRenderContext) oauthOpenshiftServer() {
+	c.addManifestFiles(
+		"oauth-openshift/oauth-server-secret.yaml",
+	)
 }
 
 func (c *pkiRenderContext) kubeAPIServer() {

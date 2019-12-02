@@ -4,6 +4,7 @@ externalAPIPort: 6443
 externalAPIAddress: 10.0.0.1
 externalVPNDNSName: vpn.hosted.example.com
 externalVPNPort: 3118
+externalOauthPort: 4000
 serviceCIDR: 172.31.0.0/16
 namedCerts:
   - namedCertPrefix: /etc/kubernetes/secret/cert1
@@ -21,3 +22,35 @@ baseDomain: example.com
 networkType: OpenShiftSDN
 replicas: 1
 etcdClientName: etcd-client
+identityProviders: |
+  - challenge: true
+    login: true
+    mappingMethod: lookup
+    name: IAM
+    provider:
+      apiVersion: osin.config.openshift.io/v1
+      ca: ''
+      claims:
+        email:
+          - email
+        id:
+          - iam_id
+        name:
+          - name
+        preferredUsername:
+          - preferred_username
+      clientID: clientid
+      clientSecret:
+        env: ''
+        file: "/etc/oauth-openshift-secrets/clientSecret"
+        keyFile: ''
+        value: ''
+      extraAuthorizeParameters:
+      extraScopes:
+      kind: OpenIDIdentityProvider
+      urls:
+        authorize: https://iam.test.cloud.ibm.com/identity/authorize
+        token: https://iam.test.cloud.ibm.com/identity/token
+        userInfo: https://iam.test.cloud.ibm.com/identity/userinfo
+
+

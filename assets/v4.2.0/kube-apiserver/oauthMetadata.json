@@ -1,7 +1,13 @@
 {
-  "issuer": "https://oauth-openshift.{{ .IngressSubdomain }}",
-  "authorization_endpoint": "https://oauth-openshift.{{ .IngressSubdomain }}/oauth/authorize",
-  "token_endpoint": "https://oauth-openshift.{{ .IngressSubdomain }}/oauth/token",
+{{ if .ExternalOauthPort }}
+"issuer": "https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}",
+"authorization_endpoint": "https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}/oauth/authorize",
+"token_endpoint": "https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}/oauth/token",
+{{ else }}
+"issuer": "https://oauth-openshift.{{ .IngressSubdomain }}",
+"authorization_endpoint": "https://oauth-openshift.{{ .IngressSubdomain }}/oauth/authorize",
+"token_endpoint": "https://oauth-openshift.{{ .IngressSubdomain }}/oauth/token",
+{{ end }}
   "scopes_supported": [
     "user:check-access",
     "user:full",

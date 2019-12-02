@@ -7,6 +7,8 @@ type ClusterParams struct {
 	ExternalAPIIPAddress    string      `json:"externalAPIAddress"`
 	ExternalOpenVPNDNSName  string      `json:"externalVPNDNSName"`
 	ExternalOpenVPNPort     uint        `json:"externalVPNPort"`
+	ExternalOauthPort       uint        `json:"externalOauthPort"`
+	IdentityProviders       string      `json:identityProviders`
 	ServiceCIDR             string      `json:"serviceCIDR"`
 	NamedCerts              []NamedCert `json:"namedCerts,omitempty"`
 	PodCIDR                 string      `json:"podCIDR"`
