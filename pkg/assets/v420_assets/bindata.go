@@ -12687,7 +12687,7 @@ spec:
             topologyKey: "failure-domain.beta.kubernetes.io/zone"
       initContainers:
       - name: setup
-        image: quay.io/csrwng/origin-cluster-version-operator:hosted_annotations
+        image: quay.io/csrwng/origin-cluster-version-operator:hosted
         command:
         - "/bin/bash"
         args:
@@ -12705,11 +12705,25 @@ spec:
           - "/work/cluster-version-operator"
         args:
           - "start"
-          - "--release-image={{ .ReleaseImage }}"
+          - "--release-image=${RELEASE_IMAGE}"
           - "--enable-auto-update=false"
           - "--enable-default-cluster-version=true"
           - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
           - "--v=4"
+          - '--exclude-manifests=.*_cluster-version-operator_.*deployment.*'
+          - '--exclude-manifests=.*_cluster-version-operator_.*service.*'
+          - "--exclude-manifests=.*_kube-apiserver-operator_.*"
+          - "--exclude-manifests=.*_kube-controller-manager-operator_.*"
+          - "--exclude-manifests=.*_kube-scheduler-operator_.*"
+          - "--exclude-manifests=.*_machine-api-operator_.*"
+          - "--exclude-manifests=.*_openshift-apiserver-operator_.*"
+          - "--exclude-manifests=.*_cluster-autoscaler-operator_.*"
+          - "--exclude-manifests=.*_cluster-machine-approver_.*"
+          - "--exclude-manifests=.*_cluster-authentication-operator_.*"
+          - "--exclude-manifests=.*_openshift-controller-manager-operator_.*"
+          - "--exclude-manifests=.*_cluster-openshift-controller-manager-operator_.*"
+          - "--exclude-manifests=.*_insights-operator_.*"
+          - "--exclude-manifests=.*_machine-config-operator_.*"
         terminationMessagePolicy: FallbackToLogsOnError
         volumeMounts:
           - mountPath: /etc/cvo/updatepayloads
@@ -12726,8 +12740,6 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
-          - name: EXCLUDE_MANIFESTS
-            value: internal-openshift-hosted
       volumes:
         - name: work
           emptyDir: {}
