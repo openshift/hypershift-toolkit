@@ -50,7 +50,7 @@ spec:
                   values: ["ca-operator"]
             topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
-      - image: ${CLI_IMAGE}
+      - image: {{ imageFor "cli" }}
         imagePullPolicy: IfNotPresent
         name: ca-operator
         command:
@@ -77,8 +77,8 @@ spec:
             CHECKSUM="$(python -c "import hashlib;print hashlib.md5(open('/tmp/kcm.ca').read()).hexdigest()")"
             # Switch to the management cluster and apply latest CA
             unset KUBECONFIG
-            export KCM_CA="$(cat /tmp/kcm.ca | base64 | tr -d '\n')"
-            oc patch secret kube-controller-manager --type=json --patch "[{\"op\": \"replace\", \"path\": \"/data/ca.crt\", \"value\":\"${KCM_CA}\"}]"
+            export KCM_CA="$(cat /tmp/kcm.ca)"
+            oc patch cm kube-controller-manager --type=json --patch "[{\"op\": \"replace\", \"path\": \"/data/service-ca.crt\", \"value\":\"${KCM_CA}\"}]"
             oc patch deployment kube-controller-manager  --type=json --patch "[{\"op\": \"replace\", \"path\": \"/spec/template/metadata/annotations\", \"value\":{\"ca-checksum\":\"${CHECKSUM}\"}}]"
             sleep 30
           done

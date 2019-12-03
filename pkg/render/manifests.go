@@ -68,6 +68,7 @@ func (c *clusterManifestContext) setupManifests(etcd bool, autoApprover bool, vp
 		c.autoApprover()
 	}
 	c.userManifestsBootstrapper()
+	c.caOperator()
 }
 
 func (c *clusterManifestContext) etcd() {
