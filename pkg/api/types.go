@@ -26,6 +26,7 @@ type ClusterParams struct {
 	EtcdClientName             string      `json:"etcdClientName"`
 	OriginReleasePrefix        string      `json:"originReleasePrefix"`
 	OpenshiftAPIServerCABundle string      `json:"openshiftAPIServerCABundle"`
+	CloudProvider              string      `json:"cloudProvider"`
 }
 
 type NamedCert struct {
