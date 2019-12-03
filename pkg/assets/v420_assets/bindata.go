@@ -13086,6 +13086,8 @@ apiServerArguments:
   - application/vnd.kubernetes.protobuf
   advertise-address:
   - "{{ .ExternalAPIIPAddress }}"
+  cloud-provider:
+  - "{{ .CloudProvider }}"
 auditConfig:
   auditFilePath: "/var/log/kube-apiserver/audit.log"
   enabled: true

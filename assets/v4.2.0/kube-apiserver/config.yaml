@@ -41,7 +41,7 @@ apiServerArguments:
   advertise-address:
   - "{{ .ExternalAPIIPAddress }}"
   cloud-provider:
-  - external
+  - "{{ .CloudProvider }}"
 auditConfig:
   auditFilePath: "/var/log/kube-apiserver/audit.log"
   enabled: true
