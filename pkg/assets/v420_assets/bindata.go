@@ -274,7 +274,7 @@ spec:
                   values: ["ca-operator"]
             topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
-      - image: ${CLI_IMAGE}
+      - image: {{ imageFor "cli" }}
         imagePullPolicy: IfNotPresent
         name: ca-operator
         command:
@@ -301,8 +301,8 @@ spec:
             CHECKSUM="$(python -c "import hashlib;print hashlib.md5(open('/tmp/kcm.ca').read()).hexdigest()")"
             # Switch to the management cluster and apply latest CA
             unset KUBECONFIG
-            export KCM_CA="$(cat /tmp/kcm.ca | base64 | tr -d '\n')"
-            oc patch secret kube-controller-manager --type=json --patch "[{\"op\": \"replace\", \"path\": \"/data/ca.crt\", \"value\":\"${KCM_CA}\"}]"
+            export KCM_CA="$(cat /tmp/kcm.ca)"
+            oc patch cm kube-controller-manager --type=json --patch "[{\"op\": \"replace\", \"path\": \"/data/service-ca.crt\", \"value\":\"${KCM_CA}\"}]"
             oc patch deployment kube-controller-manager  --type=json --patch "[{\"op\": \"replace\", \"path\": \"/spec/template/metadata/annotations\", \"value\":{\"ca-checksum\":\"${CHECKSUM}\"}}]"
             sleep 30
           done
@@ -12686,60 +12686,48 @@ spec:
                   values: ["cluster-version-operator"]
             topologyKey: "failure-domain.beta.kubernetes.io/zone"
       initContainers:
-      - name: setup
-        image: quay.io/csrwng/origin-cluster-version-operator:hosted
-        command:
-        - "/bin/bash"
-        args:
-        - "-c"
-        - |-
-          cp $(which cluster-version-operator) /work/
-        volumeMounts:
-        - mountPath: /work
-          name: work
+        - name: setup
+          image: quay.io/csrwng/origin-cluster-version-operator:hosted_annotations
+          command:
+            - "/bin/bash"
+          args:
+            - "-c"
+            - |-
+              cp $(which cluster-version-operator) /work/
+          volumeMounts:
+            - mountPath: /work
+              name: work
       containers:
-      - name: cluster-version-operator
-        image: {{ .ReleaseImage }}
-        imagePullPolicy: Always
-        command:
-          - "/work/cluster-version-operator"
-        args:
-          - "start"
-          - "--release-image={{ .ReleaseImage }}"
-          - "--enable-auto-update=false"
-          - "--enable-default-cluster-version=true"
-          - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
-          - "--v=4"
-          - '--exclude-manifests=.*_cluster-version-operator_.*deployment.*'
-          - '--exclude-manifests=.*_cluster-version-operator_.*service.*'
-          - "--exclude-manifests=.*_kube-apiserver-operator_.*"
-          - "--exclude-manifests=.*_kube-controller-manager-operator_.*"
-          - "--exclude-manifests=.*_kube-scheduler-operator_.*"
-          - "--exclude-manifests=.*_machine-api-operator_.*"
-          - "--exclude-manifests=.*_openshift-apiserver-operator_.*"
-          - "--exclude-manifests=.*_cluster-autoscaler-operator_.*"
-          - "--exclude-manifests=.*_cluster-machine-approver_.*"
-          - "--exclude-manifests=.*_cluster-authentication-operator_.*"
-          - "--exclude-manifests=.*_openshift-controller-manager-operator_.*"
-          - "--exclude-manifests=.*_cluster-openshift-controller-manager-operator_.*"
-          - "--exclude-manifests=.*_insights-operator_.*"
-          - "--exclude-manifests=.*_machine-config-operator_.*"
-        terminationMessagePolicy: FallbackToLogsOnError
-        volumeMounts:
-          - mountPath: /etc/cvo/updatepayloads
-            name: etc-cvo-updatepayloads
-            readOnly: true
-          - mountPath: /etc/openshift/kubeconfig
-            name: kubeconfig
-            readOnly: true
-          - mountPath: /work
-            name: work
-            readOnly: true
-        env:
-          - name: NODE_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName
+        - name: cluster-version-operator
+          image: {{ .ReleaseImage }}
+          imagePullPolicy: Always
+          command:
+            - "/work/cluster-version-operator"
+          args:
+            - "start"
+            - "--release-image={{ .ReleaseImage }}"
+            - "--enable-auto-update=false"
+            - "--enable-default-cluster-version=true"
+            - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
+            - "--v=4"
+          terminationMessagePolicy: FallbackToLogsOnError
+          volumeMounts:
+            - mountPath: /etc/cvo/updatepayloads
+              name: etc-cvo-updatepayloads
+              readOnly: true
+            - mountPath: /etc/openshift/kubeconfig
+              name: kubeconfig
+              readOnly: true
+            - mountPath: /work
+              name: work
+              readOnly: true
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: EXCLUDE_MANIFESTS
+              value: internal-openshift-hosted
       volumes:
         - name: work
           emptyDir: {}
@@ -12747,8 +12735,7 @@ spec:
           emptyDir: {}
         - name: kubeconfig
           secret:
-            secretName: service-network-admin-kubeconfig
-`)
+            secretName: service-network-admin-kubeconfig`)
 
 func clusterVersionOperatorClusterVersionOperatorDeploymentYamlBytes() ([]byte, error) {
 	return _clusterVersionOperatorClusterVersionOperatorDeploymentYaml, nil
