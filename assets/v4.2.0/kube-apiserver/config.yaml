@@ -40,6 +40,8 @@ apiServerArguments:
   - application/vnd.kubernetes.protobuf
   advertise-address:
   - "{{ .ExternalAPIIPAddress }}"
+  cloud-provider:
+  - external
 auditConfig:
   auditFilePath: "/var/log/kube-apiserver/audit.log"
   enabled: true
@@ -90,7 +92,7 @@ authConfig:
     usernameHeaders:
     - X-Remote-User
   webhookTokenAuthenticators:
-consolePublicURL: ''
+consolePublicURL: 'https://console-openshift-console.{{ .IngressSubdomain }}'
 corsAllowedOrigins:
 - "//127\\.0\\.0\\.1(:|$)"
 - "//localhost(:|$)"
