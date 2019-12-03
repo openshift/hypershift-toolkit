@@ -68,6 +68,7 @@ func (c *clusterManifestContext) setupManifests(etcd bool, autoApprover bool, vp
 		c.autoApprover()
 	}
 	c.userManifestsBootstrapper()
+	c.caOperator()
 }
 
 func (c *clusterManifestContext) etcd() {
@@ -151,8 +152,9 @@ func (c *clusterManifestContext) openshiftAPIServer() {
 		"v1.user.openshift.io"} {
 
 		params := map[string]string{
-			"APIService":      apiService,
-			"APIServiceGroup": trimFirstSegment(apiService),
+			"APIService":                 apiService,
+			"APIServiceGroup":            trimFirstSegment(apiService),
+			"OpenshiftAPIServerCABundle": c.params.(*api.ClusterParams).OpenshiftAPIServerCABundle,
 		}
 		entry, err := c.substituteParams(params, "openshift-apiserver/service-template.yaml")
 		if err != nil {
