@@ -1,6 +1,8 @@
 package render
 
 import (
+	"encoding/base64"
+	"io/ioutil"
 	"path/filepath"
 
 	log "github.com/sirupsen/logrus"
@@ -51,12 +53,17 @@ func (o *RenderManifestsOptions) Run() error {
 		log.WithError(err).Fatalf("Error occurred reading configuration")
 	}
 	externalOauth := params.ExternalOauthPort != 0
+	if o.IncludeSecrets {
+		render.RenderPKISecrets(o.PKIDir, o.OutputDir, o.IncludeEtcd, o.IncludeVPN, externalOauth)
+		caBytes, err := ioutil.ReadFile(filepath.Join(o.PKIDir, "combined-ca.crt"))
+		if err != nil {
+			log.WithError(err).Fatalf("Error reading combined ca cert")
+		}
+		params.OpenshiftAPIServerCABundle = base64.StdEncoding.EncodeToString(caBytes)
+	}
 	err = render.RenderClusterManifests(params, o.PullSecretFile, o.OutputDir, o.IncludeEtcd, o.IncludeAutoApprover, o.IncludeVPN, externalOauth)
 	if err != nil {
 		return err
-	}
-	if o.IncludeSecrets {
-		render.RenderPKISecrets(o.PKIDir, o.OutputDir, o.IncludeEtcd, o.IncludeVPN, externalOauth)
 	}
 	return nil
 }
