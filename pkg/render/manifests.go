@@ -195,6 +195,7 @@ func (c *clusterManifestContext) openVPN() {
 func (c *clusterManifestContext) clusterVersionOperator() {
 	c.addManifestFiles(
 		"cluster-version-operator/cluster-version-operator-deployment.yaml",
+		"cluster-version-operator/cluster-version-namespace.yaml",
 	)
 }
 
