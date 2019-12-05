@@ -227,7 +227,7 @@ var _caOperatorCaOperatorDeploymentYaml = []byte(`---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: ca-operator
+    name: ca-operator
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -238,8 +238,8 @@ roleRef:
   kind: ClusterRole
   name: edit
 subjects:
-  - kind: ServiceAccount
-    name: ca-operator
+- kind: ServiceAccount
+  name: ca-operator
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -275,64 +275,64 @@ spec:
                   values: ["ca-operator"]
             topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
-        - image: {{ imageFor "cli" }}
-          imagePullPolicy: IfNotPresent
-          name: ca-operator
-          command:
-            - /bin/bash
-          args:
-            - -c
-            - |-
-              #!/bin/bash
-              set -e
-              while(true); do
-                # Use the internal cluster's kubeconfig to collect router and service CA
-                export KUBECONFIG=/etc/kubernetes/kubeconfig/kubeconfig
-                if ! oc get cm -n openshift-config-managed router-ca -o jsonpath='{ .data.ca-bundle\.crt }' > /tmp/router.ca; then
-                   echo "Cannot fetch router-ca yet. Will continue to wait"
-                   sleep 30
-                   continue
-                fi
-                if ! oc get cm -n openshift-config-managed service-ca -o jsonpath='{ .data.ca-bundle\.crt }' > /tmp/service.ca; then
-                   echo "Cannot fetch service-ca yet. Will continue to wait"
-                   sleep 30
-                   continue
-                fi
-                cat /etc/kubernetes/config/initial-ca.crt /tmp/router.ca /tmp/service.ca > /tmp/kcm.ca
-                CHECKSUM="$(python -c "import hashlib;print hashlib.md5(open('/tmp/kcm.ca').read()).hexdigest()")"
-                # Switch to the management cluster and apply latest CA
-                unset KUBECONFIG
-              cat > /tmp/patch_ca.json <<EOF
-              {
-                  "apiVersion": "v1",
-                  "data": {
-                    "service-ca.crt": "$(awk -v ORS='\\n' '1' /tmp/kcm.ca)"
-                  },
-                  "kind": "ConfigMap",
-                  "metadata": {
-                      "name": "kube-controller-manager"
-                  }
+      - image: {{ imageFor "cli" }}
+        imagePullPolicy: IfNotPresent
+        name: ca-operator
+        command:
+        - /bin/bash
+        args:
+        - -c
+        - |-
+          #!/bin/bash
+          set -e
+          while(true); do
+            # Use the internal cluster's kubeconfig to collect router and service CA
+            export KUBECONFIG=/etc/kubernetes/kubeconfig/kubeconfig
+            if ! oc get cm -n openshift-config-managed router-ca -o jsonpath='{ .data.ca-bundle\.crt }' > /tmp/router.ca; then
+               echo "Cannot fetch router-ca yet. Will continue to wait"
+               sleep 30
+               continue
+            fi
+            if ! oc get cm -n openshift-config-managed service-ca -o jsonpath='{ .data.ca-bundle\.crt }' > /tmp/service.ca; then
+               echo "Cannot fetch service-ca yet. Will continue to wait"
+               sleep 30
+               continue
+            fi
+            cat /etc/kubernetes/config/initial-ca.crt /tmp/router.ca /tmp/service.ca > /tmp/kcm.ca
+            CHECKSUM="$(python -c "import hashlib;print hashlib.md5(open('/tmp/kcm.ca').read()).hexdigest()")"
+            # Switch to the management cluster and apply latest CA
+            unset KUBECONFIG
+          cat > /tmp/patch_ca.json <<EOF
+          {
+              "apiVersion": "v1",
+              "data": {
+                "service-ca.crt": "$(awk -v ORS='\\n' '1' /tmp/kcm.ca)"
+              },
+              "kind": "ConfigMap",
+              "metadata": {
+                  "name": "kube-controller-manager"
               }
-              EOF
-                cat /tmp/patch_ca.json
-                oc patch cm kube-controller-manager --patch "$(cat /tmp/patch_ca.json)"
-                oc patch deployment kube-controller-manager  --type=json --patch "[{\"op\": \"replace\", \"path\": \"/spec/template/metadata/annotations\", \"value\":{\"ca-checksum\":\"${CHECKSUM}\"}}]"
-                sleep 30
-              done
-          volumeMounts:
-            - mountPath: /etc/kubernetes/kubeconfig
-              name: kubeconfig
-            - mountPath: /etc/kubernetes/config
-              name: config
+          }
+          EOF
+            cat /tmp/patch_ca.json
+            oc patch cm kube-controller-manager --patch "$(cat /tmp/patch_ca.json)"
+            oc patch deployment kube-controller-manager  --type=json --patch "[{\"op\": \"replace\", \"path\": \"/spec/template/metadata/annotations\", \"value\":{\"ca-checksum\":\"${CHECKSUM}\"}}]"
+            sleep 30
+          done
+        volumeMounts:
+        - mountPath: /etc/kubernetes/kubeconfig
+          name: kubeconfig
+        - mountPath: /etc/kubernetes/config
+          name: config
       restartPolicy: Always
       serviceAccountName: ca-operator
       volumes:
-        - name: kubeconfig
-          secret:
-            secretName: service-network-admin-kubeconfig
-        - name: config
-          configMap:
-            name: ca-operator
+      - name: kubeconfig
+        secret:
+          secretName: service-network-admin-kubeconfig
+      - name: config
+        configMap:
+          name: ca-operator
 `)
 
 func caOperatorCaOperatorDeploymentYamlBytes() ([]byte, error) {
