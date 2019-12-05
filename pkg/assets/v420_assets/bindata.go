@@ -37,6 +37,7 @@
 // assets/v4.2.0/cluster-bootstrap/cluster-proxy-01-config.yaml
 // assets/v4.2.0/cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml
 // assets/v4.2.0/cluster-bootstrap/router-default-svc-config.yaml
+// assets/v4.2.0/cluster-version-operator/cluster-version-namespace.yaml
 // assets/v4.2.0/cluster-version-operator/cluster-version-operator-deployment.yaml
 // assets/v4.2.0/common/service-network-admin-kubeconfig-secret.yaml
 // assets/v4.2.0/etcd/etcd-cluster-crd.yaml
@@ -274,7 +275,7 @@ spec:
                   values: ["ca-operator"]
             topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
-      - image: ${CLI_IMAGE}
+      - image: {{ imageFor "cli" }}
         imagePullPolicy: IfNotPresent
         name: ca-operator
         command:
@@ -301,8 +302,8 @@ spec:
             CHECKSUM="$(python -c "import hashlib;print hashlib.md5(open('/tmp/kcm.ca').read()).hexdigest()")"
             # Switch to the management cluster and apply latest CA
             unset KUBECONFIG
-            export KCM_CA="$(cat /tmp/kcm.ca | base64 | tr -d '\n')"
-            oc patch secret kube-controller-manager --type=json --patch "[{\"op\": \"replace\", \"path\": \"/data/ca.crt\", \"value\":\"${KCM_CA}\"}]"
+            export KCM_CA="$(cat /tmp/kcm.ca)"
+            oc patch cm kube-controller-manager --type=json --patch "[{\"op\": \"replace\", \"path\": \"/data/service-ca.crt\", \"value\":\"${KCM_CA}\"}]"
             oc patch deployment kube-controller-manager  --type=json --patch "[{\"op\": \"replace\", \"path\": \"/spec/template/metadata/annotations\", \"value\":{\"ca-checksum\":\"${CHECKSUM}\"}}]"
             sleep 30
           done
@@ -12651,6 +12652,26 @@ func clusterBootstrapRouterDefaultSvcConfigYaml() (*asset, error) {
 	return a, nil
 }
 
+var _clusterVersionOperatorClusterVersionNamespaceYaml = []byte(`apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-cluster-version`)
+
+func clusterVersionOperatorClusterVersionNamespaceYamlBytes() ([]byte, error) {
+	return _clusterVersionOperatorClusterVersionNamespaceYaml, nil
+}
+
+func clusterVersionOperatorClusterVersionNamespaceYaml() (*asset, error) {
+	bytes, err := clusterVersionOperatorClusterVersionNamespaceYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-version-operator/cluster-version-namespace.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _clusterVersionOperatorClusterVersionOperatorDeploymentYaml = []byte(`apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -13138,7 +13159,7 @@ authConfig:
     usernameHeaders:
     - X-Remote-User
   webhookTokenAuthenticators:
-consolePublicURL: ''
+consolePublicURL: 'https://console-openshift-console.{{ .IngressSubdomain }}'
 corsAllowedOrigins:
 - "//127\\.0\\.0\\.1(:|$)"
 - "//localhost(:|$)"
@@ -13181,7 +13202,8 @@ storageConfig:
 userAgentMatchingConfig:
   defaultRejectionMessage: ''
   deniedClients:
-  requiredClients:`)
+  requiredClients:
+`)
 
 func kubeApiserverConfigYamlBytes() ([]byte, error) {
 	return _kubeApiserverConfigYaml, nil
@@ -13258,6 +13280,8 @@ var _kubeApiserverKubeApiserverDeploymentYaml = []byte(`kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: kube-apiserver
+  labels:
+    app: kube-apiserver
 spec:
   replicas: {{ .Replicas }}
   selector:
@@ -15480,6 +15504,7 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/cluster-proxy-01-config.yaml":                                       clusterBootstrapClusterProxy01ConfigYaml,
 	"cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml":                          clusterBootstrapNodeBootstrapperClusterrolebindingYaml,
 	"cluster-bootstrap/router-default-svc-config.yaml":                                     clusterBootstrapRouterDefaultSvcConfigYaml,
+	"cluster-version-operator/cluster-version-namespace.yaml":                              clusterVersionOperatorClusterVersionNamespaceYaml,
 	"cluster-version-operator/cluster-version-operator-deployment.yaml":                    clusterVersionOperatorClusterVersionOperatorDeploymentYaml,
 	"common/service-network-admin-kubeconfig-secret.yaml":                                  commonServiceNetworkAdminKubeconfigSecretYaml,
 	"etcd/etcd-cluster-crd.yaml":                                                           etcdEtcdClusterCrdYaml,
@@ -15633,6 +15658,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"router-default-svc-config.yaml":                                     {clusterBootstrapRouterDefaultSvcConfigYaml, map[string]*bintree{}},
 	}},
 	"cluster-version-operator": {nil, map[string]*bintree{
+		"cluster-version-namespace.yaml":           {clusterVersionOperatorClusterVersionNamespaceYaml, map[string]*bintree{}},
 		"cluster-version-operator-deployment.yaml": {clusterVersionOperatorClusterVersionOperatorDeploymentYaml, map[string]*bintree{}},
 	}},
 	"common": {nil, map[string]*bintree{
