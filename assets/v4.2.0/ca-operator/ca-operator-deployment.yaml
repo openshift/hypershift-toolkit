@@ -89,7 +89,6 @@ spec:
               }
           }
           EOF
-            cat /tmp/patch_ca.json
             oc patch cm kube-controller-manager --patch "$(cat /tmp/patch_ca.json)"
             oc patch deployment kube-controller-manager  --type=json --patch "[{\"op\": \"replace\", \"path\": \"/spec/template/metadata/annotations\", \"value\":{\"ca-checksum\":\"${CHECKSUM}\"}}]"
             sleep 30
