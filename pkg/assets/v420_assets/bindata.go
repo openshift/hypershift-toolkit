@@ -5,7 +5,6 @@
 // assets/v4.2.0/ca-operator/ca-operator-deployment.yaml
 // assets/v4.2.0/cluster-bootstrap/00000_namespaces-needed-for-monitoring.yaml
 // assets/v4.2.0/cluster-bootstrap/0000_00_cluster-version-operator_01_clusteroperator.crd.yaml
-// assets/v4.2.0/cluster-bootstrap/0000_00_cluster-version-operator_01_clusteroperator.namespace.yaml
 // assets/v4.2.0/cluster-bootstrap/0000_00_cluster-version-operator_01_clusterversion.crd.yaml
 // assets/v4.2.0/cluster-bootstrap/0000_03_authorization-openshift_01_rolebindingrestriction.crd.yaml
 // assets/v4.2.0/cluster-bootstrap/0000_03_config-operator_01_operatorhub.crd.yaml
@@ -36,6 +35,7 @@
 // assets/v4.2.0/cluster-bootstrap/cluster-network-01-crd.yaml
 // assets/v4.2.0/cluster-bootstrap/cluster-network-02-config.yaml
 // assets/v4.2.0/cluster-bootstrap/cluster-proxy-01-config.yaml
+// assets/v4.2.0/cluster-bootstrap/cluster-version-namespace.yaml
 // assets/v4.2.0/cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml
 // assets/v4.2.0/cluster-bootstrap/router-default-svc-config.yaml
 // assets/v4.2.0/cluster-version-operator/cluster-version-operator-deployment.yaml
@@ -314,7 +314,6 @@ spec:
               }
           }
           EOF
-            cat /tmp/patch_ca.json
             oc patch cm kube-controller-manager --patch "$(cat /tmp/patch_ca.json)"
             oc patch deployment kube-controller-manager  --type=json --patch "[{\"op\": \"replace\", \"path\": \"/spec/template/metadata/annotations\", \"value\":{\"ca-checksum\":\"${CHECKSUM}\"}}]"
             sleep 30
@@ -946,26 +945,6 @@ func clusterBootstrap0000_00_clusterVersionOperator_01_clusteroperatorCrdYaml() 
 	}
 
 	info := bindataFileInfo{name: "cluster-bootstrap/0000_00_cluster-version-operator_01_clusteroperator.crd.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _clusterBootstrap0000_00_clusterVersionOperator_01_clusteroperatorNamespaceYaml = []byte(`apiVersion: v1
-kind: Namespace
-metadata:
-  name: openshift-cluster-version`)
-
-func clusterBootstrap0000_00_clusterVersionOperator_01_clusteroperatorNamespaceYamlBytes() ([]byte, error) {
-	return _clusterBootstrap0000_00_clusterVersionOperator_01_clusteroperatorNamespaceYaml, nil
-}
-
-func clusterBootstrap0000_00_clusterVersionOperator_01_clusteroperatorNamespaceYaml() (*asset, error) {
-	bytes, err := clusterBootstrap0000_00_clusterVersionOperator_01_clusteroperatorNamespaceYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "cluster-bootstrap/0000_00_cluster-version-operator_01_clusteroperator.namespace.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -12613,6 +12592,26 @@ func clusterBootstrapClusterProxy01ConfigYaml() (*asset, error) {
 	return a, nil
 }
 
+var _clusterBootstrapClusterVersionNamespaceYaml = []byte(`apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-cluster-version`)
+
+func clusterBootstrapClusterVersionNamespaceYamlBytes() ([]byte, error) {
+	return _clusterBootstrapClusterVersionNamespaceYaml, nil
+}
+
+func clusterBootstrapClusterVersionNamespaceYaml() (*asset, error) {
+	bytes, err := clusterBootstrapClusterVersionNamespaceYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-bootstrap/cluster-version-namespace.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _clusterBootstrapNodeBootstrapperClusterrolebindingYaml = []byte(`# enable bootstrapping nodes to create CSR
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -15484,7 +15483,6 @@ var _bindata = map[string]func() (*asset, error){
 	"ca-operator/ca-operator-deployment.yaml":                                              caOperatorCaOperatorDeploymentYaml,
 	"cluster-bootstrap/00000_namespaces-needed-for-monitoring.yaml":                        clusterBootstrap00000_namespacesNeededForMonitoringYaml,
 	"cluster-bootstrap/0000_00_cluster-version-operator_01_clusteroperator.crd.yaml":       clusterBootstrap0000_00_clusterVersionOperator_01_clusteroperatorCrdYaml,
-	"cluster-bootstrap/0000_00_cluster-version-operator_01_clusteroperator.namespace.yaml": clusterBootstrap0000_00_clusterVersionOperator_01_clusteroperatorNamespaceYaml,
 	"cluster-bootstrap/0000_00_cluster-version-operator_01_clusterversion.crd.yaml":        clusterBootstrap0000_00_clusterVersionOperator_01_clusterversionCrdYaml,
 	"cluster-bootstrap/0000_03_authorization-openshift_01_rolebindingrestriction.crd.yaml": clusterBootstrap0000_03_authorizationOpenshift_01_rolebindingrestrictionCrdYaml,
 	"cluster-bootstrap/0000_03_config-operator_01_operatorhub.crd.yaml":                    clusterBootstrap0000_03_configOperator_01_operatorhubCrdYaml,
@@ -15515,6 +15513,7 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/cluster-network-01-crd.yaml":                                        clusterBootstrapClusterNetwork01CrdYaml,
 	"cluster-bootstrap/cluster-network-02-config.yaml":                                     clusterBootstrapClusterNetwork02ConfigYaml,
 	"cluster-bootstrap/cluster-proxy-01-config.yaml":                                       clusterBootstrapClusterProxy01ConfigYaml,
+	"cluster-bootstrap/cluster-version-namespace.yaml":                                     clusterBootstrapClusterVersionNamespaceYaml,
 	"cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml":                          clusterBootstrapNodeBootstrapperClusterrolebindingYaml,
 	"cluster-bootstrap/router-default-svc-config.yaml":                                     clusterBootstrapRouterDefaultSvcConfigYaml,
 	"cluster-version-operator/cluster-version-operator-deployment.yaml":                    clusterVersionOperatorClusterVersionOperatorDeploymentYaml,
@@ -15636,7 +15635,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"cluster-bootstrap": {nil, map[string]*bintree{
 		"00000_namespaces-needed-for-monitoring.yaml":                        {clusterBootstrap00000_namespacesNeededForMonitoringYaml, map[string]*bintree{}},
 		"0000_00_cluster-version-operator_01_clusteroperator.crd.yaml":       {clusterBootstrap0000_00_clusterVersionOperator_01_clusteroperatorCrdYaml, map[string]*bintree{}},
-		"0000_00_cluster-version-operator_01_clusteroperator.namespace.yaml": {clusterBootstrap0000_00_clusterVersionOperator_01_clusteroperatorNamespaceYaml, map[string]*bintree{}},
 		"0000_00_cluster-version-operator_01_clusterversion.crd.yaml":        {clusterBootstrap0000_00_clusterVersionOperator_01_clusterversionCrdYaml, map[string]*bintree{}},
 		"0000_03_authorization-openshift_01_rolebindingrestriction.crd.yaml": {clusterBootstrap0000_03_authorizationOpenshift_01_rolebindingrestrictionCrdYaml, map[string]*bintree{}},
 		"0000_03_config-operator_01_operatorhub.crd.yaml":                    {clusterBootstrap0000_03_configOperator_01_operatorhubCrdYaml, map[string]*bintree{}},
@@ -15667,6 +15665,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"cluster-network-01-crd.yaml":                                        {clusterBootstrapClusterNetwork01CrdYaml, map[string]*bintree{}},
 		"cluster-network-02-config.yaml":                                     {clusterBootstrapClusterNetwork02ConfigYaml, map[string]*bintree{}},
 		"cluster-proxy-01-config.yaml":                                       {clusterBootstrapClusterProxy01ConfigYaml, map[string]*bintree{}},
+		"cluster-version-namespace.yaml":                                     {clusterBootstrapClusterVersionNamespaceYaml, map[string]*bintree{}},
 		"node-bootstrapper-clusterrolebinding.yaml":                          {clusterBootstrapNodeBootstrapperClusterrolebindingYaml, map[string]*bintree{}},
 		"router-default-svc-config.yaml":                                     {clusterBootstrapRouterDefaultSvcConfigYaml, map[string]*bintree{}},
 	}},
