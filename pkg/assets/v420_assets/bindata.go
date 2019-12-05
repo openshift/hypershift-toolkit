@@ -38,7 +38,6 @@
 // assets/v4.2.0/cluster-bootstrap/cluster-proxy-01-config.yaml
 // assets/v4.2.0/cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml
 // assets/v4.2.0/cluster-bootstrap/router-default-svc-config.yaml
-// assets/v4.2.0/cluster-version-operator/cluster-version-namespace.yaml
 // assets/v4.2.0/cluster-version-operator/cluster-version-operator-deployment.yaml
 // assets/v4.2.0/common/service-network-admin-kubeconfig-secret.yaml
 // assets/v4.2.0/etcd/etcd-cluster-crd.yaml
@@ -12682,26 +12681,6 @@ func clusterBootstrapRouterDefaultSvcConfigYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterVersionOperatorClusterVersionNamespaceYaml = []byte(`apiVersion: v1
-kind: Namespace
-metadata:
-  name: openshift-cluster-version`)
-
-func clusterVersionOperatorClusterVersionNamespaceYamlBytes() ([]byte, error) {
-	return _clusterVersionOperatorClusterVersionNamespaceYaml, nil
-}
-
-func clusterVersionOperatorClusterVersionNamespaceYaml() (*asset, error) {
-	bytes, err := clusterVersionOperatorClusterVersionNamespaceYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "cluster-version-operator/cluster-version-namespace.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _clusterVersionOperatorClusterVersionOperatorDeploymentYaml = []byte(`apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15535,7 +15514,6 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/cluster-proxy-01-config.yaml":                                       clusterBootstrapClusterProxy01ConfigYaml,
 	"cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml":                          clusterBootstrapNodeBootstrapperClusterrolebindingYaml,
 	"cluster-bootstrap/router-default-svc-config.yaml":                                     clusterBootstrapRouterDefaultSvcConfigYaml,
-	"cluster-version-operator/cluster-version-namespace.yaml":                              clusterVersionOperatorClusterVersionNamespaceYaml,
 	"cluster-version-operator/cluster-version-operator-deployment.yaml":                    clusterVersionOperatorClusterVersionOperatorDeploymentYaml,
 	"common/service-network-admin-kubeconfig-secret.yaml":                                  commonServiceNetworkAdminKubeconfigSecretYaml,
 	"etcd/etcd-cluster-crd.yaml":                                                           etcdEtcdClusterCrdYaml,
@@ -15690,7 +15668,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"router-default-svc-config.yaml":                                     {clusterBootstrapRouterDefaultSvcConfigYaml, map[string]*bintree{}},
 	}},
 	"cluster-version-operator": {nil, map[string]*bintree{
-		"cluster-version-namespace.yaml":           {clusterVersionOperatorClusterVersionNamespaceYaml, map[string]*bintree{}},
 		"cluster-version-operator-deployment.yaml": {clusterVersionOperatorClusterVersionOperatorDeploymentYaml, map[string]*bintree{}},
 	}},
 	"common": {nil, map[string]*bintree{
