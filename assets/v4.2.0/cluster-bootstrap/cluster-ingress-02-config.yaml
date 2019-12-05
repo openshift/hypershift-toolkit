@@ -4,5 +4,5 @@ metadata:
   creationTimestamp: null
   name: cluster
 spec:
-  domain: ${INGRESS_SUBDOMAIN}
+  domain: {{ .IngressSubdomain }}
 status: {}
