@@ -12751,11 +12751,12 @@ spec:
           - "--exclude-manifests=.*_openshift-apiserver-operator_.*"
           - "--exclude-manifests=.*_cluster-autoscaler-operator_.*"
           - "--exclude-manifests=.*_cluster-machine-approver_.*"
-          - "--exclude-manifests=.*_cluster-authentication-operator_.*"
           - "--exclude-manifests=.*_openshift-controller-manager-operator_.*"
           - "--exclude-manifests=.*_cluster-openshift-controller-manager-operator_.*"
           - "--exclude-manifests=.*_insights-operator_.*"
           - "--exclude-manifests=.*_machine-config-operator_.*"
+{{ if ne .ExternalOauthPort 0 }}          - "--exclude-manifests=.*_cluster-authentication-operator_.*"
+{{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         volumeMounts:
           - mountPath: /etc/cvo/updatepayloads
@@ -13523,7 +13524,7 @@ func kubeApiserverKubeApiserverVpnclientConfigYaml() (*asset, error) {
 }
 
 var _kubeApiserverOauthmetadataJson = []byte(`{
-{{ if .ExternalOauthPort }}
+{{ if ne .ExternalOauthPort 0 }}
 "issuer": "https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}",
 "authorization_endpoint": "https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}/oauth/authorize",
 "token_endpoint": "https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}/oauth/token",
@@ -14077,7 +14078,7 @@ oauthConfig:
   loginURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalAPIPort }}
 {{ if .NamedCerts }}  masterCA: ""
 {{- else }}  masterCA: "/etc/oauth-openshift-config/ca.crt"
-{{- end -}}            
+{{- end }}
   masterPublicURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}
   masterURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}
   sessionConfig:
