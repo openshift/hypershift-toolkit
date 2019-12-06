@@ -286,8 +286,26 @@ spec:
           #!/bin/bash
           set -e
           while(true); do
-            # Use the internal cluster's kubeconfig to collect router and service CA
+            # Use the internal cluster's kubeconfig to collect router and service CA and apply kubelet serving ca configmap
             export KUBECONFIG=/etc/kubernetes/kubeconfig/kubeconfig
+          cat > /tmp/kubelet-serving-ca-configmap.json <<EOF
+          {
+              "apiVersion": "v1",
+              "data": {
+                "ca-bundle.crt": "$(awk -v ORS='\\n' '1' /etc/kubernetes/config/initial-ca.crt)"
+              },
+              "kind": "ConfigMap",
+              "metadata": {
+                    "name": "kubelet-serving-ca",
+                    "namespace": "openshift-config-managed"
+                }
+          }
+          EOF
+            if ! oc apply -f /tmp/kubelet-serving-ca-configmap.json; then
+               echo "Could not apply kubelet serving ca yet. Will continue to wait"
+               sleep 30
+               continue
+            fi
             if ! oc get cm -n openshift-config-managed router-ca -o jsonpath='{ .data.ca-bundle\.crt }' > /tmp/router.ca; then
                echo "Cannot fetch router-ca yet. Will continue to wait"
                sleep 30
@@ -12751,11 +12769,12 @@ spec:
           - "--exclude-manifests=.*_openshift-apiserver-operator_.*"
           - "--exclude-manifests=.*_cluster-autoscaler-operator_.*"
           - "--exclude-manifests=.*_cluster-machine-approver_.*"
-          - "--exclude-manifests=.*_cluster-authentication-operator_.*"
           - "--exclude-manifests=.*_openshift-controller-manager-operator_.*"
           - "--exclude-manifests=.*_cluster-openshift-controller-manager-operator_.*"
           - "--exclude-manifests=.*_insights-operator_.*"
           - "--exclude-manifests=.*_machine-config-operator_.*"
+{{ if ne .ExternalOauthPort 0 }}          - "--exclude-manifests=.*_cluster-authentication-operator_.*"
+{{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         volumeMounts:
           - mountPath: /etc/cvo/updatepayloads
@@ -13523,7 +13542,7 @@ func kubeApiserverKubeApiserverVpnclientConfigYaml() (*asset, error) {
 }
 
 var _kubeApiserverOauthmetadataJson = []byte(`{
-{{ if .ExternalOauthPort }}
+{{ if ne .ExternalOauthPort 0 }}
 "issuer": "https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}",
 "authorization_endpoint": "https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}/oauth/authorize",
 "token_endpoint": "https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}/oauth/token",
@@ -14075,7 +14094,9 @@ oauthConfig:
 {{- else }}  identityProviders: []
 {{- end -}}
   loginURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalAPIPort }}
-  masterCA: "/etc/oauth-openshift-config/ca.crt"
+{{ if .NamedCerts }}  masterCA: ""
+{{- else }}  masterCA: "/etc/oauth-openshift-config/ca.crt"
+{{- end }}
   masterPublicURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}
   masterURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}
   sessionConfig:

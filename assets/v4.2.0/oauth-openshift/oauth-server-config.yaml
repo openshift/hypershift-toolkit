@@ -30,7 +30,9 @@ oauthConfig:
 {{- else }}  identityProviders: []
 {{- end -}}
   loginURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalAPIPort }}
-  masterCA: "/etc/oauth-openshift-config/ca.crt"
+{{ if .NamedCerts }}  masterCA: ""
+{{- else }}  masterCA: "/etc/oauth-openshift-config/ca.crt"
+{{- end }}
   masterPublicURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}
   masterURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}
   sessionConfig:
