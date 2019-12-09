@@ -3,7 +3,7 @@ set -euo pipefail
 
 REPO_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/.."
 
-OUTPUTFILE="${OUTPUTFILE:-${REPO_DIR}/pkg/assets/v420_assets/bindata.go}"
+OUTPUTFILE="${OUTPUTFILE:-${REPO_DIR}/pkg/assets/bindata.go}"
 
 TMP_GOPATH="$(mktemp -d)"
 

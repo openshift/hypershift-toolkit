@@ -9,7 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	assets "github.com/openshift/hypershift-toolkit/pkg/assets/v420_assets"
+	assets "github.com/openshift/hypershift-toolkit/pkg/assets"
 )
 
 type renderContext struct {
