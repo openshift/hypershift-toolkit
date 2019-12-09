@@ -34,7 +34,7 @@ spec:
             topologyKey: "failure-domain.beta.kubernetes.io/zone"
       initContainers:
       - name: setup
-        image: quay.io/csrwng/origin-cluster-version-operator:hosted
+        image: {{ .CVOSetupImage }}
         command:
         - "/bin/bash"
         args:
