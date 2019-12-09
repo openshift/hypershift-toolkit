@@ -55,4 +55,4 @@ identityProviders: |
         userInfo: https://iam.test.cloud.ibm.com/identity/userinfo
 cloudProvider: ''
 cvoSetupImage: "quay.io/csrwng/origin-cluster-version-operator:hosted"
-internalAPIPort: 2040
+internalAPIPort: 6443
