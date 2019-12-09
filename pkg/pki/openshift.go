@@ -2,10 +2,9 @@ package pki
 
 import (
 	"fmt"
-	"net"
-
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"net"
 
 	"github.com/openshift/hypershift-toolkit/pkg/api"
 )
@@ -20,9 +19,10 @@ func GeneratePKI(params *api.ClusterParams, outputDir string) error {
 	}
 
 	externalAPIServerAddress := fmt.Sprintf("https://%s:%d", params.ExternalAPIDNSName, params.ExternalAPIPort)
+	internalAPIServerAddress := fmt.Sprintf("https://kube-apiserver:%d", params.InternalAPIPort)
 	kubeconfigs := []kubeconfigSpec{
 		kubeconfig("admin", externalAPIServerAddress, "root-ca", "system:admin", "system:masters"),
-		kubeconfig("internal-admin", "https://kube-apiserver:"+string(params.InternalAPIPort), "root-ca", "system:admin", "system:masters"),
+		kubeconfig("internal-admin", internalAPIServerAddress, "root-ca", "system:admin", "system:masters"),
 		kubeconfig("kubelet-bootstrap", externalAPIServerAddress, "cluster-signer", "system:bootstrapper", "system:bootstrappers"),
 	}
 
