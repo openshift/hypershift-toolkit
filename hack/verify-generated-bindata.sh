@@ -8,4 +8,4 @@ REPO_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/.."
 
 OUTPUTFILE="${TMP_OUTPUT}" "${REPO_DIR}/hack/update-generated-bindata.sh"
 
-diff -Naup ${REPO_DIR}/pkg/assets/v420_assets/bindata.go "${TMP_OUTPUT}"
+diff -Naup ${REPO_DIR}/pkg/assets/bindata.go "${TMP_OUTPUT}"
