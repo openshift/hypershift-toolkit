@@ -286,8 +286,26 @@ spec:
           #!/bin/bash
           set -e
           while(true); do
-            # Use the internal cluster's kubeconfig to collect router and service CA
+            # Use the internal cluster's kubeconfig to collect router and service CA and apply kubelet serving ca configmap
             export KUBECONFIG=/etc/kubernetes/kubeconfig/kubeconfig
+          cat > /tmp/kubelet-serving-ca-configmap.json <<EOF
+          {
+              "apiVersion": "v1",
+              "data": {
+                "ca-bundle.crt": "$(awk -v ORS='\\n' '1' /etc/kubernetes/config/initial-ca.crt)"
+              },
+              "kind": "ConfigMap",
+              "metadata": {
+                    "name": "kubelet-serving-ca",
+                    "namespace": "openshift-config-managed"
+                }
+          }
+          EOF
+            if ! oc apply -f /tmp/kubelet-serving-ca-configmap.json; then
+               echo "Could not apply kubelet serving ca yet. Will continue to wait"
+               sleep 30
+               continue
+            fi
             if ! oc get cm -n openshift-config-managed router-ca -o jsonpath='{ .data.ca-bundle\.crt }' > /tmp/router.ca; then
                echo "Cannot fetch router-ca yet. Will continue to wait"
                sleep 30
@@ -12719,7 +12737,7 @@ spec:
             topologyKey: "failure-domain.beta.kubernetes.io/zone"
       initContainers:
       - name: setup
-        image: quay.io/csrwng/origin-cluster-version-operator:hosted
+        image: {{ .CVOSetupImage }}
         command:
         - "/bin/bash"
         args:
@@ -12751,11 +12769,12 @@ spec:
           - "--exclude-manifests=.*_openshift-apiserver-operator_.*"
           - "--exclude-manifests=.*_cluster-autoscaler-operator_.*"
           - "--exclude-manifests=.*_cluster-machine-approver_.*"
-          - "--exclude-manifests=.*_cluster-authentication-operator_.*"
           - "--exclude-manifests=.*_openshift-controller-manager-operator_.*"
           - "--exclude-manifests=.*_cluster-openshift-controller-manager-operator_.*"
           - "--exclude-manifests=.*_insights-operator_.*"
           - "--exclude-manifests=.*_machine-config-operator_.*"
+{{ if ne .ExternalOauthPort 0 }}          - "--exclude-manifests=.*_cluster-authentication-operator_.*"
+{{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         volumeMounts:
           - mountPath: /etc/cvo/updatepayloads
@@ -13188,7 +13207,7 @@ serviceAccountPublicKeyFiles:
 servicesNodePortRange: 30000-32767
 servicesSubnet: {{ .ServiceCIDR }}
 servingInfo:
-  bindAddress: 0.0.0.0:6443
+  bindAddress: 0.0.0.0:{{ .InternalAPIPort }}
   bindNetwork: tcp4
   clientCA: "/etc/kubernetes/config/serving-ca.crt"
   certFile: "/etc/kubernetes/secret/server.crt"
@@ -13335,14 +13354,14 @@ spec:
         livenessProbe:
           httpGet:
             scheme: HTTPS
-            port: 6443
+            port: {{ .InternalAPIPort }}
             path: healthz
           initialDelaySeconds: 45
           timeoutSeconds: 10
         readinessProbe:
           httpGet:
             scheme: HTTPS
-            port: 6443
+            port: {{ .InternalAPIPort }}
             path: healthz
           initialDelaySeconds: 10
           timeoutSeconds: 10
@@ -13474,9 +13493,9 @@ metadata:
   name: kube-apiserver
 spec:
   ports:
-  - port: 6443
+  - port: {{ .InternalAPIPort }}
     protocol: TCP
-    targetPort: 6443
+    targetPort: {{ .InternalAPIPort }}
     nodePort: {{ .APINodePort }}
   selector:
     app: kube-apiserver
@@ -13523,7 +13542,7 @@ func kubeApiserverKubeApiserverVpnclientConfigYaml() (*asset, error) {
 }
 
 var _kubeApiserverOauthmetadataJson = []byte(`{
-{{ if .ExternalOauthPort }}
+{{ if ne .ExternalOauthPort 0 }}
 "issuer": "https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}",
 "authorization_endpoint": "https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}/oauth/authorize",
 "token_endpoint": "https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}/oauth/token",
@@ -14075,7 +14094,9 @@ oauthConfig:
 {{- else }}  identityProviders: []
 {{- end -}}
   loginURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalAPIPort }}
-  masterCA: "/etc/oauth-openshift-config/ca.crt"
+{{ if .NamedCerts }}  masterCA: ""
+{{- else }}  masterCA: "/etc/oauth-openshift-config/ca.crt"
+{{- end }}
   masterPublicURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}
   masterURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}
   sessionConfig:
