@@ -4,9 +4,9 @@ metadata:
   name: kube-apiserver
 spec:
   ports:
-  - port: 6443
+  - port: {{ .InternalAPIPort }}
     protocol: TCP
-    targetPort: 6443
+    targetPort: {{ .InternalAPIPort }}
     nodePort: {{ .APINodePort }}
   selector:
     app: kube-apiserver

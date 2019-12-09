@@ -22,7 +22,7 @@ func GeneratePKI(params *api.ClusterParams, outputDir string) error {
 	externalAPIServerAddress := fmt.Sprintf("https://%s:%d", params.ExternalAPIDNSName, params.ExternalAPIPort)
 	kubeconfigs := []kubeconfigSpec{
 		kubeconfig("admin", externalAPIServerAddress, "root-ca", "system:admin", "system:masters"),
-		kubeconfig("internal-admin", "https://kube-apiserver:6443", "root-ca", "system:admin", "system:masters"),
+		kubeconfig("internal-admin", "https://kube-apiserver:"+string(params.InternalAPIPort), "root-ca", "system:admin", "system:masters"),
 		kubeconfig("kubelet-bootstrap", externalAPIServerAddress, "cluster-signer", "system:bootstrapper", "system:bootstrappers"),
 	}
 

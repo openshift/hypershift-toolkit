@@ -13354,14 +13354,14 @@ spec:
         livenessProbe:
           httpGet:
             scheme: HTTPS
-            port: 6443
+            port: {{ .InternalAPIPort }}
             path: healthz
           initialDelaySeconds: 45
           timeoutSeconds: 10
         readinessProbe:
           httpGet:
             scheme: HTTPS
-            port: 6443
+            port: {{ .InternalAPIPort }}
             path: healthz
           initialDelaySeconds: 10
           timeoutSeconds: 10
@@ -13493,9 +13493,9 @@ metadata:
   name: kube-apiserver
 spec:
   ports:
-  - port: 6443
+  - port: {{ .InternalAPIPort }}
     protocol: TCP
-    targetPort: 6443
+    targetPort: {{ .InternalAPIPort }}
     nodePort: {{ .APINodePort }}
   selector:
     app: kube-apiserver

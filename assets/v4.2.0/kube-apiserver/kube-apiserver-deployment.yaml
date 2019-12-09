@@ -46,14 +46,14 @@ spec:
         livenessProbe:
           httpGet:
             scheme: HTTPS
-            port: 6443
+            port: {{ .InternalAPIPort }}
             path: healthz
           initialDelaySeconds: 45
           timeoutSeconds: 10
         readinessProbe:
           httpGet:
             scheme: HTTPS
-            port: 6443
+            port: {{ .InternalAPIPort }}
             path: healthz
           initialDelaySeconds: 10
           timeoutSeconds: 10
