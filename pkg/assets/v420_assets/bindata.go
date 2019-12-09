@@ -13125,7 +13125,7 @@ authConfig:
     usernameHeaders:
     - X-Remote-User
   webhookTokenAuthenticators:
-consolePublicURL: ''
+consolePublicURL: 'https://console-openshift-console.{{ .IngressSubdomain }}'
 corsAllowedOrigins:
 - "//127\\.0\\.0\\.1(:|$)"
 - "//localhost(:|$)"
@@ -13168,7 +13168,8 @@ storageConfig:
 userAgentMatchingConfig:
   defaultRejectionMessage: ''
   deniedClients:
-  requiredClients:`)
+  requiredClients:
+`)
 
 func kubeApiserverConfigYamlBytes() ([]byte, error) {
 	return _kubeApiserverConfigYaml, nil
