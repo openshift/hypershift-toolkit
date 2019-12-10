@@ -7,7 +7,7 @@ import (
 	"text/template"
 
 	"github.com/openshift/hypershift-toolkit/pkg/api"
-	assets "github.com/openshift/hypershift-toolkit/pkg/assets/v420_assets"
+	assets "github.com/openshift/hypershift-toolkit/pkg/assets"
 	"github.com/openshift/hypershift-toolkit/pkg/release"
 )
 
