@@ -68,6 +68,7 @@ spec:
           - "--exclude-manifests=.*_cluster-machine-approver_.*"
           - "--exclude-manifests=.*_openshift-controller-manager-operator_.*"
           - "--exclude-manifests=.*_cluster-openshift-controller-manager-operator_.*"
+          - "--exclude-manifests=.*_cluster-ingress-operator.*"
           - "--exclude-manifests=.*_insights-operator_.*"
           - "--exclude-manifests=.*_machine-config-operator_.*"
 {{ if ne .ExternalOauthPort 0 }}          - "--exclude-manifests=.*_cluster-authentication-operator_.*"

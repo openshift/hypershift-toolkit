@@ -11,6 +11,6 @@ status:
   apiServerURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalAPIPort }}
   etcdDiscoveryDomain: {{ .BaseDomain }}
   infrastructureName: kubernetes
-  platform: None
+  platform: IKS
   platformStatus:
-    type: None
+    type: IKS
