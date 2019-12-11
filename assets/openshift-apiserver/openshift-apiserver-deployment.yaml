@@ -38,6 +38,8 @@ spec:
         args:
         - "start"
         - "--config=/etc/kubernetes/apiserver-config/config.yaml"
+        - "--authentication-kubeconfig=/etc/kubernetes/secret/kubeconfig"
+        - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
           name: secret
