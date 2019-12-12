@@ -58,6 +58,8 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+          - name: EXCLUDE_MANIFESTS
+            value: internal-openshift-hosted
       volumes:
         - name: work
           emptyDir: {}
