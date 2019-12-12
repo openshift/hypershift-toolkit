@@ -27,7 +27,6 @@ type ClusterParams struct {
 	OriginReleasePrefix        string      `json:"originReleasePrefix"`
 	OpenshiftAPIServerCABundle string      `json:"openshiftAPIServerCABundle"`
 	CloudProvider              string      `json:"cloudProvider"`
-	CVOSetupImage              string      `json:"cvoSetupImage"`
 	InternalAPIPort            uint        `json:"internalAPIPort"`
 }
 

@@ -32,24 +32,12 @@ spec:
                   operator: In
                   values: ["cluster-version-operator"]
             topologyKey: "failure-domain.beta.kubernetes.io/zone"
-      initContainers:
-      - name: setup
-        image: {{ .CVOSetupImage }}
-        command:
-        - "/bin/bash"
-        args:
-        - "-c"
-        - |-
-          cp $(which cluster-version-operator) /work/
-        volumeMounts:
-        - mountPath: /work
-          name: work
       containers:
       - name: cluster-version-operator
         image: {{ .ReleaseImage }}
         imagePullPolicy: Always
         command:
-          - "/work/cluster-version-operator"
+          - "cluster-version-operator"
         args:
           - "start"
           - "--release-image={{ .ReleaseImage }}"
@@ -57,21 +45,6 @@ spec:
           - "--enable-default-cluster-version=true"
           - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
           - "--v=4"
-          - '--exclude-manifests=.*_cluster-version-operator_.*deployment.*'
-          - '--exclude-manifests=.*_cluster-version-operator_.*service.*'
-          - "--exclude-manifests=.*_kube-apiserver-operator_.*"
-          - "--exclude-manifests=.*_kube-controller-manager-operator_.*"
-          - "--exclude-manifests=.*_kube-scheduler-operator_.*"
-          - "--exclude-manifests=.*_machine-api-operator_.*"
-          - "--exclude-manifests=.*_openshift-apiserver-operator_.*"
-          - "--exclude-manifests=.*_cluster-autoscaler-operator_.*"
-          - "--exclude-manifests=.*_cluster-machine-approver_.*"
-          - "--exclude-manifests=.*_openshift-controller-manager-operator_.*"
-          - "--exclude-manifests=.*_cluster-openshift-controller-manager-operator_.*"
-          - "--exclude-manifests=.*_insights-operator_.*"
-          - "--exclude-manifests=.*_machine-config-operator_.*"
-{{ if ne .ExternalOauthPort 0 }}          - "--exclude-manifests=.*_cluster-authentication-operator_.*"
-{{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         volumeMounts:
           - mountPath: /etc/cvo/updatepayloads
@@ -79,9 +52,6 @@ spec:
             readOnly: true
           - mountPath: /etc/openshift/kubeconfig
             name: kubeconfig
-            readOnly: true
-          - mountPath: /work
-            name: work
             readOnly: true
         env:
           - name: NODE_NAME
