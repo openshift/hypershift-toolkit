@@ -3,6 +3,9 @@ kind: ConfigMap
 metadata:
   name: openshift-apiserver
 data:
-  aggregator-client-ca.crt: {{ pki "root-ca.crt" }}
-  etcd-ca.crt: {{ pki "root-ca.crt" }}
-  serving-ca.crt: {{ pki "root-ca.crt" }}
+  aggregator-client-ca.crt: |-
+    {{ include_pki "root-ca.crt" 4 }}
+  etcd-ca.crt: |-
+    {{ include_pki "root-ca.crt" 4 }}
+  serving-ca.crt: |- 
+    {{ include_pki "root-ca.crt" 4 }}
