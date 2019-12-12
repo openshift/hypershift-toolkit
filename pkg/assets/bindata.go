@@ -14532,9 +14532,12 @@ kind: ConfigMap
 metadata:
   name: openshift-apiserver
 data:
-  aggregator-client-ca.crt: {{ pki "root-ca.crt" }}
-  etcd-ca.crt: {{ pki "root-ca.crt" }}
-  serving-ca.crt: {{ pki "root-ca.crt" }}
+  aggregator-client-ca.crt: |-
+    {{ include_pki "root-ca.crt" 4 }}
+  etcd-ca.crt: |-
+    {{ include_pki "root-ca.crt" 4 }}
+  serving-ca.crt: |- 
+    {{ include_pki "root-ca.crt" 4 }}
 `)
 
 func openshiftApiserverOpenshiftApiserverConfigmapYamlBytes() ([]byte, error) {
@@ -14592,6 +14595,13 @@ spec:
         args:
         - "start"
         - "--config=/etc/kubernetes/apiserver-config/config.yaml"
+        - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
+        - "--requestheader-client-ca-file=/etc/kubernetes/config/aggregator-client-ca.crt"
+        - "--requestheader-allowed-names=kube-apiserver-proxy,system:kube-apiserver-proxy,system:openshift-aggregator"
+        - "--requestheader-username-headers=X-Remote-User"
+        - "--requestheader-group-headers=X-Remote-Group"
+        - "--requestheader-extra-headers-prefix=X-Remote-Extra-"
+        - "--client-ca-file=/etc/kubernetes/config/serving-ca.crt"
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
           name: secret
