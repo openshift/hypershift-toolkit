@@ -1354,24 +1354,12 @@ spec:
                   operator: In
                   values: ["cluster-version-operator"]
             topologyKey: "failure-domain.beta.kubernetes.io/zone"
-      initContainers:
-      - name: setup
-        image: {{ .CVOSetupImage }}
-        command:
-        - "/bin/bash"
-        args:
-        - "-c"
-        - |-
-          cp $(which cluster-version-operator) /work/
-        volumeMounts:
-        - mountPath: /work
-          name: work
       containers:
       - name: cluster-version-operator
         image: {{ .ReleaseImage }}
         imagePullPolicy: Always
         command:
-          - "/work/cluster-version-operator"
+          - "cluster-version-operator"
         args:
           - "start"
           - "--release-image={{ .ReleaseImage }}"
@@ -1387,16 +1375,11 @@ spec:
           - mountPath: /etc/openshift/kubeconfig
             name: kubeconfig
             readOnly: true
-          - mountPath: /work
-            name: work
-            readOnly: true
         env:
           - name: NODE_NAME
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
-          - name: EXCLUDE_MANIFESTS
-            value: internal-openshift-hosted
       volumes:
         - name: work
           emptyDir: {}
@@ -3202,6 +3185,7 @@ spec:
         - "start"
         - "--config=/etc/kubernetes/apiserver-config/config.yaml"
         - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
+        - "--authentication-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "--requestheader-client-ca-file=/etc/kubernetes/config/aggregator-client-ca.crt"
         - "--requestheader-allowed-names=kube-apiserver-proxy,system:kube-apiserver-proxy,system:openshift-aggregator"
         - "--requestheader-username-headers=X-Remote-User"
