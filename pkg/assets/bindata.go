@@ -12760,21 +12760,6 @@ spec:
           - "--enable-default-cluster-version=true"
           - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
           - "--v=4"
-          - '--exclude-manifests=.*_cluster-version-operator_.*deployment.*'
-          - '--exclude-manifests=.*_cluster-version-operator_.*service.*'
-          - "--exclude-manifests=.*_kube-apiserver-operator_.*"
-          - "--exclude-manifests=.*_kube-controller-manager-operator_.*"
-          - "--exclude-manifests=.*_kube-scheduler-operator_.*"
-          - "--exclude-manifests=.*_machine-api-operator_.*"
-          - "--exclude-manifests=.*_openshift-apiserver-operator_.*"
-          - "--exclude-manifests=.*_cluster-autoscaler-operator_.*"
-          - "--exclude-manifests=.*_cluster-machine-approver_.*"
-          - "--exclude-manifests=.*_openshift-controller-manager-operator_.*"
-          - "--exclude-manifests=.*_cluster-openshift-controller-manager-operator_.*"
-          - "--exclude-manifests=.*_insights-operator_.*"
-          - "--exclude-manifests=.*_machine-config-operator_.*"
-{{ if ne .ExternalOauthPort 0 }}          - "--exclude-manifests=.*_cluster-authentication-operator_.*"
-{{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         volumeMounts:
           - mountPath: /etc/cvo/updatepayloads
@@ -12791,6 +12776,8 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+          - name: EXCLUDE_MANIFESTS
+            value: internal-openshift-hosted
       volumes:
         - name: work
           emptyDir: {}
@@ -14532,9 +14519,12 @@ kind: ConfigMap
 metadata:
   name: openshift-apiserver
 data:
-  aggregator-client-ca.crt: {{ pki "root-ca.crt" }}
-  etcd-ca.crt: {{ pki "root-ca.crt" }}
-  serving-ca.crt: {{ pki "root-ca.crt" }}
+  aggregator-client-ca.crt: |-
+    {{ include_pki "root-ca.crt" 4 }}
+  etcd-ca.crt: |-
+    {{ include_pki "root-ca.crt" 4 }}
+  serving-ca.crt: |- 
+    {{ include_pki "root-ca.crt" 4 }}
 `)
 
 func openshiftApiserverOpenshiftApiserverConfigmapYamlBytes() ([]byte, error) {
@@ -14592,6 +14582,13 @@ spec:
         args:
         - "start"
         - "--config=/etc/kubernetes/apiserver-config/config.yaml"
+        - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
+        - "--requestheader-client-ca-file=/etc/kubernetes/config/aggregator-client-ca.crt"
+        - "--requestheader-allowed-names=kube-apiserver-proxy,system:kube-apiserver-proxy,system:openshift-aggregator"
+        - "--requestheader-username-headers=X-Remote-User"
+        - "--requestheader-group-headers=X-Remote-Group"
+        - "--requestheader-extra-headers-prefix=X-Remote-Extra-"
+        - "--client-ca-file=/etc/kubernetes/config/serving-ca.crt"
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
           name: secret
