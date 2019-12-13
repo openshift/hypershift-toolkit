@@ -14583,6 +14583,7 @@ spec:
         - "start"
         - "--config=/etc/kubernetes/apiserver-config/config.yaml"
         - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
+        - "--authentication-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "--requestheader-client-ca-file=/etc/kubernetes/config/aggregator-client-ca.crt"
         - "--requestheader-allowed-names=kube-apiserver-proxy,system:kube-apiserver-proxy,system:openshift-aggregator"
         - "--requestheader-username-headers=X-Remote-User"
