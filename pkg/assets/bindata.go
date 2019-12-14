@@ -13645,6 +13645,8 @@ extendedArguments:
   - {{ .ServiceCIDR }}
   use-service-account-credentials:
   - 'true'
+  experimental-cluster-signing-duration:
+  - 26280h
 serviceServingCert:
   certFile: "/etc/kubernetes/config/service-ca.crt"
 `)
