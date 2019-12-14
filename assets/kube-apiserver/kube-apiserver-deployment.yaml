@@ -6,6 +6,11 @@ metadata:
     app: kube-apiserver
 spec:
   replicas: {{ .Replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: kube-apiserver
@@ -19,20 +24,21 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
-      podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["kube-apiserver"]
-            topologyKey: "kubernetes.io/hostname"
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["kube-apiserver"]
-            topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["kube-apiserver"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["kube-apiserver"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
       containers:
       - name: kube-apiserver
