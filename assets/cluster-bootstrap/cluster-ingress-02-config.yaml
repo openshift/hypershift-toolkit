@@ -5,4 +5,6 @@ metadata:
   name: cluster
 spec:
   domain: {{ .IngressSubdomain }}
+  endpointPublishingStrategy:
+    type: LoadBalancerService
 status: {}
