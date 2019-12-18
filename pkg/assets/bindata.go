@@ -86,6 +86,7 @@
 // assets/openshift-apiserver/openshift-apiserver-user-service.yaml
 // assets/openshift-apiserver/service-template.yaml
 // assets/openshift-controller-manager/00-openshift-controller-manager-namespace.yaml
+// assets/openshift-controller-manager/cluster-policy-controller-deployment.yaml
 // assets/openshift-controller-manager/config.yaml
 // assets/openshift-controller-manager/openshift-controller-manager-config-configmap.yaml
 // assets/openshift-controller-manager/openshift-controller-manager-configmap.yaml
@@ -7571,6 +7572,83 @@ func openshiftControllerManager00OpenshiftControllerManagerNamespaceYaml() (*ass
 	return a, nil
 }
 
+var _openshiftControllerManagerClusterPolicyControllerDeploymentYaml = []byte(`kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: cluster-policy-controller
+spec:
+  replicas: {{ .Replicas }}
+  selector:
+    matchLabels:
+      app: cluster-policy-controller
+  template:
+    metadata:
+      labels:
+        app: cluster-policy-controller
+    spec:
+      affinity:
+        tolerations:
+          - key: "multi-az-worker"
+            operator: "Equal"
+            value: "true"
+            effect: NoSchedule
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["cluster-policy-controller"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["cluster-policy-controller"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      automountServiceAccountToken: false
+      containers:
+      - name: cluster-policy-controller
+        image: {{ imageFor "cluster-policy-controller" }}
+        command:
+        - "cluster-policy-controller"
+        args:
+        - "start"
+        - "--config=/etc/kubernetes/cmconfig/config.yaml"
+        - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
+        volumeMounts:
+        - mountPath: /etc/kubernetes/secret
+          name: secret
+        - mountPath: /etc/kubernetes/cmconfig
+          name: cmconfig
+        - mountPath: /etc/kubernetes/config
+          name: config
+      volumes:
+      - secret:
+          secretName: openshift-controller-manager
+        name: secret
+      - configMap:
+          name: openshift-controller-manager
+        name: config
+      - configMap:
+          name: openshift-controller-manager-config
+        name: cmconfig`)
+
+func openshiftControllerManagerClusterPolicyControllerDeploymentYamlBytes() ([]byte, error) {
+	return _openshiftControllerManagerClusterPolicyControllerDeploymentYaml, nil
+}
+
+func openshiftControllerManagerClusterPolicyControllerDeploymentYaml() (*asset, error) {
+	bytes, err := openshiftControllerManagerClusterPolicyControllerDeploymentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "openshift-controller-manager/cluster-policy-controller-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _openshiftControllerManagerConfigYaml = []byte(`apiVersion: openshiftcontrolplane.config.openshift.io/v1
 kind: OpenShiftControllerManagerConfig
 build:
@@ -8360,6 +8438,7 @@ var _bindata = map[string]func() (*asset, error){
 	"openshift-apiserver/openshift-apiserver-user-service.yaml":                            openshiftApiserverOpenshiftApiserverUserServiceYaml,
 	"openshift-apiserver/service-template.yaml":                                            openshiftApiserverServiceTemplateYaml,
 	"openshift-controller-manager/00-openshift-controller-manager-namespace.yaml":          openshiftControllerManager00OpenshiftControllerManagerNamespaceYaml,
+	"openshift-controller-manager/cluster-policy-controller-deployment.yaml":               openshiftControllerManagerClusterPolicyControllerDeploymentYaml,
 	"openshift-controller-manager/config.yaml":                                             openshiftControllerManagerConfigYaml,
 	"openshift-controller-manager/openshift-controller-manager-config-configmap.yaml":      openshiftControllerManagerOpenshiftControllerManagerConfigConfigmapYaml,
 	"openshift-controller-manager/openshift-controller-manager-configmap.yaml":             openshiftControllerManagerOpenshiftControllerManagerConfigmapYaml,
@@ -8530,6 +8609,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	}},
 	"openshift-controller-manager": {nil, map[string]*bintree{
 		"00-openshift-controller-manager-namespace.yaml": {openshiftControllerManager00OpenshiftControllerManagerNamespaceYaml, map[string]*bintree{}},
+		"cluster-policy-controller-deployment.yaml":      {openshiftControllerManagerClusterPolicyControllerDeploymentYaml, map[string]*bintree{}},
 		"config.yaml": {openshiftControllerManagerConfigYaml, map[string]*bintree{}},
 		"openshift-controller-manager-config-configmap.yaml": {openshiftControllerManagerOpenshiftControllerManagerConfigConfigmapYaml, map[string]*bintree{}},
 		"openshift-controller-manager-configmap.yaml":        {openshiftControllerManagerOpenshiftControllerManagerConfigmapYaml, map[string]*bintree{}},
