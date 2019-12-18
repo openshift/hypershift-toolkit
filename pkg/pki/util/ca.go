@@ -63,7 +63,7 @@ func (l CAList) WriteTo(fileName string) error {
 	for _, ca := range l {
 		allBytes = append(allBytes, CertToPem(ca.Cert))
 	}
-	certBytes := bytes.Join(allBytes, []byte("\n"))
+	certBytes := bytes.Join(allBytes, []byte(""))
 	if err := ioutil.WriteFile(fileName+".crt", certBytes, 0644); err != nil {
 		return errors.Wrapf(err, "failed to write combined CA file %s", fileName)
 	}

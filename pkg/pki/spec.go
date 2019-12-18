@@ -52,7 +52,7 @@ func generateKubeconfigs(kubeconfigSpecs []kubeconfigSpec, cas map[string]*util.
 		if ca == nil {
 			return nil, errors.Errorf("CA %s for kubeconfig %s not found", spec.ca, spec.name)
 		}
-		kubeconfig, err := util.GenerateKubeconfig(spec.serverAddress, spec.commonName, spec.organization, ca)
+		kubeconfig, err := util.GenerateKubeconfig(spec.serverAddress, spec.commonName, spec.organization, cas["root-ca"], ca)
 		if err != nil {
 			return nil, err
 		}

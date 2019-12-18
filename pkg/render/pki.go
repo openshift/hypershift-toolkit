@@ -27,7 +27,7 @@ func newPKIRenderContext(pkiDir, outputDir string) *pkiRenderContext {
 
 func (c *pkiRenderContext) setupManifests(etcd bool, vpn bool, externalOauth bool) {
 	c.serviceAdminKubeconfig()
-	c.kubeAPIServer()
+	c.kubeAPIServer(vpn)
 	if etcd {
 		c.etcd()
 	}
@@ -67,11 +67,16 @@ func (c *pkiRenderContext) oauthOpenshiftServer() {
 	)
 }
 
-func (c *pkiRenderContext) kubeAPIServer() {
+func (c *pkiRenderContext) kubeAPIServer(includeVPN bool) {
 	c.addManifestFiles(
 		"kube-apiserver/kube-apiserver-secret.yaml",
 		"kube-apiserver/kube-apiserver-configmap.yaml",
 	)
+	if includeVPN {
+		c.addManifestFiles(
+			"kube-apiserver/kube-apiserver-vpnclient-secret.yaml",
+		)
+	}
 }
 
 func (c *pkiRenderContext) kubeControllerManager() {
@@ -110,7 +115,6 @@ func (c *pkiRenderContext) caOperator() {
 func (c *pkiRenderContext) openVPN() {
 	c.addManifestFiles(
 		"openvpn/openvpn-server-secret.yaml",
-		"openvpn/openvpn-ccd-secret.yaml",
 		"openvpn/openvpn-client-secret.yaml",
 	)
 }

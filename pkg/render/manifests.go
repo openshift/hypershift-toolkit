@@ -51,7 +51,7 @@ func (c *clusterManifestContext) setupManifests(etcd bool, autoApprover bool, vp
 	if etcd {
 		c.etcd()
 	}
-	c.kubeAPIServer()
+	c.kubeAPIServer(vpn)
 	c.kubeControllerManager()
 	c.kubeScheduler()
 	c.clusterBootstrap()
@@ -94,13 +94,18 @@ func (c *clusterManifestContext) oauthOpenshiftServer() {
 	)
 }
 
-func (c *clusterManifestContext) kubeAPIServer() {
+func (c *clusterManifestContext) kubeAPIServer(includeVPN bool) {
 	c.addManifestFiles(
 		"kube-apiserver/kube-apiserver-deployment.yaml",
 		"kube-apiserver/kube-apiserver-service.yaml",
 		"kube-apiserver/kube-apiserver-config-configmap.yaml",
 		"kube-apiserver/kube-apiserver-oauth-metadata-configmap.yaml",
 	)
+	if includeVPN {
+		c.addManifestFiles(
+			"kube-apiserver/kube-apiserver-vpnclient-config.yaml",
+		)
+	}
 }
 
 func (c *clusterManifestContext) kubeControllerManager() {
@@ -187,6 +192,8 @@ func (c *clusterManifestContext) openVPN() {
 	c.addManifestFiles(
 		"openvpn/openvpn-server-deployment.yaml",
 		"openvpn/openvpn-server-service.yaml",
+		"openvpn/openvpn-ccd-configmap.yaml",
+		"openvpn/openvpn-server-configmap.yaml",
 	)
 	c.addUserManifestFiles(
 		"openvpn/openvpn-client-deployment.yaml",
