@@ -261,20 +261,21 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
-      podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["ca-operator"]
-            topologyKey: "kubernetes.io/hostname"
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["ca-operator"]
-            topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["ca-operator"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["ca-operator"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
       - image: {{ imageFor "cli" }}
         imagePullPolicy: IfNotPresent
@@ -5512,20 +5513,21 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
-      podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["cluster-version-operator"]
-            topologyKey: "kubernetes.io/hostname"
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["cluster-version-operator"]
-            topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["cluster-version-operator"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["cluster-version-operator"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
         - name: cluster-version-operator
           image: {{ .ReleaseImage }}
@@ -6090,20 +6092,21 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
-      podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["kube-apiserver"]
-            topologyKey: "kubernetes.io/hostname"
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["kube-apiserver"]
-            topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["kube-apiserver"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["kube-apiserver"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
       containers:
       - name: kube-apiserver
@@ -6498,20 +6501,21 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
-      podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["kube-controller-manager"]
-            topologyKey: "kubernetes.io/hostname"
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["kube-controller-manager"]
-            topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["kube-controller-manager"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["kube-controller-manager"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
       - name: kube-controller-manager
         image: {{ imageFor "hyperkube" }}
@@ -6656,20 +6660,21 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
-      podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["kube-scheduler"]
-            topologyKey: "kubernetes.io/hostname"
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["kube-scheduler"]
-            topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["kube-scheduler"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["kube-scheduler"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
       containers:
       - name: kube-scheduler
@@ -7339,20 +7344,21 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
-      podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["openshift-apiserver"]
-            topologyKey: "kubernetes.io/hostname"
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["openshift-apiserver"]
-            topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["openshift-apiserver"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["openshift-apiserver"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
       containers:
       - name: openshift-apiserver
@@ -7586,26 +7592,26 @@ spec:
       labels:
         app: cluster-policy-controller
     spec:
-      affinity:
         tolerations:
           - key: "multi-az-worker"
             operator: "Equal"
             value: "true"
             effect: NoSchedule
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: app
-                    operator: In
-                    values: ["cluster-policy-controller"]
-              topologyKey: "kubernetes.io/hostname"
-            - labelSelector:
-                matchExpressions:
-                  - key: app
-                    operator: In
-                    values: ["cluster-policy-controller"]
-              topologyKey: "failure-domain.beta.kubernetes.io/zone"
+        affinity:
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values: ["cluster-policy-controller"]
+                topologyKey: "kubernetes.io/hostname"
+              - labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values: ["cluster-policy-controller"]
+                topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
       containers:
       - name: cluster-policy-controller
@@ -7748,26 +7754,26 @@ spec:
       labels:
         app: openshift-controller-manager
     spec:
-      affinity:
         tolerations:
           - key: "multi-az-worker"
             operator: "Equal"
             value: "true"
             effect: NoSchedule
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: app
-                    operator: In
-                    values: ["openshift-controller-manager"]
-              topologyKey: "kubernetes.io/hostname"
-            - labelSelector:
-                matchExpressions:
-                  - key: app
-                    operator: In
-                    values: ["openshift-controller-manager"]
-              topologyKey: "failure-domain.beta.kubernetes.io/zone"
+        affinity:
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values: ["openshift-controller-manager"]
+                topologyKey: "kubernetes.io/hostname"
+              - labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values: ["openshift-controller-manager"]
+                topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
       containers:
       - name: openshift-controller-manager
