@@ -35,20 +35,21 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
-      podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["ca-operator"]
-            topologyKey: "kubernetes.io/hostname"
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["ca-operator"]
-            topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["ca-operator"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["ca-operator"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
       - image: {{ imageFor "cli" }}
         imagePullPolicy: IfNotPresent
