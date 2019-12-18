@@ -56,6 +56,15 @@ github.com/beorn7/perks/quantile
 github.com/blang/semver
 # github.com/containerd/continuity v0.0.0-20190827140505-75bee3e2ccb6
 github.com/containerd/continuity/pathdriver
+# github.com/coreos/go-semver v0.3.0
+github.com/coreos/go-semver/semver
+# github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f
+github.com/coreos/go-systemd/unit
+# github.com/coreos/ignition v0.34.0
+github.com/coreos/ignition/config/shared/errors
+github.com/coreos/ignition/config/shared/validations
+github.com/coreos/ignition/config/v2_2/types
+github.com/coreos/ignition/config/validate/report
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/docker/distribution v2.7.1+incompatible => github.com/openshift/docker-distribution v0.0.0-20180925154709-d4c35485a70d
@@ -248,6 +257,8 @@ github.com/sirupsen/logrus
 github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.3
 github.com/spf13/pflag
+# github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50
+github.com/vincent-petithory/dataurl
 # golang.org/x/crypto v0.0.0-20190611184440-5c40567a22f8
 golang.org/x/crypto/cast5
 golang.org/x/crypto/openpgp
