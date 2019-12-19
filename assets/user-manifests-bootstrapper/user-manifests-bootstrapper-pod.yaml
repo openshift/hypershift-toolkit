@@ -21,6 +21,11 @@ kind: Pod
 metadata:
   name: manifests-bootstrapper
 spec:
+  tolerations:
+    - key: "multi-az-worker"
+      operator: "Equal"
+      value: "true"
+      effect: NoSchedule
   containers:
   - image: {{ imageFor "cli" }}
     imagePullPolicy: IfNotPresent

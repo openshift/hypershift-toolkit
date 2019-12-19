@@ -169,6 +169,7 @@ func (c *clusterManifestContext) openshiftControllerManager() {
 	c.addManifestFiles(
 		"openshift-controller-manager/openshift-controller-manager-deployment.yaml",
 		"openshift-controller-manager/openshift-controller-manager-config-configmap.yaml",
+		"openshift-controller-manager/cluster-policy-controller-deployment.yaml",
 	)
 	c.addUserManifestFiles(
 		"openshift-controller-manager/00-openshift-controller-manager-namespace.yaml",

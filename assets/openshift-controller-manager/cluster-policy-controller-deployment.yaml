@@ -1,7 +1,7 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: openshift-controller-manager
+  name: cluster-policy-controller
 spec:
   replicas: {{ .Replicas }}
   strategy:
@@ -11,11 +11,11 @@ spec:
       maxUnavailable: 1
   selector:
     matchLabels:
-      app: openshift-controller-manager
+      app: cluster-policy-controller
   template:
     metadata:
       labels:
-        app: openshift-controller-manager
+        app: cluster-policy-controller
     spec:
       tolerations:
         - key: "multi-az-worker"
@@ -29,23 +29,24 @@ spec:
                 matchExpressions:
                   - key: app
                     operator: In
-                    values: ["openshift-controller-manager"]
+                    values: ["cluster-policy-controller"]
               topologyKey: "kubernetes.io/hostname"
             - labelSelector:
                 matchExpressions:
                   - key: app
                     operator: In
-                    values: ["openshift-controller-manager"]
+                    values: ["cluster-policy-controller"]
               topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
       containers:
-      - name: openshift-controller-manager
-        image: {{ imageFor "openshift-controller-manager" }}
+      - name: cluster-policy-controller
+        image: {{ imageFor "cluster-policy-controller" }}
         command:
-        - "openshift-controller-manager"
+        - "cluster-policy-controller"
         args:
         - "start"
         - "--config=/etc/kubernetes/cmconfig/config.yaml"
+        - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
           name: secret
