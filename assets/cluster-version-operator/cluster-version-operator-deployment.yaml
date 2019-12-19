@@ -18,21 +18,6 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: app
-                    operator: In
-                    values: ["cluster-version-operator"]
-              topologyKey: "kubernetes.io/hostname"
-            - labelSelector:
-                matchExpressions:
-                  - key: app
-                    operator: In
-                    values: ["cluster-version-operator"]
-              topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
         - name: cluster-version-operator
           image: {{ .ReleaseImage }}

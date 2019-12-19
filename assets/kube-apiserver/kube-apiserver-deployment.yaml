@@ -6,6 +6,11 @@ metadata:
     app: kube-apiserver
 spec:
   replicas: {{ .Replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: kube-apiserver

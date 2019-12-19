@@ -154,6 +154,11 @@ kind: Pod
 metadata:
   name: auto-approver
 spec:
+  tolerations:
+    - key: "multi-az-worker"
+      operator: "Equal"
+      value: "true"
+      effect: NoSchedule
   containers:
   - image: {{ imageFor "cli" }}
     env:
@@ -261,21 +266,6 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: app
-                    operator: In
-                    values: ["ca-operator"]
-              topologyKey: "kubernetes.io/hostname"
-            - labelSelector:
-                matchExpressions:
-                  - key: app
-                    operator: In
-                    values: ["ca-operator"]
-              topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
       - image: {{ imageFor "cli" }}
         imagePullPolicy: IfNotPresent
@@ -326,8 +316,7 @@ spec:
           {
               "apiVersion": "v1",
               "data": {
-                "service-ca.crt": "$(awk -v ORS='\\n' '1' /tmp/kcm.ca)",
-                "root-ca.crt": "$(awk -v ORS='\\n' '1' /tmp/kcm.ca)"
+                "service-ca.crt": "$(awk -v ORS='\\n' '1' /tmp/kcm.ca)"
               },
               "kind": "ConfigMap",
               "metadata": {
@@ -5514,21 +5503,6 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: app
-                    operator: In
-                    values: ["cluster-version-operator"]
-              topologyKey: "kubernetes.io/hostname"
-            - labelSelector:
-                matchExpressions:
-                  - key: app
-                    operator: In
-                    values: ["cluster-version-operator"]
-              topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
         - name: cluster-version-operator
           image: {{ .ReleaseImage }}
@@ -6080,6 +6054,11 @@ metadata:
     app: kube-apiserver
 spec:
   replicas: {{ .Replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: kube-apiserver
@@ -6489,6 +6468,11 @@ metadata:
   name: kube-controller-manager
 spec:
   replicas: {{ .Replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: kube-controller-manager
@@ -6648,6 +6632,11 @@ metadata:
   name: kube-scheduler
 spec:
   replicas: {{ .Replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: kube-scheduler
@@ -7332,6 +7321,11 @@ metadata:
   name: openshift-apiserver
 spec:
   replicas: {{ .Replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: openshift-apiserver
@@ -7585,6 +7579,11 @@ metadata:
   name: cluster-policy-controller
 spec:
   replicas: {{ .Replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: cluster-policy-controller
@@ -7748,6 +7747,11 @@ metadata:
   name: openshift-controller-manager
 spec:
   replicas: {{ .Replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: openshift-controller-manager
@@ -8258,6 +8262,11 @@ kind: Pod
 metadata:
   name: manifests-bootstrapper
 spec:
+  tolerations:
+    - key: "multi-az-worker"
+      operator: "Equal"
+      value: "true"
+      effect: NoSchedule
   containers:
   - image: {{ imageFor "cli" }}
     imagePullPolicy: IfNotPresent
