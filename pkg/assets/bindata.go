@@ -7638,7 +7638,8 @@ spec:
         name: config
       - configMap:
           name: openshift-controller-manager-config
-        name: cmconfig`)
+        name: cmconfig
+`)
 
 func openshiftControllerManagerClusterPolicyControllerDeploymentYamlBytes() ([]byte, error) {
 	return _openshiftControllerManagerClusterPolicyControllerDeploymentYaml, nil
@@ -7754,26 +7755,26 @@ spec:
       labels:
         app: openshift-controller-manager
     spec:
-        tolerations:
-          - key: "multi-az-worker"
-            operator: "Equal"
-            value: "true"
-            effect: NoSchedule
-        affinity:
-          podAntiAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              - labelSelector:
-                  matchExpressions:
-                    - key: app
-                      operator: In
-                      values: ["openshift-controller-manager"]
-                topologyKey: "kubernetes.io/hostname"
-              - labelSelector:
-                  matchExpressions:
-                    - key: app
-                      operator: In
-                      values: ["openshift-controller-manager"]
-                topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      tolerations:
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["openshift-controller-manager"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["openshift-controller-manager"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
       containers:
       - name: openshift-controller-manager
