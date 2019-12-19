@@ -12,12 +12,12 @@ spec:
       labels:
         app: openshift-controller-manager
     spec:
+      tolerations:
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
       affinity:
-        tolerations:
-          - key: "multi-az-worker"
-            operator: "Equal"
-            value: "true"
-            effect: NoSchedule
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
