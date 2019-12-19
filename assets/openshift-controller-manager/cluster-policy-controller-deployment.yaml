@@ -1,16 +1,16 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: kube-scheduler
+  name: cluster-policy-controller
 spec:
   replicas: {{ .Replicas }}
   selector:
     matchLabels:
-      app: kube-scheduler
+      app: cluster-policy-controller
   template:
     metadata:
       labels:
-        app: kube-scheduler
+        app: cluster-policy-controller
     spec:
       tolerations:
         - key: "multi-az-worker"
@@ -24,42 +24,38 @@ spec:
                 matchExpressions:
                   - key: app
                     operator: In
-                    values: ["kube-scheduler"]
+                    values: ["cluster-policy-controller"]
               topologyKey: "kubernetes.io/hostname"
             - labelSelector:
                 matchExpressions:
                   - key: app
                     operator: In
-                    values: ["kube-scheduler"]
+                    values: ["cluster-policy-controller"]
               topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
       containers:
-      - name: kube-scheduler
-        image: {{ imageFor "hyperkube" }}
+      - name: cluster-policy-controller
+        image: {{ imageFor "cluster-policy-controller" }}
         command:
-        - hyperkube
-        - kube-scheduler
+        - "cluster-policy-controller"
         args:
-        - "--config=/etc/kubernetes/config/config.yaml"
-        - "--cert-dir=/var/run/kubernetes"
-        - "--port=0"
-        - "--authentication-kubeconfig=/etc/kubernetes/secret/kubeconfig"
-        - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
-        - "-v=2"
+        - "start"
+        - "--config=/etc/kubernetes/cmconfig/config.yaml"
+        - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
           name: secret
+        - mountPath: /etc/kubernetes/cmconfig
+          name: cmconfig
         - mountPath: /etc/kubernetes/config
           name: config
-        - mountPath: /var/run/kubernetes/
-          name: cert
-        workDir: /var/run/kubernetes
       volumes:
       - secret:
-          secretName: service-network-admin-kubeconfig
+          secretName: openshift-controller-manager
         name: secret
       - configMap:
-          name: kube-scheduler-config
+          name: openshift-controller-manager
         name: config
-      - emptyDir: {}
-        name: cert
+      - configMap:
+          name: openshift-controller-manager-config
+        name: cmconfig

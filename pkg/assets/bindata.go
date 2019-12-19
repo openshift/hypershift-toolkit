@@ -86,6 +86,7 @@
 // assets/openshift-apiserver/openshift-apiserver-user-service.yaml
 // assets/openshift-apiserver/service-template.yaml
 // assets/openshift-controller-manager/00-openshift-controller-manager-namespace.yaml
+// assets/openshift-controller-manager/cluster-policy-controller-deployment.yaml
 // assets/openshift-controller-manager/config.yaml
 // assets/openshift-controller-manager/openshift-controller-manager-config-configmap.yaml
 // assets/openshift-controller-manager/openshift-controller-manager-configmap.yaml
@@ -205,7 +206,7 @@ metadata:
   name: ca-operator
 data:
   initial-ca.crt: |-
-{{ include_pki "root-ca.crt"  4 }}
+{{ include_pki "combined-ca.crt"  4 }}
 `)
 
 func caOperatorCaOperatorConfigmapYamlBytes() ([]byte, error) {
@@ -260,20 +261,21 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
-      podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["ca-operator"]
-            topologyKey: "kubernetes.io/hostname"
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["ca-operator"]
-            topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["ca-operator"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["ca-operator"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
       - image: {{ imageFor "cli" }}
         imagePullPolicy: IfNotPresent
@@ -324,7 +326,8 @@ spec:
           {
               "apiVersion": "v1",
               "data": {
-                "service-ca.crt": "$(awk -v ORS='\\n' '1' /tmp/kcm.ca)"
+                "service-ca.crt": "$(awk -v ORS='\\n' '1' /tmp/kcm.ca)",
+                "root-ca.crt": "$(awk -v ORS='\\n' '1' /tmp/kcm.ca)"
               },
               "kind": "ConfigMap",
               "metadata": {
@@ -5511,20 +5514,21 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
-      podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["cluster-version-operator"]
-            topologyKey: "kubernetes.io/hostname"
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["cluster-version-operator"]
-            topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["cluster-version-operator"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["cluster-version-operator"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
         - name: cluster-version-operator
           image: {{ .ReleaseImage }}
@@ -6089,20 +6093,21 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
-      podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["kube-apiserver"]
-            topologyKey: "kubernetes.io/hostname"
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["kube-apiserver"]
-            topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["kube-apiserver"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["kube-apiserver"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
       containers:
       - name: kube-apiserver
@@ -6497,20 +6502,21 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
-      podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["kube-controller-manager"]
-            topologyKey: "kubernetes.io/hostname"
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["kube-controller-manager"]
-            topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["kube-controller-manager"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["kube-controller-manager"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
       - name: kube-controller-manager
         image: {{ imageFor "hyperkube" }}
@@ -6655,20 +6661,21 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
-      podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["kube-scheduler"]
-            topologyKey: "kubernetes.io/hostname"
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["kube-scheduler"]
-            topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["kube-scheduler"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["kube-scheduler"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
       containers:
       - name: kube-scheduler
@@ -7338,20 +7345,21 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
-      podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["openshift-apiserver"]
-            topologyKey: "kubernetes.io/hostname"
-          - labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values: ["openshift-apiserver"]
-            topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["openshift-apiserver"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["openshift-apiserver"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
       containers:
       - name: openshift-apiserver
@@ -7571,6 +7579,84 @@ func openshiftControllerManager00OpenshiftControllerManagerNamespaceYaml() (*ass
 	return a, nil
 }
 
+var _openshiftControllerManagerClusterPolicyControllerDeploymentYaml = []byte(`kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: cluster-policy-controller
+spec:
+  replicas: {{ .Replicas }}
+  selector:
+    matchLabels:
+      app: cluster-policy-controller
+  template:
+    metadata:
+      labels:
+        app: cluster-policy-controller
+    spec:
+      tolerations:
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["cluster-policy-controller"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["cluster-policy-controller"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      automountServiceAccountToken: false
+      containers:
+      - name: cluster-policy-controller
+        image: {{ imageFor "cluster-policy-controller" }}
+        command:
+        - "cluster-policy-controller"
+        args:
+        - "start"
+        - "--config=/etc/kubernetes/cmconfig/config.yaml"
+        - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
+        volumeMounts:
+        - mountPath: /etc/kubernetes/secret
+          name: secret
+        - mountPath: /etc/kubernetes/cmconfig
+          name: cmconfig
+        - mountPath: /etc/kubernetes/config
+          name: config
+      volumes:
+      - secret:
+          secretName: openshift-controller-manager
+        name: secret
+      - configMap:
+          name: openshift-controller-manager
+        name: config
+      - configMap:
+          name: openshift-controller-manager-config
+        name: cmconfig
+`)
+
+func openshiftControllerManagerClusterPolicyControllerDeploymentYamlBytes() ([]byte, error) {
+	return _openshiftControllerManagerClusterPolicyControllerDeploymentYaml, nil
+}
+
+func openshiftControllerManagerClusterPolicyControllerDeploymentYaml() (*asset, error) {
+	bytes, err := openshiftControllerManagerClusterPolicyControllerDeploymentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "openshift-controller-manager/cluster-policy-controller-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _openshiftControllerManagerConfigYaml = []byte(`apiVersion: openshiftcontrolplane.config.openshift.io/v1
 kind: OpenShiftControllerManagerConfig
 build:
@@ -7670,12 +7756,12 @@ spec:
       labels:
         app: openshift-controller-manager
     spec:
+      tolerations:
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
       affinity:
-        tolerations:
-          - key: "multi-az-worker"
-            operator: "Equal"
-            value: "true"
-            effect: NoSchedule
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
@@ -8360,6 +8446,7 @@ var _bindata = map[string]func() (*asset, error){
 	"openshift-apiserver/openshift-apiserver-user-service.yaml":                            openshiftApiserverOpenshiftApiserverUserServiceYaml,
 	"openshift-apiserver/service-template.yaml":                                            openshiftApiserverServiceTemplateYaml,
 	"openshift-controller-manager/00-openshift-controller-manager-namespace.yaml":          openshiftControllerManager00OpenshiftControllerManagerNamespaceYaml,
+	"openshift-controller-manager/cluster-policy-controller-deployment.yaml":               openshiftControllerManagerClusterPolicyControllerDeploymentYaml,
 	"openshift-controller-manager/config.yaml":                                             openshiftControllerManagerConfigYaml,
 	"openshift-controller-manager/openshift-controller-manager-config-configmap.yaml":      openshiftControllerManagerOpenshiftControllerManagerConfigConfigmapYaml,
 	"openshift-controller-manager/openshift-controller-manager-configmap.yaml":             openshiftControllerManagerOpenshiftControllerManagerConfigmapYaml,
@@ -8530,6 +8617,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	}},
 	"openshift-controller-manager": {nil, map[string]*bintree{
 		"00-openshift-controller-manager-namespace.yaml": {openshiftControllerManager00OpenshiftControllerManagerNamespaceYaml, map[string]*bintree{}},
+		"cluster-policy-controller-deployment.yaml":      {openshiftControllerManagerClusterPolicyControllerDeploymentYaml, map[string]*bintree{}},
 		"config.yaml": {openshiftControllerManagerConfigYaml, map[string]*bintree{}},
 		"openshift-controller-manager-config-configmap.yaml": {openshiftControllerManagerOpenshiftControllerManagerConfigConfigmapYaml, map[string]*bintree{}},
 		"openshift-controller-manager-configmap.yaml":        {openshiftControllerManagerOpenshiftControllerManagerConfigmapYaml, map[string]*bintree{}},
