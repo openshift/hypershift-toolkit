@@ -4,4 +4,7 @@ metadata:
   name: ca-operator
 data:
   initial-ca.crt: |-
-{{ include_pki "root-ca.crt"  4 }}
+{{ include_pki "combined-ca.crt"  4 }}
+
+
+
