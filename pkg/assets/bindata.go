@@ -207,9 +207,6 @@ metadata:
 data:
   initial-ca.crt: |-
 {{ include_pki "combined-ca.crt"  4 }}
-
-
-
 `)
 
 func caOperatorCaOperatorConfigmapYamlBytes() ([]byte, error) {
