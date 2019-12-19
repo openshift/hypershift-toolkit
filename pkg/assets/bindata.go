@@ -80,7 +80,6 @@
 // assets/openshift-apiserver/openshift-apiserver-config-configmap.yaml
 // assets/openshift-apiserver/openshift-apiserver-configmap.yaml
 // assets/openshift-apiserver/openshift-apiserver-deployment.yaml
-// assets/openshift-apiserver/openshift-apiserver-deployment.yaml.orig
 // assets/openshift-apiserver/openshift-apiserver-secret.yaml
 // assets/openshift-apiserver/openshift-apiserver-service.yaml
 // assets/openshift-apiserver/openshift-apiserver-user-endpoint.yaml
@@ -7409,102 +7408,6 @@ func openshiftApiserverOpenshiftApiserverDeploymentYaml() (*asset, error) {
 	return a, nil
 }
 
-var _openshiftApiserverOpenshiftApiserverDeploymentYamlOrig = []byte(`kind: Deployment
-apiVersion: apps/v1
-metadata:
-  name: openshift-apiserver
-spec:
-  replicas: {{ .Replicas }}
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 3
-      maxUnavailable: 1
-  selector:
-    matchLabels:
-      app: openshift-apiserver
-  template:
-    metadata:
-      labels:
-        app: openshift-apiserver
-    spec:
-      tolerations:
-        - key: "multi-az-worker"
-          operator: "Equal"
-          value: "true"
-          effect: NoSchedule
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: app
-                    operator: In
-                    values: ["openshift-apiserver"]
-              topologyKey: "kubernetes.io/hostname"
-            - labelSelector:
-                matchExpressions:
-                  - key: app
-                    operator: In
-                    values: ["openshift-apiserver"]
-              topologyKey: "failure-domain.beta.kubernetes.io/zone"
-      automountServiceAccountToken: false
-      containers:
-      - name: openshift-apiserver
-        image: {{ imageFor "openshift-apiserver" }}
-        args:
-        - "start"
-        - "--config=/etc/kubernetes/apiserver-config/config.yaml"
-        - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
-<<<<<<< HEAD
-=======
-        - "--authentication-kubeconfig=/etc/kubernetes/secret/kubeconfig"
->>>>>>> 5c9b58a5a0c0b0b6f56ce64e244d926765a1848f
-        - "--requestheader-client-ca-file=/etc/kubernetes/config/aggregator-client-ca.crt"
-        - "--requestheader-allowed-names=kube-apiserver-proxy,system:kube-apiserver-proxy,system:openshift-aggregator"
-        - "--requestheader-username-headers=X-Remote-User"
-        - "--requestheader-group-headers=X-Remote-Group"
-        - "--requestheader-extra-headers-prefix=X-Remote-Extra-"
-        - "--client-ca-file=/etc/kubernetes/config/serving-ca.crt"
-        volumeMounts:
-        - mountPath: /etc/kubernetes/secret
-          name: secret
-        - mountPath: /etc/kubernetes/apiserver-config
-          name: apiserver-config
-        - mountPath: /etc/kubernetes/config
-          name: config
-        - mountPath: /var/run/kubernetes
-          name: logs
-        workingDir: /var/run/kubernetes
-      volumes:
-      - secret:
-          secretName: openshift-apiserver
-        name: secret
-      - configMap:
-          name: openshift-apiserver
-        name: config
-      - configMap:
-          name: openshift-apiserver-config
-        name: apiserver-config
-      - emptyDir: {}
-        name: logs
-`)
-
-func openshiftApiserverOpenshiftApiserverDeploymentYamlOrigBytes() ([]byte, error) {
-	return _openshiftApiserverOpenshiftApiserverDeploymentYamlOrig, nil
-}
-
-func openshiftApiserverOpenshiftApiserverDeploymentYamlOrig() (*asset, error) {
-	bytes, err := openshiftApiserverOpenshiftApiserverDeploymentYamlOrigBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "openshift-apiserver/openshift-apiserver-deployment.yaml.orig", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _openshiftApiserverOpenshiftApiserverSecretYaml = []byte(`apiVersion: v1
 kind: Secret
 metadata:
@@ -8546,7 +8449,6 @@ var _bindata = map[string]func() (*asset, error){
 	"openshift-apiserver/openshift-apiserver-config-configmap.yaml":                        openshiftApiserverOpenshiftApiserverConfigConfigmapYaml,
 	"openshift-apiserver/openshift-apiserver-configmap.yaml":                               openshiftApiserverOpenshiftApiserverConfigmapYaml,
 	"openshift-apiserver/openshift-apiserver-deployment.yaml":                              openshiftApiserverOpenshiftApiserverDeploymentYaml,
-	"openshift-apiserver/openshift-apiserver-deployment.yaml.orig":                         openshiftApiserverOpenshiftApiserverDeploymentYamlOrig,
 	"openshift-apiserver/openshift-apiserver-secret.yaml":                                  openshiftApiserverOpenshiftApiserverSecretYaml,
 	"openshift-apiserver/openshift-apiserver-service.yaml":                                 openshiftApiserverOpenshiftApiserverServiceYaml,
 	"openshift-apiserver/openshift-apiserver-user-endpoint.yaml":                           openshiftApiserverOpenshiftApiserverUserEndpointYaml,
@@ -8716,7 +8618,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"openshift-apiserver-config-configmap.yaml": {openshiftApiserverOpenshiftApiserverConfigConfigmapYaml, map[string]*bintree{}},
 		"openshift-apiserver-configmap.yaml":        {openshiftApiserverOpenshiftApiserverConfigmapYaml, map[string]*bintree{}},
 		"openshift-apiserver-deployment.yaml":       {openshiftApiserverOpenshiftApiserverDeploymentYaml, map[string]*bintree{}},
-		"openshift-apiserver-deployment.yaml.orig":  {openshiftApiserverOpenshiftApiserverDeploymentYamlOrig, map[string]*bintree{}},
 		"openshift-apiserver-secret.yaml":           {openshiftApiserverOpenshiftApiserverSecretYaml, map[string]*bintree{}},
 		"openshift-apiserver-service.yaml":          {openshiftApiserverOpenshiftApiserverServiceYaml, map[string]*bintree{}},
 		"openshift-apiserver-user-endpoint.yaml":    {openshiftApiserverOpenshiftApiserverUserEndpointYaml, map[string]*bintree{}},
