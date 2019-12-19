@@ -206,7 +206,10 @@ metadata:
   name: ca-operator
 data:
   initial-ca.crt: |-
-{{ include_pki "root-ca.crt"  4 }}
+{{ include_pki "combined-ca.crt"  4 }}
+
+
+
 `)
 
 func caOperatorCaOperatorConfigmapYamlBytes() ([]byte, error) {
@@ -326,7 +329,8 @@ spec:
           {
               "apiVersion": "v1",
               "data": {
-                "service-ca.crt": "$(awk -v ORS='\\n' '1' /tmp/kcm.ca)"
+                "service-ca.crt": "$(awk -v ORS='\\n' '1' /tmp/kcm.ca)",
+                "root-ca.crt": "$(awk -v ORS='\\n' '1' /tmp/kcm.ca)"
               },
               "kind": "ConfigMap",
               "metadata": {
