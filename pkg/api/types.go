@@ -29,6 +29,7 @@ type ClusterParams struct {
 	CloudProvider              string      `json:"cloudProvider"`
 	CVOSetupImage              string      `json:"cvoSetupImage"`
 	InternalAPIPort            uint        `json:"internalAPIPort"`
+	RouterServiceType          string      `json:"routerServiceType"`
 }
 
 type NamedCert struct {
