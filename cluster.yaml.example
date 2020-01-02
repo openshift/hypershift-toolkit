@@ -56,3 +56,4 @@ identityProviders: |
 cloudProvider: ''
 cvoSetupImage: "quay.io/csrwng/origin-cluster-version-operator:hosted"
 internalAPIPort: 6443
+routerServiceType: "LoadBalancer"
