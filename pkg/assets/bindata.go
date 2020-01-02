@@ -5465,7 +5465,7 @@ spec:
   selector:
     ingresscontroller.operator.openshift.io/deployment-ingresscontroller: default
   sessionAffinity: None
-  type: NodePort
+  type: {{ .RouterServiceType }}
 `)
 
 func clusterBootstrapRouterDefaultSvcConfigYamlBytes() ([]byte, error) {
