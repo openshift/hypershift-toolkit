@@ -46,6 +46,7 @@ type ClusterParams struct {
 	RestartDate                         string                 `json:"restartDate"`
 	ExtraFeatureGates                   []string               `json:"extraFeatureGates"`
 	DefaultFeatureGates                 []string
+	PlatformType                        string `json:"platformType"`
 }
 
 type NamedCert struct {

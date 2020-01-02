@@ -513,9 +513,10 @@ status:
   apiServerURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalAPIPort }}
   etcdDiscoveryDomain: {{ .BaseDomain }}
   infrastructureName: kubernetes
-  platform: None
-  platformStatus:
-    type: None
+  platform: {{ if .PlatformType }}{{ .PlatformType }}{{ else }}None {{ end }}
+  platformStatus: {{ if eq .PlatformType "IBMCloud" }}
+    type: {{ .PlatformType }} {{ else }}
+    type: None {{ end }}
 `)
 
 func clusterBootstrapClusterInfrastructure02ConfigYamlBytes() ([]byte, error) {
