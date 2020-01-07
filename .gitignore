@@ -10,6 +10,7 @@
 /pki
 /bin
 /pull-secret.txt
+/ssh-public-key
 
 # Test binary, build with `go test -c`
 *.test
@@ -19,3 +20,4 @@
 
 /cluster.yaml
 /hypershift
+/ignition

@@ -16,7 +16,7 @@ apiServerArguments:
   minimal-shutdown-duration:
   - 3s
 auditConfig:
-  auditFilePath: "/var/log/openshift-apiserver/audit.log"
+  auditFilePath: "/var/run/kubernetes/audit.log"
   enabled: true
   logFormat: json
   maximumFileSizeMegabytes: 100

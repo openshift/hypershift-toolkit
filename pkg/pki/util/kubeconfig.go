@@ -8,18 +8,20 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func GenerateKubeconfig(serverAddress, commonName, organization string, ca *CA) (*Kubeconfig, error) {
-	cert, err := GenerateCert(commonName, organization, nil, nil, ca)
+func GenerateKubeconfig(serverAddress, commonName, organization string, rootCA, signingCA *CA) (*Kubeconfig, error) {
+	cert, err := GenerateCert(commonName, organization, nil, nil, signingCA)
 	if err != nil {
 		return nil, err
 	}
 	return &Kubeconfig{
 		Cert:          cert,
 		ServerAddress: serverAddress,
+		RootCA:        rootCA,
 	}, nil
 }
 
 type Kubeconfig struct {
+	RootCA *CA
 	*Cert
 	ServerAddress string
 }
@@ -56,7 +58,7 @@ func (k *Kubeconfig) WriteTo(fileName string) error {
 		return errors.Wrapf(err, "failed to create kubeconfig file %s", fileName+".kubeconfig")
 	}
 	defer f.Close()
-	caBytes := CertToPem(k.Parent.Cert)
+	caBytes := CertToPem(k.RootCA.Cert)
 	certBytes := CertToPem(k.Cert.Cert)
 	keyBytes := PrivateKeyToPem(k.Cert.Key)
 	params := map[string]string{

@@ -46,6 +46,12 @@
 // assets/etcd/etcd-operator-cluster-role.yaml
 // assets/etcd/etcd-operator.yaml
 // assets/etcd/etcd-secret-template.yaml
+// assets/ignition/files/etc/crio/crio.conf
+// assets/ignition/files/etc/kubernetes/kubelet.conf.template
+// assets/ignition/files/etc/sysctl.d/forward.conf
+// assets/ignition/files/etc/sysctl.d/inotify.conf
+// assets/ignition/files/etc/tmpfiles.d/cleanup-cni.conf
+// assets/ignition/units/kubelet.service
 // assets/kube-apiserver/client.conf
 // assets/kube-apiserver/config.yaml
 // assets/kube-apiserver/kube-apiserver-config-configmap.yaml
@@ -55,6 +61,7 @@
 // assets/kube-apiserver/kube-apiserver-secret.yaml
 // assets/kube-apiserver/kube-apiserver-service.yaml
 // assets/kube-apiserver/kube-apiserver-vpnclient-config.yaml
+// assets/kube-apiserver/kube-apiserver-vpnclient-secret.yaml
 // assets/kube-apiserver/oauthMetadata.json
 // assets/kube-controller-manager/config.yaml
 // assets/kube-controller-manager/kube-controller-manager-config-configmap.yaml
@@ -95,9 +102,10 @@
 // assets/openshift-controller-manager/openshift-controller-manager-service-ca.yaml
 // assets/openvpn/Dockerfile
 // assets/openvpn/client.conf
-// assets/openvpn/openvpn-ccd-secret.yaml
+// assets/openvpn/openvpn-ccd-configmap.yaml
 // assets/openvpn/openvpn-client-deployment.yaml
 // assets/openvpn/openvpn-client-secret.yaml
+// assets/openvpn/openvpn-server-configmap.yaml
 // assets/openvpn/openvpn-server-deployment.yaml
 // assets/openvpn/openvpn-server-secret.yaml
 // assets/openvpn/openvpn-server-service.yaml
@@ -5809,6 +5817,405 @@ func etcdEtcdSecretTemplateYaml() (*asset, error) {
 	return a, nil
 }
 
+var _ignitionFilesEtcCrioCrioConf = []byte(`# The "crio" table contains all of the server options.
+[crio]
+
+# CRI-O reads its storage defaults from the containers/storage configuration
+# file, /etc/containers/storage.conf. Modify storage.conf if you want to
+# change default storage for all tools that use containers/storage.  If you
+# want to modify just crio, you can change the storage configuration in this
+# file.
+
+# root is a path to the "root directory". CRIO stores all of its data,
+# including container images, in this directory.
+#root = "/var/lib/containers/storage"
+
+# run is a path to the "run directory". CRIO stores all of its state
+# in this directory.
+#runroot = "/var/run/containers/storage"
+
+# storage_driver select which storage driver is used to manage storage
+# of images and containers.
+#storage_driver = ""
+
+# storage_option is used to pass an option to the storage driver.
+#storage_option = [
+#]
+
+# The "crio.api" table contains settings for the kubelet/gRPC interface.
+[crio.api]
+
+# listen is the path to the AF_LOCAL socket on which crio will listen.
+listen = "/var/run/crio/crio.sock"
+
+# stream_address is the IP address on which the stream server will listen
+stream_address = ""
+
+# stream_port is the port on which the stream server will listen
+stream_port = "10010"
+
+# stream_enable_tls enables encrypted tls transport of the stream server
+stream_enable_tls = false
+
+# stream_tls_cert is the x509 certificate file path used to serve the encrypted stream.
+# This file can change, and CRIO will automatically pick up the changes within 5 minutes.
+stream_tls_cert = ""
+
+# stream_tls_key is the key file path used to serve the encrypted stream.
+# This file can change, and CRIO will automatically pick up the changes within 5 minutes.
+stream_tls_key = ""
+
+# stream_tls_ca is the x509 CA(s) file used to verify and authenticate client
+# communication with the tls encrypted stream.
+# This file can change, and CRIO will automatically pick up the changes within 5 minutes.
+stream_tls_ca = ""
+
+# file_locking is whether file-based locking will be used instead of
+# in-memory locking
+file_locking = false
+
+# The "crio.runtime" table contains settings pertaining to the OCI
+# runtime used and options for how to set up and manage the OCI runtime.
+[crio.runtime]
+
+# runtime is the OCI compatible runtime used for trusted container workloads.
+# This is a mandatory setting as this runtime will be the default one
+# and will also be used for untrusted container workloads if
+# runtime_untrusted_workload is not set.
+runtime = "/usr/bin/runc"
+
+# runtime_untrusted_workload is the OCI compatible runtime used for untrusted
+# container workloads. This is an optional setting, except if
+# default_container_trust is set to "untrusted".
+runtime_untrusted_workload = ""
+
+# default_workload_trust is the default level of trust crio puts in container
+# workloads. It can either be "trusted" or "untrusted", and the default
+# is "trusted".
+# Containers can be run through different container runtimes, depending on
+# the trust hints we receive from kubelet:
+# - If kubelet tags a container workload as untrusted, crio will try first to
+# run it through the untrusted container workload runtime. If it is not set,
+# crio will use the trusted runtime.
+# - If kubelet does not provide any information about the container workload trust
+# level, the selected runtime will depend on the default_container_trust setting.
+# If it is set to "untrusted", then all containers except for the host privileged
+# ones, will be run by the runtime_untrusted_workload runtime. Host privileged
+# containers are by definition trusted and will always use the trusted container
+# runtime. If default_container_trust is set to "trusted", crio will use the trusted
+# container runtime for all containers.
+default_workload_trust = "trusted"
+
+# no_pivot instructs the runtime to not use pivot_root, but instead use MS_MOVE
+no_pivot = false
+
+# conmon is the path to conmon binary, used for managing the runtime.
+conmon = "/usr/libexec/crio/conmon"
+
+# conmon_env is the environment variable list for conmon process,
+# used for passing necessary environment variable to conmon or runtime.
+conmon_env = [
+  "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+]
+
+# selinux indicates whether or not SELinux will be used for pod
+# separation on the host. If you enable this flag, SELinux must be running
+# on the host.
+selinux = true
+
+# seccomp_profile is the seccomp json profile path which is used as the
+# default for the runtime.
+seccomp_profile = "/etc/crio/seccomp.json"
+
+# apparmor_profile is the apparmor profile name which is used as the
+# default for the runtime.
+apparmor_profile = "crio-default"
+
+# cgroup_manager is the cgroup management implementation to be used
+# for the runtime.
+cgroup_manager = "systemd"
+
+# default_capabilities is the list of capabilities to add and can be modified here.
+# If capabilities below is commented out, the default list of capabilities defined in the
+# spec will be added.
+# If capabilities is empty below, only the capabilities defined in the container json
+# file by the user/kube will be added.
+default_capabilities = [
+  "CHOWN", 
+  "DAC_OVERRIDE", 
+  "FSETID", 
+  "FOWNER", 
+  "NET_RAW", 
+  "SETGID", 
+  "SETUID", 
+  "SETPCAP", 
+  "NET_BIND_SERVICE", 
+  "SYS_CHROOT", 
+  "KILL", 
+]
+
+# hooks_dir_path is the oci hooks directory for automatically executed hooks
+hooks_dir_path = "/usr/share/containers/oci/hooks.d"
+
+# default_mounts is the mounts list to be mounted for the container when created
+# deprecated, will be taken out in future versions, add default mounts to either
+# /usr/share/containers/mounts.conf or /etc/containers/mounts.conf
+default_mounts = [
+  "/usr/share/rhel/secrets:/run/secrets", 
+]
+
+# Path to directory in which container exit files are written to by conmon.
+container_exits_dir = "/var/run/crio/exits"
+
+# Path to directory for container attach sockets.
+container_attach_socket_dir = "/var/run/crio"
+
+# CRI-O reads its default mounts from the following two files:
+# 1) /etc/containers/mounts.conf - this is the override file, where users can
+# either add in their own default mounts, or override the default mounts shipped
+# with the package.
+# 2) /usr/share/containers/mounts.conf - this is the default file read for mounts.
+# If you want CRI-O to read from a different, specific mounts file, you can change
+# the default_mounts_file path right below. Note, if this is done, CRI-O will only add
+# mounts it finds in this file.
+
+# default_mounts_file is the file path holding the default mounts to be mounted for the
+# container when created.
+# default_mounts_file = ""
+
+# pids_limit is the number of processes allowed in a container
+pids_limit = 1024
+
+# log_size_max is the max limit for the container log size in bytes.
+# Negative values indicate that no limit is imposed.
+log_size_max = -1
+
+# read-only indicates whether all containers will run in read-only mode
+read_only = false
+
+# log_level changes the verbosity of the logs printed.
+# Options are: error (default), fatal, panic, warn, info, and debug
+log_level = "error"
+
+# The "crio.image" table contains settings pertaining to the
+# management of OCI images.
+
+# uid_mappings specifies the UID mappings to have in the user namespace.
+# A range is specified in the form containerUID:HostUID:Size.  Multiple
+# ranges are separed by comma.
+uid_mappings = ""
+
+# gid_mappings specifies the GID mappings to have in the user namespace.
+# A range is specified in the form containerGID:HostGID:Size.  Multiple
+# ranges are separed by comma.
+gid_mappings = ""
+
+[crio.image]
+
+# default_transport is the prefix we try prepending to an image name if the
+# image name as we receive it can't be parsed as a valid source reference
+default_transport = "docker://"
+
+# The path to a file containing credentials necessary for pulling images from
+# secure registries. The file is similar to that of /var/lib/kubelet/config.json
+global_auth_file = ""
+
+# pause_image is the image which we use to instantiate infra containers.
+pause_image = "k8s.gcr.io/pause:3.1"
+
+# If not empty, the path to a docker/config.json-like file containing credentials
+# necessary for pulling the image specified by pause_image above.
+pause_image_auth_file = ""
+
+# pause_command is the command to run in a pause_image to have a container just
+# sit there.  If the image contains the necessary information, this value need
+# not be specified.
+pause_command = "/pause"
+
+# signature_policy is the name of the file which decides what sort of policy we
+# use when deciding whether or not to trust an image that we've pulled.
+# Outside of testing situations, it is strongly advised that this be left
+# unspecified so that the default system-wide policy will be used.
+signature_policy = ""
+
+# image_volumes controls how image volumes are handled.
+# The valid values are mkdir and ignore.
+image_volumes = "mkdir"
+
+# CRI-O reads its configured registries defaults from the containers/image configuration
+# file, /etc/containers/registries.conf. Modify registries.conf if you want to
+# change default registries for all tools that use containers/image.  If you
+# want to modify just crio, you can change the registies configuration in this
+# file.
+
+# insecure_registries is used to skip TLS verification when pulling images.
+# insecure_registries = [
+# ]
+
+# registries is used to specify a comma separated list of registries to be used
+# when pulling an unqualified image (e.g. fedora:rawhide).
+#registries = [
+# ]
+
+# The "crio.network" table contains settings pertaining to the
+# management of CNI plugins.
+[crio.network]
+
+# network_dir is is where CNI network configuration` + "`" + `
+# files are stored.  Note this default is changed from the RPM.
+network_dir = "/etc/kubernetes/cni/net.d/"
+
+# plugin_dir is is where CNI plugin binaries are stored.
+# Note this default is changed from the RPM.
+plugin_dir = "/var/lib/cni/bin"
+`)
+
+func ignitionFilesEtcCrioCrioConfBytes() ([]byte, error) {
+	return _ignitionFilesEtcCrioCrioConf, nil
+}
+
+func ignitionFilesEtcCrioCrioConf() (*asset, error) {
+	bytes, err := ignitionFilesEtcCrioCrioConfBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "ignition/files/etc/crio/crio.conf", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _ignitionFilesEtcKubernetesKubeletConfTemplate = []byte(`kind: KubeletConfiguration
+apiVersion: kubelet.config.k8s.io/v1beta1
+authentication:
+  x509:
+    clientCAFile: /etc/kubernetes/ca.crt
+  anonymous:
+    enabled: false
+cgroupDriver: systemd
+clusterDNS:
+  - {{ cidrPrefix .ServiceCIDR }}.0.10
+clusterDomain: cluster.local
+featureGates:
+  RotateKubeletServerCertificate: true
+runtimeRequestTimeout: 10m
+serializeImagePulls: false
+serverTLSBootstrap: true
+staticPodPath: /etc/kubernetes/manifests
+`)
+
+func ignitionFilesEtcKubernetesKubeletConfTemplateBytes() ([]byte, error) {
+	return _ignitionFilesEtcKubernetesKubeletConfTemplate, nil
+}
+
+func ignitionFilesEtcKubernetesKubeletConfTemplate() (*asset, error) {
+	bytes, err := ignitionFilesEtcKubernetesKubeletConfTemplateBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "ignition/files/etc/kubernetes/kubelet.conf.template", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _ignitionFilesEtcSysctlDForwardConf = []byte(`net.ipv4.ip_forward = 1
+`)
+
+func ignitionFilesEtcSysctlDForwardConfBytes() ([]byte, error) {
+	return _ignitionFilesEtcSysctlDForwardConf, nil
+}
+
+func ignitionFilesEtcSysctlDForwardConf() (*asset, error) {
+	bytes, err := ignitionFilesEtcSysctlDForwardConfBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "ignition/files/etc/sysctl.d/forward.conf", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _ignitionFilesEtcSysctlDInotifyConf = []byte(`
+fs.inotify.max_user_watches = 65536
+fs.inotify.max_user_instances = 8192
+`)
+
+func ignitionFilesEtcSysctlDInotifyConfBytes() ([]byte, error) {
+	return _ignitionFilesEtcSysctlDInotifyConf, nil
+}
+
+func ignitionFilesEtcSysctlDInotifyConf() (*asset, error) {
+	bytes, err := ignitionFilesEtcSysctlDInotifyConfBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "ignition/files/etc/sysctl.d/inotify.conf", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _ignitionFilesEtcTmpfilesDCleanupCniConf = []byte(`r /etc/kubernetes/cni/net.d/80-openshift-network.conf
+r /etc/kubernetes/cni/net.d/10-ovn-kubernetes.conf
+r /etc/kubernetes/cni/net.d/00-multus.conf
+d /run/multus/cni/net.d/ 0755 root root - -
+`)
+
+func ignitionFilesEtcTmpfilesDCleanupCniConfBytes() ([]byte, error) {
+	return _ignitionFilesEtcTmpfilesDCleanupCniConf, nil
+}
+
+func ignitionFilesEtcTmpfilesDCleanupCniConf() (*asset, error) {
+	bytes, err := ignitionFilesEtcTmpfilesDCleanupCniConfBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "ignition/files/etc/tmpfiles.d/cleanup-cni.conf", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _ignitionUnitsKubeletService = []byte(`[Unit]
+Description=Kubernetes Kubelet
+Documentation=https://github.com/kubernetes/kubernetes
+After=crio.service
+Requires=crio.service
+
+[Service]
+ExecStartPre=/bin/mkdir -p /etc/kubernetes/manifests
+ExecStart=/usr/bin/hyperkube kubelet \
+  --config=/etc/kubernetes/kubelet.conf \
+  --container-runtime=remote \
+  --container-runtime-endpoint=/var/run/crio/crio.sock \
+  --bootstrap-kubeconfig=/etc/kubernetes/kubeconfig \
+  --kubeconfig=/var/lib/kubelet/kubeconfig \
+  --node-labels=node-role.kubernetes.io/worker,node-role.kubernetes.io/master \
+  --v=2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+`)
+
+func ignitionUnitsKubeletServiceBytes() ([]byte, error) {
+	return _ignitionUnitsKubeletService, nil
+}
+
+func ignitionUnitsKubeletService() (*asset, error) {
+	bytes, err := ignitionUnitsKubeletServiceBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "ignition/units/kubelet.service", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _kubeApiserverClientConf = []byte(`client
 verb 3
 nobind
@@ -6159,7 +6566,7 @@ spec:
           name: kube-apiserver-vpnclient-config
         name: vpnconfig
       - secret:
-          secretName: openvpn-client
+          secretName: kube-apiserver-vpnclient-secret
         name: vpnsecret
 {{ end }}
 `)
@@ -6268,7 +6675,7 @@ apiVersion: v1
 metadata:
   name: kube-apiserver-vpnclient-config
 data:
-  config.yaml: |-
+  client.conf: |-
 {{ include "kube-apiserver/client.conf" 4 }}
 `)
 
@@ -6283,6 +6690,31 @@ func kubeApiserverKubeApiserverVpnclientConfigYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "kube-apiserver/kube-apiserver-vpnclient-config.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _kubeApiserverKubeApiserverVpnclientSecretYaml = []byte(`kind: Secret
+apiVersion: v1
+metadata:
+  name: kube-apiserver-vpnclient-secret
+data:
+  tls.crt: {{ pki "openvpn-kube-apiserver-client.crt" }}
+  tls.key: {{ pki "openvpn-kube-apiserver-client.key" }}
+  ca.crt: {{ pki "openvpn-ca.crt" }}
+`)
+
+func kubeApiserverKubeApiserverVpnclientSecretYamlBytes() ([]byte, error) {
+	return _kubeApiserverKubeApiserverVpnclientSecretYaml, nil
+}
+
+func kubeApiserverKubeApiserverVpnclientSecretYaml() (*asset, error) {
+	bytes, err := kubeApiserverKubeApiserverVpnclientSecretYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "kube-apiserver/kube-apiserver-vpnclient-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -7195,7 +7627,7 @@ apiServerArguments:
   minimal-shutdown-duration:
   - 3s
 auditConfig:
-  auditFilePath: "/var/log/openshift-apiserver/audit.log"
+  auditFilePath: "/var/run/kubernetes/audit.log"
   enabled: true
   logFormat: json
   maximumFileSizeMegabytes: 100
@@ -7293,11 +7725,11 @@ metadata:
   name: openshift-apiserver
 data:
   aggregator-client-ca.crt: |-
-    {{ include_pki "root-ca.crt" 4 }}
+{{ include_pki "root-ca.crt" 4 }}
   etcd-ca.crt: |-
-    {{ include_pki "root-ca.crt" 4 }}
+{{ include_pki "root-ca.crt" 4 }}
   serving-ca.crt: |- 
-    {{ include_pki "root-ca.crt" 4 }}
+{{ include_pki "root-ca.crt" 4 }}
 `)
 
 func openshiftApiserverOpenshiftApiserverConfigmapYamlBytes() ([]byte, error) {
@@ -7921,25 +8353,26 @@ func openvpnClientConf() (*asset, error) {
 	return a, nil
 }
 
-var _openvpnOpenvpnCcdSecretYaml = []byte(`apiVersion: v1
-kind: Secret
+var _openvpnOpenvpnCcdConfigmapYaml = []byte(`apiVersion: v1
+kind: ConfigMap
 metadata:
   name: openvpn-ccd
 data:
-  worker: {{ base64 "openvpn/worker" }}
+  worker: |-
+{{ include "openvpn/worker" 4 }}
 `)
 
-func openvpnOpenvpnCcdSecretYamlBytes() ([]byte, error) {
-	return _openvpnOpenvpnCcdSecretYaml, nil
+func openvpnOpenvpnCcdConfigmapYamlBytes() ([]byte, error) {
+	return _openvpnOpenvpnCcdConfigmapYaml, nil
 }
 
-func openvpnOpenvpnCcdSecretYaml() (*asset, error) {
-	bytes, err := openvpnOpenvpnCcdSecretYamlBytes()
+func openvpnOpenvpnCcdConfigmapYaml() (*asset, error) {
+	bytes, err := openvpnOpenvpnCcdConfigmapYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "openvpn/openvpn-ccd-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "openvpn/openvpn-ccd-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -8032,6 +8465,30 @@ func openvpnOpenvpnClientSecretYaml() (*asset, error) {
 	return a, nil
 }
 
+var _openvpnOpenvpnServerConfigmapYaml = []byte(`apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openvpn-server
+data:
+  server.conf: |-
+{{ include "openvpn/server.conf" 4 }}
+`)
+
+func openvpnOpenvpnServerConfigmapYamlBytes() ([]byte, error) {
+	return _openvpnOpenvpnServerConfigmapYaml, nil
+}
+
+func openvpnOpenvpnServerConfigmapYaml() (*asset, error) {
+	bytes, err := openvpnOpenvpnServerConfigmapYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "openvpn/openvpn-server-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _openvpnOpenvpnServerDeploymentYaml = []byte(`kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -8054,7 +8511,7 @@ spec:
         command:
         - /usr/sbin/openvpn
         - --config
-        - /etc/openvpn/server/server.conf
+        - /etc/openvpn/config/server.conf
         workingDir: /etc/openvpn/server
         securityContext:
           privileged: true
@@ -8063,12 +8520,17 @@ spec:
           name: server
         - mountPath: /etc/openvpn/ccd
           name: ccd
+        - mountPath: /etc/openvpn/config
+          name: config
       volumes:
       - secret:
           secretName: openvpn-server
         name: server
-      - secret:
-          secretName: openvpn-ccd
+      - configMap:
+          name: openvpn-server
+        name: config
+      - configMap:
+          name: openvpn-ccd
         name: ccd
 `)
 
@@ -8096,7 +8558,6 @@ data:
   tls.key: {{ pki "openvpn-server.key" }}
   ca.crt: {{ pki "openvpn-ca.crt" }}
   dh.pem: {{ pki "openvpn-dh.pem" }}
-  server.conf: {{ base64 "openvpn/server.conf" }}
 `)
 
 func openvpnOpenvpnServerSecretYamlBytes() ([]byte, error) {
@@ -8168,8 +8629,9 @@ comp-lzo no
 client-config-dir /etc/openvpn/ccd
 
 ### Route Configurations Below
-route ${POD_NETWORK} ${POD_NETWORK_MASK}
-route ${SERVICE_NETWORK} ${SERVICE_NETWORK_MASK}
+route {{ address .PodCIDR }} {{ mask .PodCIDR }}
+route {{ address .ServiceCIDR }} {{ mask .ServiceCIDR }}
+
 
 ### Push Configurations Below
 push "comp-lzo no"
@@ -8177,8 +8639,8 @@ push "comp-lzo no"
 ### Extra Configurations Below
 duplicate-cn
 client-to-client
-push "route ${POD_NETWORK} ${POD_NETWORK_MASK}"
-push "route ${SERVICE_NETWORK} ${SERVICE_NETWORK_MASK}"
+push "route {{ address .PodCIDR }} {{ mask .PodCIDR }}"
+push "route {{ address .ServiceCIDR }} {{ mask .ServiceCIDR }}"
 `)
 
 func openvpnServerConfBytes() ([]byte, error) {
@@ -8415,6 +8877,12 @@ var _bindata = map[string]func() (*asset, error){
 	"etcd/etcd-operator-cluster-role.yaml":                                                 etcdEtcdOperatorClusterRoleYaml,
 	"etcd/etcd-operator.yaml":                                                              etcdEtcdOperatorYaml,
 	"etcd/etcd-secret-template.yaml":                                                       etcdEtcdSecretTemplateYaml,
+	"ignition/files/etc/crio/crio.conf":                                                    ignitionFilesEtcCrioCrioConf,
+	"ignition/files/etc/kubernetes/kubelet.conf.template":                                  ignitionFilesEtcKubernetesKubeletConfTemplate,
+	"ignition/files/etc/sysctl.d/forward.conf":                                             ignitionFilesEtcSysctlDForwardConf,
+	"ignition/files/etc/sysctl.d/inotify.conf":                                             ignitionFilesEtcSysctlDInotifyConf,
+	"ignition/files/etc/tmpfiles.d/cleanup-cni.conf":                                       ignitionFilesEtcTmpfilesDCleanupCniConf,
+	"ignition/units/kubelet.service":                                                       ignitionUnitsKubeletService,
 	"kube-apiserver/client.conf":                                                           kubeApiserverClientConf,
 	"kube-apiserver/config.yaml":                                                           kubeApiserverConfigYaml,
 	"kube-apiserver/kube-apiserver-config-configmap.yaml":                                  kubeApiserverKubeApiserverConfigConfigmapYaml,
@@ -8424,6 +8892,7 @@ var _bindata = map[string]func() (*asset, error){
 	"kube-apiserver/kube-apiserver-secret.yaml":                                            kubeApiserverKubeApiserverSecretYaml,
 	"kube-apiserver/kube-apiserver-service.yaml":                                           kubeApiserverKubeApiserverServiceYaml,
 	"kube-apiserver/kube-apiserver-vpnclient-config.yaml":                                  kubeApiserverKubeApiserverVpnclientConfigYaml,
+	"kube-apiserver/kube-apiserver-vpnclient-secret.yaml":                                  kubeApiserverKubeApiserverVpnclientSecretYaml,
 	"kube-apiserver/oauthMetadata.json":                                                    kubeApiserverOauthmetadataJson,
 	"kube-controller-manager/config.yaml":                                                  kubeControllerManagerConfigYaml,
 	"kube-controller-manager/kube-controller-manager-config-configmap.yaml":                kubeControllerManagerKubeControllerManagerConfigConfigmapYaml,
@@ -8464,9 +8933,10 @@ var _bindata = map[string]func() (*asset, error){
 	"openshift-controller-manager/openshift-controller-manager-service-ca.yaml":            openshiftControllerManagerOpenshiftControllerManagerServiceCaYaml,
 	"openvpn/Dockerfile":                                               openvpnDockerfile,
 	"openvpn/client.conf":                                              openvpnClientConf,
-	"openvpn/openvpn-ccd-secret.yaml":                                  openvpnOpenvpnCcdSecretYaml,
+	"openvpn/openvpn-ccd-configmap.yaml":                               openvpnOpenvpnCcdConfigmapYaml,
 	"openvpn/openvpn-client-deployment.yaml":                           openvpnOpenvpnClientDeploymentYaml,
 	"openvpn/openvpn-client-secret.yaml":                               openvpnOpenvpnClientSecretYaml,
+	"openvpn/openvpn-server-configmap.yaml":                            openvpnOpenvpnServerConfigmapYaml,
 	"openvpn/openvpn-server-deployment.yaml":                           openvpnOpenvpnServerDeploymentYaml,
 	"openvpn/openvpn-server-secret.yaml":                               openvpnOpenvpnServerSecretYaml,
 	"openvpn/openvpn-server-service.yaml":                              openvpnOpenvpnServerServiceYaml,
@@ -8575,6 +9045,28 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"etcd-operator.yaml":                      {etcdEtcdOperatorYaml, map[string]*bintree{}},
 		"etcd-secret-template.yaml":               {etcdEtcdSecretTemplateYaml, map[string]*bintree{}},
 	}},
+	"ignition": {nil, map[string]*bintree{
+		"files": {nil, map[string]*bintree{
+			"etc": {nil, map[string]*bintree{
+				"crio": {nil, map[string]*bintree{
+					"crio.conf": {ignitionFilesEtcCrioCrioConf, map[string]*bintree{}},
+				}},
+				"kubernetes": {nil, map[string]*bintree{
+					"kubelet.conf.template": {ignitionFilesEtcKubernetesKubeletConfTemplate, map[string]*bintree{}},
+				}},
+				"sysctl.d": {nil, map[string]*bintree{
+					"forward.conf": {ignitionFilesEtcSysctlDForwardConf, map[string]*bintree{}},
+					"inotify.conf": {ignitionFilesEtcSysctlDInotifyConf, map[string]*bintree{}},
+				}},
+				"tmpfiles.d": {nil, map[string]*bintree{
+					"cleanup-cni.conf": {ignitionFilesEtcTmpfilesDCleanupCniConf, map[string]*bintree{}},
+				}},
+			}},
+		}},
+		"units": {nil, map[string]*bintree{
+			"kubelet.service": {ignitionUnitsKubeletService, map[string]*bintree{}},
+		}},
+	}},
 	"kube-apiserver": {nil, map[string]*bintree{
 		"client.conf":                                  {kubeApiserverClientConf, map[string]*bintree{}},
 		"config.yaml":                                  {kubeApiserverConfigYaml, map[string]*bintree{}},
@@ -8585,6 +9077,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"kube-apiserver-secret.yaml":                   {kubeApiserverKubeApiserverSecretYaml, map[string]*bintree{}},
 		"kube-apiserver-service.yaml":                  {kubeApiserverKubeApiserverServiceYaml, map[string]*bintree{}},
 		"kube-apiserver-vpnclient-config.yaml":         {kubeApiserverKubeApiserverVpnclientConfigYaml, map[string]*bintree{}},
+		"kube-apiserver-vpnclient-secret.yaml":         {kubeApiserverKubeApiserverVpnclientSecretYaml, map[string]*bintree{}},
 		"oauthMetadata.json":                           {kubeApiserverOauthmetadataJson, map[string]*bintree{}},
 	}},
 	"kube-controller-manager": {nil, map[string]*bintree{
@@ -8637,9 +9130,10 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"openvpn": {nil, map[string]*bintree{
 		"Dockerfile":                     {openvpnDockerfile, map[string]*bintree{}},
 		"client.conf":                    {openvpnClientConf, map[string]*bintree{}},
-		"openvpn-ccd-secret.yaml":        {openvpnOpenvpnCcdSecretYaml, map[string]*bintree{}},
+		"openvpn-ccd-configmap.yaml":     {openvpnOpenvpnCcdConfigmapYaml, map[string]*bintree{}},
 		"openvpn-client-deployment.yaml": {openvpnOpenvpnClientDeploymentYaml, map[string]*bintree{}},
 		"openvpn-client-secret.yaml":     {openvpnOpenvpnClientSecretYaml, map[string]*bintree{}},
+		"openvpn-server-configmap.yaml":  {openvpnOpenvpnServerConfigmapYaml, map[string]*bintree{}},
 		"openvpn-server-deployment.yaml": {openvpnOpenvpnServerDeploymentYaml, map[string]*bintree{}},
 		"openvpn-server-secret.yaml":     {openvpnOpenvpnServerSecretYaml, map[string]*bintree{}},
 		"openvpn-server-service.yaml":    {openvpnOpenvpnServerServiceYaml, map[string]*bintree{}},
