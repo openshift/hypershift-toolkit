@@ -29,7 +29,6 @@
 // assets/cluster-bootstrap/0000_11_imageregistry-configs.crd.yaml
 // assets/cluster-bootstrap/cluster-config-v1-configmap.yaml
 // assets/cluster-bootstrap/cluster-dns-02-config.yaml
-// assets/cluster-bootstrap/cluster-imageregistry-config.yaml
 // assets/cluster-bootstrap/cluster-infrastructure-02-config.yaml
 // assets/cluster-bootstrap/cluster-ingress-02-config.yaml
 // assets/cluster-bootstrap/cluster-network-01-crd.yaml
@@ -111,6 +110,7 @@
 // assets/openvpn/openvpn-server-service.yaml
 // assets/openvpn/server.conf
 // assets/openvpn/worker
+// assets/registry/cluster-imageregistry-config.yaml
 // assets/user-manifests-bootstrapper/user-manifest-template.yaml
 // assets/user-manifests-bootstrapper/user-manifests-bootstrapper-pod.yaml
 // DO NOT EDIT!
@@ -5201,51 +5201,6 @@ func clusterBootstrapClusterDns02ConfigYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapClusterImageregistryConfigYaml = []byte(`apiVersion: imageregistry.operator.openshift.io/v1
-kind: Config
-metadata:
-  finalizers:
-  - imageregistry.operator.openshift.io/finalizer
-  name: cluster
-spec:
-  defaultRoute: false
-  httpSecret: {{ .ImageRegistryHTTPSecret }}
-  logging: 2
-  managementState: Managed
-  proxy:
-    http: ""
-    https: ""
-    noProxy: ""
-  readOnly: false
-  replicas: 1
-  requests:
-    read:
-      maxInQueue: 0
-      maxRunning: 0
-      maxWaitInQueue: 0s
-    write:
-      maxInQueue: 0
-      maxRunning: 0
-      maxWaitInQueue: 0s
-  storage:
-    emptyDir: {}
-`)
-
-func clusterBootstrapClusterImageregistryConfigYamlBytes() ([]byte, error) {
-	return _clusterBootstrapClusterImageregistryConfigYaml, nil
-}
-
-func clusterBootstrapClusterImageregistryConfigYaml() (*asset, error) {
-	bytes, err := clusterBootstrapClusterImageregistryConfigYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "cluster-bootstrap/cluster-imageregistry-config.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _clusterBootstrapClusterInfrastructure02ConfigYaml = []byte(`apiVersion: config.openshift.io/v1
 kind: Infrastructure
 metadata:
@@ -8677,6 +8632,51 @@ func openvpnWorker() (*asset, error) {
 	return a, nil
 }
 
+var _registryClusterImageregistryConfigYaml = []byte(`apiVersion: imageregistry.operator.openshift.io/v1
+kind: Config
+metadata:
+  finalizers:
+  - imageregistry.operator.openshift.io/finalizer
+  name: cluster
+spec:
+  defaultRoute: false
+  httpSecret: {{ .ImageRegistryHTTPSecret }}
+  logging: 2
+  managementState: Managed
+  proxy:
+    http: ""
+    https: ""
+    noProxy: ""
+  readOnly: false
+  replicas: 1
+  requests:
+    read:
+      maxInQueue: 0
+      maxRunning: 0
+      maxWaitInQueue: 0s
+    write:
+      maxInQueue: 0
+      maxRunning: 0
+      maxWaitInQueue: 0s
+  storage:
+    emptyDir: {}
+`)
+
+func registryClusterImageregistryConfigYamlBytes() ([]byte, error) {
+	return _registryClusterImageregistryConfigYaml, nil
+}
+
+func registryClusterImageregistryConfigYaml() (*asset, error) {
+	bytes, err := registryClusterImageregistryConfigYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "registry/cluster-imageregistry-config.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _userManifestsBootstrapperUserManifestTemplateYaml = []byte(`kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -8860,7 +8860,6 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/0000_11_imageregistry-configs.crd.yaml":                             clusterBootstrap0000_11_imageregistryConfigsCrdYaml,
 	"cluster-bootstrap/cluster-config-v1-configmap.yaml":                                   clusterBootstrapClusterConfigV1ConfigmapYaml,
 	"cluster-bootstrap/cluster-dns-02-config.yaml":                                         clusterBootstrapClusterDns02ConfigYaml,
-	"cluster-bootstrap/cluster-imageregistry-config.yaml":                                  clusterBootstrapClusterImageregistryConfigYaml,
 	"cluster-bootstrap/cluster-infrastructure-02-config.yaml":                              clusterBootstrapClusterInfrastructure02ConfigYaml,
 	"cluster-bootstrap/cluster-ingress-02-config.yaml":                                     clusterBootstrapClusterIngress02ConfigYaml,
 	"cluster-bootstrap/cluster-network-01-crd.yaml":                                        clusterBootstrapClusterNetwork01CrdYaml,
@@ -8942,6 +8941,7 @@ var _bindata = map[string]func() (*asset, error){
 	"openvpn/openvpn-server-service.yaml":                              openvpnOpenvpnServerServiceYaml,
 	"openvpn/server.conf":                                              openvpnServerConf,
 	"openvpn/worker":                                                   openvpnWorker,
+	"registry/cluster-imageregistry-config.yaml":                       registryClusterImageregistryConfigYaml,
 	"user-manifests-bootstrapper/user-manifest-template.yaml":          userManifestsBootstrapperUserManifestTemplateYaml,
 	"user-manifests-bootstrapper/user-manifests-bootstrapper-pod.yaml": userManifestsBootstrapperUserManifestsBootstrapperPodYaml,
 }
@@ -9021,7 +9021,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"0000_11_imageregistry-configs.crd.yaml":                             {clusterBootstrap0000_11_imageregistryConfigsCrdYaml, map[string]*bintree{}},
 		"cluster-config-v1-configmap.yaml":                                   {clusterBootstrapClusterConfigV1ConfigmapYaml, map[string]*bintree{}},
 		"cluster-dns-02-config.yaml":                                         {clusterBootstrapClusterDns02ConfigYaml, map[string]*bintree{}},
-		"cluster-imageregistry-config.yaml":                                  {clusterBootstrapClusterImageregistryConfigYaml, map[string]*bintree{}},
 		"cluster-infrastructure-02-config.yaml":                              {clusterBootstrapClusterInfrastructure02ConfigYaml, map[string]*bintree{}},
 		"cluster-ingress-02-config.yaml":                                     {clusterBootstrapClusterIngress02ConfigYaml, map[string]*bintree{}},
 		"cluster-network-01-crd.yaml":                                        {clusterBootstrapClusterNetwork01CrdYaml, map[string]*bintree{}},
@@ -9139,6 +9138,9 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"openvpn-server-service.yaml":    {openvpnOpenvpnServerServiceYaml, map[string]*bintree{}},
 		"server.conf":                    {openvpnServerConf, map[string]*bintree{}},
 		"worker":                         {openvpnWorker, map[string]*bintree{}},
+	}},
+	"registry": {nil, map[string]*bintree{
+		"cluster-imageregistry-config.yaml": {registryClusterImageregistryConfigYaml, map[string]*bintree{}},
 	}},
 	"user-manifests-bootstrapper": {nil, map[string]*bintree{
 		"user-manifest-template.yaml":          {userManifestsBootstrapperUserManifestTemplateYaml, map[string]*bintree{}},

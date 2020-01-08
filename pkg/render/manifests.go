@@ -12,13 +12,13 @@ import (
 )
 
 // RenderClusterManifests renders manifests for a hosted control plane cluster
-func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, etcd bool, autoApprover bool, vpn bool, externalOauth bool) error {
+func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, etcd bool, autoApprover bool, vpn bool, externalOauth bool, includeRegistry bool) error {
 	images, err := release.GetReleaseImagePullRefs(params.ReleaseImage, params.OriginReleasePrefix, pullSecretFile)
 	if err != nil {
 		return err
 	}
 	ctx := newClusterManifestContext(images, params, outputDir, vpn)
-	ctx.setupManifests(etcd, autoApprover, vpn, externalOauth)
+	ctx.setupManifests(etcd, autoApprover, vpn, externalOauth, includeRegistry)
 	return ctx.renderManifests()
 }
 
@@ -47,7 +47,7 @@ func newClusterManifestContext(images map[string]string, params interface{}, out
 	return ctx
 }
 
-func (c *clusterManifestContext) setupManifests(etcd bool, autoApprover bool, vpn bool, externalOauth bool) {
+func (c *clusterManifestContext) setupManifests(etcd bool, autoApprover bool, vpn bool, externalOauth bool, includeRegistry bool) {
 	if etcd {
 		c.etcd()
 	}
@@ -66,6 +66,9 @@ func (c *clusterManifestContext) setupManifests(etcd bool, autoApprover bool, vp
 	c.clusterVersionOperator()
 	if autoApprover {
 		c.autoApprover()
+	}
+	if includeRegistry {
+		c.registry()
 	}
 	c.userManifestsBootstrapper()
 	c.caOperator()
@@ -120,6 +123,10 @@ func (c *clusterManifestContext) kubeScheduler() {
 		"kube-scheduler/kube-scheduler-deployment.yaml",
 		"kube-scheduler/kube-scheduler-config-configmap.yaml",
 	)
+}
+
+func (c *clusterManifestContext) registry() {
+	c.addUserManifestFiles("registry/cluster-imageregistry-config.yaml")
 }
 
 func (c *clusterManifestContext) clusterBootstrap() {
