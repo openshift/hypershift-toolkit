@@ -12,13 +12,13 @@ import (
 )
 
 // RenderClusterManifests renders manifests for a hosted control plane cluster
-func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, etcd bool, autoApprover bool, vpn bool, externalOauth bool) error {
+func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, etcd bool, autoApprover bool, vpn bool, externalOauth bool, includeRegistry bool) error {
 	images, err := release.GetReleaseImagePullRefs(params.ReleaseImage, params.OriginReleasePrefix, pullSecretFile)
 	if err != nil {
 		return err
 	}
 	ctx := newClusterManifestContext(images, params, outputDir, vpn)
-	ctx.setupManifests(etcd, autoApprover, vpn, externalOauth)
+	ctx.setupManifests(etcd, autoApprover, vpn, externalOauth, includeRegistry)
 	return ctx.renderManifests()
 }
 
@@ -47,11 +47,11 @@ func newClusterManifestContext(images map[string]string, params interface{}, out
 	return ctx
 }
 
-func (c *clusterManifestContext) setupManifests(etcd bool, autoApprover bool, vpn bool, externalOauth bool) {
+func (c *clusterManifestContext) setupManifests(etcd bool, autoApprover bool, vpn bool, externalOauth bool, includeRegistry bool) {
 	if etcd {
 		c.etcd()
 	}
-	c.kubeAPIServer()
+	c.kubeAPIServer(vpn)
 	c.kubeControllerManager()
 	c.kubeScheduler()
 	c.clusterBootstrap()
@@ -66,6 +66,9 @@ func (c *clusterManifestContext) setupManifests(etcd bool, autoApprover bool, vp
 	c.clusterVersionOperator()
 	if autoApprover {
 		c.autoApprover()
+	}
+	if includeRegistry {
+		c.registry()
 	}
 	c.userManifestsBootstrapper()
 	c.caOperator()
@@ -94,13 +97,18 @@ func (c *clusterManifestContext) oauthOpenshiftServer() {
 	)
 }
 
-func (c *clusterManifestContext) kubeAPIServer() {
+func (c *clusterManifestContext) kubeAPIServer(includeVPN bool) {
 	c.addManifestFiles(
 		"kube-apiserver/kube-apiserver-deployment.yaml",
 		"kube-apiserver/kube-apiserver-service.yaml",
 		"kube-apiserver/kube-apiserver-config-configmap.yaml",
 		"kube-apiserver/kube-apiserver-oauth-metadata-configmap.yaml",
 	)
+	if includeVPN {
+		c.addManifestFiles(
+			"kube-apiserver/kube-apiserver-vpnclient-config.yaml",
+		)
+	}
 }
 
 func (c *clusterManifestContext) kubeControllerManager() {
@@ -115,6 +123,10 @@ func (c *clusterManifestContext) kubeScheduler() {
 		"kube-scheduler/kube-scheduler-deployment.yaml",
 		"kube-scheduler/kube-scheduler-config-configmap.yaml",
 	)
+}
+
+func (c *clusterManifestContext) registry() {
+	c.addUserManifestFiles("registry/cluster-imageregistry-config.yaml")
 }
 
 func (c *clusterManifestContext) clusterBootstrap() {
@@ -187,6 +199,8 @@ func (c *clusterManifestContext) openVPN() {
 	c.addManifestFiles(
 		"openvpn/openvpn-server-deployment.yaml",
 		"openvpn/openvpn-server-service.yaml",
+		"openvpn/openvpn-ccd-configmap.yaml",
+		"openvpn/openvpn-server-configmap.yaml",
 	)
 	c.addUserManifestFiles(
 		"openvpn/openvpn-client-deployment.yaml",

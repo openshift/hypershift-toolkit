@@ -4,6 +4,10 @@ go 1.12
 
 require (
 	github.com/Luzifer/go-dhparam v1.0.0
+	github.com/ajeddeloh/go-json v0.0.0-20170920214419-6a2fe990e083 // indirect
+	github.com/apparentlymart/go-cidr v1.0.1
+	github.com/aws/aws-sdk-go v1.16.26
+	github.com/coreos/ignition v0.34.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/google/uuid v1.1.1
 	github.com/jteeuwen/go-bindata v0.0.0-00010101000000-000000000000
@@ -11,7 +15,13 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
+	github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50
+	go4.org v0.0.0-20191010144846-132d2879e1e9 // indirect
+	k8s.io/api v0.0.0
+	k8s.io/apimachinery v0.0.0
 	k8s.io/cli-runtime v0.0.0
+	k8s.io/client-go v0.0.0
+	k8s.io/kubectl v0.0.0
 )
 
 replace (

@@ -41,6 +41,7 @@ func GeneratePKI(params *api.ClusterParams, outputDir string) error {
 				"kube-apiserver",
 				fmt.Sprintf("kube-apiserver.%s.svc", params.Namespace),
 				fmt.Sprintf("kube-apiserver.%s.svc.cluster.local", params.Namespace),
+				params.ExternalAPIDNSName,
 			},
 			[]string{
 				kubeIP.String(),
