@@ -380,7 +380,7 @@ func InstallCluster(name, releaseImage, dhParamsFile string) error {
 		return fmt.Errorf("failed to render PKI secrets: %v", err)
 	}
 	params.OpenshiftAPIServerCABundle = base64.StdEncoding.EncodeToString(caBytes)
-	if err = render.RenderClusterManifests(params, pullSecretFile, manifestsDir, true, true, true, false); err != nil {
+	if err = render.RenderClusterManifests(params, pullSecretFile, manifestsDir, true, true, true, false, true); err != nil {
 		return fmt.Errorf("failed to render manifests for cluster: %v", err)
 	}
 
