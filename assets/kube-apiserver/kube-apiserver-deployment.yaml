@@ -111,6 +111,6 @@ spec:
           name: kube-apiserver-vpnclient-config
         name: vpnconfig
       - secret:
-          secretName: openvpn-client
+          secretName: kube-apiserver-vpnclient-secret
         name: vpnsecret
 {{ end }}
