@@ -6,7 +6,7 @@ data:
   aggregator-client-ca.crt: |-
 {{ include_pki "root-ca.crt" 4 }}
   kubelet-client-ca.crt: |-
-{{ include_pki "root-ca.crt" 4 }}
+{{ include_pki "combined-ca.crt" 4 }}
   service-account.pub: |-
 {{ include_pki "service-account.pub" 4 }}
   serving-ca.crt: |-

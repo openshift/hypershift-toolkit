@@ -68,6 +68,12 @@ func UninstallCluster(name string) error {
 		return fmt.Errorf("cannot delete API target group: %v", err)
 	}
 
+	log.Infof("Removing OAuth target group")
+	oauthTGName := fmt.Sprintf("%s-%s-oauth", infraName, name)
+	if err = aws.RemoveTargetGroup(oauthTGName); err != nil {
+		return fmt.Errorf("cannot delete OAuth target group: %v", err)
+	}
+
 	log.Infof("Removing API elastic IP")
 	if err = aws.RemoveEIP(apiLBName); err != nil {
 		return fmt.Errorf("cannot delete EIP for API load balancer: %v", err)
@@ -125,7 +131,9 @@ func UninstallCluster(name string) error {
 
 	log.Info("Removing cluster namespace")
 	if err = client.CoreV1().Namespaces().Delete(name, &metav1.DeleteOptions{}); err != nil {
-		return fmt.Errorf("failed to delete namespace %s: %v", name, err)
+		if !errors.IsNotFound(err) {
+			return fmt.Errorf("failed to delete namespace %s: %v", name, err)
+		}
 	}
 
 	return nil
