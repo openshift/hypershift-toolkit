@@ -451,6 +451,9 @@ func InstallCluster(name, releaseImage, dhParamsFile string) error {
 	if err = generateKubeconfigSecret(filepath.Join(pkiDir, "admin.kubeconfig"), filepath.Join(manifestsDir, "kubeconfig-secret.json")); err != nil {
 		return fmt.Errorf("failed to create kubeconfig secret manifest for management cluster: %v", err)
 	}
+	if err = generateTargetPullSecret([]byte(pullSecret), filepath.Join(manifestsDir, "user-pull-secret.json")); err != nil {
+		return fmt.Errorf("failed to create pull secret manifest for target cluster: %v", err)
+	}
 
 	// Create the system branding manifest (cannot be applied because it's too large)
 	if err = createBrandingSecret(client, name, filepath.Join(manifestsDir, "v4-0-config-system-branding.yaml")); err != nil {
@@ -608,6 +611,28 @@ func createPullSecret(client kubeclient.Interface, namespace, data string) error
 		return err
 	})
 	return nil
+}
+
+func generateTargetPullSecret(data []byte, fileName string) error {
+	secret := &corev1.Secret{}
+	secret.Name = "pull-secret"
+	secret.Namespace = "openshift-config"
+	secret.Data = map[string][]byte{".dockerconfigjson": data}
+	secret.Type = corev1.SecretTypeDockerConfigJson
+	secretBytes, err := runtime.Encode(coreCodecs.LegacyCodec(corev1.SchemeGroupVersion), secret)
+	if err != nil {
+		return err
+	}
+	configMap := &corev1.ConfigMap{}
+	configMap.APIVersion = "v1"
+	configMap.Kind = "ConfigMap"
+	configMap.Name = "user-manifest-pullsecret"
+	configMap.Data = map[string]string{"data": string(secretBytes)}
+	configMapBytes, err := runtime.Encode(coreCodecs.LegacyCodec(corev1.SchemeGroupVersion), configMap)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(fileName, configMapBytes, 0644)
 }
 
 func getPullSecret(client kubeclient.Interface) (string, error) {
