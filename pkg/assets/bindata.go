@@ -102,6 +102,7 @@
 // assets/openvpn/Dockerfile
 // assets/openvpn/client.conf
 // assets/openvpn/openvpn-ccd-configmap.yaml
+// assets/openvpn/openvpn-client-configmap.yaml
 // assets/openvpn/openvpn-client-deployment.yaml
 // assets/openvpn/openvpn-client-secret.yaml
 // assets/openvpn/openvpn-server-configmap.yaml
@@ -218,7 +219,7 @@ kind: ConfigMap
 metadata:
   name: ca-operator
 data:
-  initial-ca.crt: |-
+  initial-ca.crt: |
 {{ include_pki "combined-ca.crt"  4 }}
 `)
 
@@ -6384,7 +6385,7 @@ data:
   aggregator-client-ca.crt: |-
 {{ include_pki "root-ca.crt" 4 }}
   kubelet-client-ca.crt: |-
-{{ include_pki "root-ca.crt" 4 }}
+{{ include_pki "combined-ca.crt" 4 }}
   service-account.pub: |-
 {{ include_pki "service-account.pub" 4 }}
   serving-ca.crt: |-
@@ -7237,9 +7238,7 @@ oauthConfig:
     method: deny
     serviceAccountMethod: prompt
 {{ if .IdentityProviders }}  identityProviders:
-{{ .IdentityProviders | indent 2 }}
-{{- else }}  identityProviders: []
-{{- end -}}
+{{ trimTrailingSpace .IdentityProviders | indent 2 }}{{- else }}  identityProviders: []{{- end }}
   loginURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalAPIPort }}
 {{ if .NamedCerts }}  masterCA: ""
 {{- else }}  masterCA: "/etc/oauth-openshift-config/ca.crt"
@@ -8332,6 +8331,31 @@ func openvpnOpenvpnCcdConfigmapYaml() (*asset, error) {
 	return a, nil
 }
 
+var _openvpnOpenvpnClientConfigmapYaml = []byte(`apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openvpn-client
+  namespace: kube-system
+data:
+  client.conf: |-
+{{ include "openvpn/client.conf" 4 }}
+`)
+
+func openvpnOpenvpnClientConfigmapYamlBytes() ([]byte, error) {
+	return _openvpnOpenvpnClientConfigmapYaml, nil
+}
+
+func openvpnOpenvpnClientConfigmapYaml() (*asset, error) {
+	bytes, err := openvpnOpenvpnClientConfigmapYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "openvpn/openvpn-client-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _openvpnOpenvpnClientDeploymentYaml = []byte(`kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -8360,13 +8384,15 @@ spec:
           #!/bin/bash
           set -eu
           iptables -t nat -A POSTROUTING -s 192.168.255.0/24 -j MASQUERADE
-          exec /usr/sbin/openvpn --config /etc/openvpn/client.conf
+          exec /usr/sbin/openvpn --config /etc/openvpn-config/client.conf
         workingDir: /etc/openvpn
         securityContext:
           privileged: true
         volumeMounts:
         - mountPath: /etc/openvpn
           name: secret
+        - mountPath: /etc/openvpn-config
+          name: config
         - mountPath: /lib/modules
           name: host-modules
           readOnly: true
@@ -8374,6 +8400,9 @@ spec:
       - secret:
           secretName: openvpn-client
         name: secret
+      - name: config
+        configMap:
+          name: openvpn-client
       - hostPath:
           path: /lib/modules
         name: host-modules
@@ -8395,14 +8424,20 @@ func openvpnOpenvpnClientDeploymentYaml() (*asset, error) {
 }
 
 var _openvpnOpenvpnClientSecretYaml = []byte(`apiVersion: v1
-kind: Secret
+kind: ConfigMap
 metadata:
-  name: openvpn-client
-  namespace: kube-system
+  name: user-manifest-openvpn-client-secret
 data:
-  tls.crt: {{ pki "openvpn-worker-client.crt" }}
-  tls.key: {{ pki "openvpn-worker-client.key" }}
-  ca.crt: {{ pki "openvpn-ca.crt" }}
+  data: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: openvpn-client
+      namespace: kube-system
+    data:
+      tls.crt: {{ pki "openvpn-worker-client.crt" }}
+      tls.key: {{ pki "openvpn-worker-client.key" }}
+      ca.crt: {{ pki "openvpn-ca.crt" }}
 `)
 
 func openvpnOpenvpnClientSecretYamlBytes() ([]byte, error) {
@@ -8933,6 +8968,7 @@ var _bindata = map[string]func() (*asset, error){
 	"openvpn/Dockerfile":                                               openvpnDockerfile,
 	"openvpn/client.conf":                                              openvpnClientConf,
 	"openvpn/openvpn-ccd-configmap.yaml":                               openvpnOpenvpnCcdConfigmapYaml,
+	"openvpn/openvpn-client-configmap.yaml":                            openvpnOpenvpnClientConfigmapYaml,
 	"openvpn/openvpn-client-deployment.yaml":                           openvpnOpenvpnClientDeploymentYaml,
 	"openvpn/openvpn-client-secret.yaml":                               openvpnOpenvpnClientSecretYaml,
 	"openvpn/openvpn-server-configmap.yaml":                            openvpnOpenvpnServerConfigmapYaml,
@@ -9130,6 +9166,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"Dockerfile":                     {openvpnDockerfile, map[string]*bintree{}},
 		"client.conf":                    {openvpnClientConf, map[string]*bintree{}},
 		"openvpn-ccd-configmap.yaml":     {openvpnOpenvpnCcdConfigmapYaml, map[string]*bintree{}},
+		"openvpn-client-configmap.yaml":  {openvpnOpenvpnClientConfigmapYaml, map[string]*bintree{}},
 		"openvpn-client-deployment.yaml": {openvpnOpenvpnClientDeploymentYaml, map[string]*bintree{}},
 		"openvpn-client-secret.yaml":     {openvpnOpenvpnClientSecretYaml, map[string]*bintree{}},
 		"openvpn-server-configmap.yaml":  {openvpnOpenvpnServerConfigmapYaml, map[string]*bintree{}},

@@ -1,43 +1,52 @@
 package aws
 
 import (
+	crand "crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/big"
 	"math/rand"
 	"net"
 	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
+	"time"
 
 	gocidr "github.com/apparentlymart/go-cidr/cidr"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 
-	"github.com/openshift/hypershift-toolkit/pkg/api"
-	"github.com/openshift/hypershift-toolkit/pkg/ignition"
-	"github.com/openshift/hypershift-toolkit/pkg/pki"
-	"github.com/openshift/hypershift-toolkit/pkg/render"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/dynamic"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/retry"
+
+	"github.com/openshift/hypershift-toolkit/pkg/api"
+	"github.com/openshift/hypershift-toolkit/pkg/ignition"
+	"github.com/openshift/hypershift-toolkit/pkg/pki"
+	"github.com/openshift/hypershift-toolkit/pkg/render"
 )
 
 const (
 	routerNodePortHTTP  = 31080
 	routerNodePortHTTPS = 31443
+	externalOauthPort   = 8443
 )
 
 var (
@@ -45,8 +54,18 @@ var (
 		"kube-apiserver-service.yaml",
 		"openshift-apiserver-service.yaml",
 		"openvpn-server-service.yaml",
+		"v4-0-config-system-branding.yaml",
+		"oauth-server-service.yaml",
 	}
+	coreScheme = runtime.NewScheme()
+	coreCodecs = serializer.NewCodecFactory(coreScheme)
 )
+
+func init() {
+	if err := corev1.AddToScheme(coreScheme); err != nil {
+		panic(err)
+	}
+}
 
 func InstallCluster(name, releaseImage, dhParamsFile string) error {
 
@@ -162,6 +181,12 @@ func InstallCluster(name, releaseImage, dhParamsFile string) error {
 	}
 	log.Infof("Created Openshift API service with cluster IP: %s", openshiftClusterIP)
 
+	oauthNodePort, err := createOauthService(client, name)
+	if err != nil {
+		return fmt.Errorf("failed to create Oauth server service: %v", err)
+	}
+	log.Infof("Created Oauth server service with NodePort: %d", oauthNodePort)
+
 	// Fetch AWS cloud data
 	aws, err := NewAWSHelper(awsKey, awsSecretKey, region, infraName)
 	if err != nil {
@@ -199,16 +224,33 @@ func InstallCluster(name, releaseImage, dhParamsFile string) error {
 	}
 	log.Infof("Created API target group ARN: %s", apiTGARN)
 
+	oauthTGName := fmt.Sprintf("%s-%s-oauth", infraName, name)
+	oauthTGARN, err := aws.EnsureTargetGroup(lbInfo.VPC, oauthTGName, oauthNodePort)
+	if err != nil {
+		return fmt.Errorf("cannot create OAuth target group: %v", err)
+	}
+
 	if err = aws.EnsureTarget(apiTGARN, machineIP); err != nil {
 		return fmt.Errorf("cannot create API load balancer target: %v", err)
 	}
 	log.Infof("Created API load balancer target to %s", machineIP)
+
+	if err = aws.EnsureTarget(oauthTGARN, machineIP); err != nil {
+		return fmt.Errorf("cannot create OAuth load balancer target: %v", err)
+	}
+	log.Infof("Created OAuth load balancer target to %s", machineIP)
 
 	err = aws.EnsureListener(apiLBARN, apiTGARN, 6443, false)
 	if err != nil {
 		return fmt.Errorf("cannot create API listener: %v", err)
 	}
 	log.Infof("Created API load balancer listener")
+
+	err = aws.EnsureListener(apiLBARN, oauthTGARN, externalOauthPort, false)
+	if err != nil {
+		return fmt.Errorf("cannot create OAuth listener: %v", err)
+	}
+	log.Infof("Created OAuth load balancer listener")
 
 	apiDNSName := fmt.Sprintf("api.%s.%s", name, parentDomain)
 	err = aws.EnsureCNameRecord(dnsZoneID, apiDNSName, apiLBDNS)
@@ -321,6 +363,7 @@ func InstallCluster(name, releaseImage, dhParamsFile string) error {
 		ExternalAPIIPAddress:    apiPublicIP,
 		ExternalOpenVPNDNSName:  vpnDNSName,
 		ExternalOpenVPNPort:     1194,
+		ExternalOauthPort:       externalOauthPort,
 		APINodePort:             uint(apiNodePort),
 		ServiceCIDR:             clusterServiceCIDR.String(),
 		PodCIDR:                 clusterPodCIDR.String(),
@@ -337,6 +380,7 @@ func InstallCluster(name, releaseImage, dhParamsFile string) error {
 		RouterNodePortHTTP:      fmt.Sprintf("%d", routerNodePortHTTP),
 		RouterNodePortHTTPS:     fmt.Sprintf("%d", routerNodePortHTTPS),
 		RouterServiceType:       "NodePort",
+		Replicas:                "1",
 	}
 
 	workingDir, err := ioutil.TempDir("", "")
@@ -371,7 +415,10 @@ func InstallCluster(name, releaseImage, dhParamsFile string) error {
 	}
 	// Ensure that S3 bucket with ignition file in it exists
 	bucketName := fmt.Sprintf("%s-%s-ign", infraName, name)
-	aws.EnsureIgnitionBucket(bucketName, filepath.Join(workingDir, "bootstrap.ign"))
+	log.Infof("Ensuring ignition bucket exists")
+	if err = aws.EnsureIgnitionBucket(bucketName, filepath.Join(workingDir, "bootstrap.ign")); err != nil {
+		return fmt.Errorf("failed to ensure ignition bucket exists: %v", err)
+	}
 
 	log.Info("Rendering Manifests")
 	render.RenderPKISecrets(pkiDir, manifestsDir, true, true, true)
@@ -380,7 +427,7 @@ func InstallCluster(name, releaseImage, dhParamsFile string) error {
 		return fmt.Errorf("failed to render PKI secrets: %v", err)
 	}
 	params.OpenshiftAPIServerCABundle = base64.StdEncoding.EncodeToString(caBytes)
-	if err = render.RenderClusterManifests(params, pullSecretFile, manifestsDir, true, true, true, false, true); err != nil {
+	if err = render.RenderClusterManifests(params, pullSecretFile, manifestsDir, true, true, true, true, true); err != nil {
 		return fmt.Errorf("failed to render manifests for cluster: %v", err)
 	}
 
@@ -391,9 +438,34 @@ func InstallCluster(name, releaseImage, dhParamsFile string) error {
 	if err = generateUserDataSecret(name, bucketName, filepath.Join(manifestsDir, "machine-user-data.json")); err != nil {
 		return fmt.Errorf("failed to generate user data secret: %v", err)
 	}
+	kubeadminPassword, err := generateKubeadminPassword()
+	if err != nil {
+		return fmt.Errorf("failed to generate kubeadmin password: %v", err)
+	}
+	if err = generateKubeadminPasswordTargetSecret(kubeadminPassword, filepath.Join(manifestsDir, "kubeadmin-secret.json")); err != nil {
+		return fmt.Errorf("failed to create kubeadmin secret manifest for target cluster: %v", err)
+	}
+	if err = generateKubeadminPasswordSecret(kubeadminPassword, filepath.Join(manifestsDir, "kubeadmin-host-secret.json")); err != nil {
+		return fmt.Errorf("failed to create kubeadmin secret manifest for management cluster: %v", err)
+	}
+	if err = generateKubeconfigSecret(filepath.Join(pkiDir, "admin.kubeconfig"), filepath.Join(manifestsDir, "kubeconfig-secret.json")); err != nil {
+		return fmt.Errorf("failed to create kubeconfig secret manifest for management cluster: %v", err)
+	}
 
-	log.Info("Applying Manifests")
-	return applyManifests(cfg, name, manifestsDir, excludeManifests)
+	// Create the system branding manifest (cannot be applied because it's too large)
+	if err = createBrandingSecret(client, name, filepath.Join(manifestsDir, "v4-0-config-system-branding.yaml")); err != nil {
+		return fmt.Errorf("failed to create oauth branding secret: %v", err)
+	}
+
+	if err = applyManifests(cfg, name, manifestsDir, excludeManifests); err != nil {
+		return fmt.Errorf("failed to apply manifests: %v", err)
+	}
+	log.Infof("Cluster resources applied")
+	log.Infof("Cluster API URL: %s", fmt.Sprintf("https://%s:6443", apiDNSName))
+	log.Infof("Kubeconfig is available in secret %q in the %s namespace", "admin-kubeconfig", name)
+	log.Infof("Console URL:  %s", fmt.Sprintf("https://console-openshift-console.%s", params.IngressSubdomain))
+	log.Infof("kubeadmin password is available in secret %q in the %s namespace", "kubeadmin-password", name)
+	return nil
 }
 
 func applyManifests(cfg *rest.Config, namespace, directory string, exclude []string) error {
@@ -403,12 +475,40 @@ func applyManifests(cfg *rest.Config, namespace, directory string, exclude []str
 			return fmt.Errorf("cannot delete %s: %v", name, err)
 		}
 	}
-	applier := NewApplier(cfg, namespace)
-	err := applier.ApplyFile(directory)
+	backoff := wait.Backoff{
+		Steps:    3,
+		Duration: 10 * time.Second,
+		Factor:   1.0,
+		Jitter:   0.1,
+	}
+	attempt := 0
+	err := retry.OnError(backoff, func(err error) bool { return true }, func() error {
+		attempt++
+		log.Infof("Applying Manifests. Attempt %d/3", attempt)
+		applier := NewApplier(cfg, namespace)
+		return applier.ApplyFile(directory)
+	})
 	if err != nil {
 		return fmt.Errorf("Failed to apply manifests: %v", err)
 	}
 	return nil
+}
+
+func createBrandingSecret(client kubeclient.Interface, namespace, fileName string) error {
+	objBytes, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return err
+	}
+	requiredObj, err := runtime.Decode(coreCodecs.UniversalDecoder(corev1.SchemeGroupVersion), objBytes)
+	if err != nil {
+		return err
+	}
+	secret, ok := requiredObj.(*corev1.Secret)
+	if !ok {
+		return fmt.Errorf("object in %s is not a secret", fileName)
+	}
+	_, err = client.CoreV1().Secrets(namespace).Create(secret)
+	return err
 }
 
 func createKubeAPIServerService(client kubeclient.Interface, namespace string) (int, error) {
@@ -467,6 +567,26 @@ func createOpenshiftService(client kubeclient.Interface, namespace string) (stri
 		return "", err
 	}
 	return svc.Spec.ClusterIP, nil
+}
+
+func createOauthService(client kubeclient.Interface, namespace string) (int, error) {
+	svc := &corev1.Service{}
+	svc.Name = "oauth-openshift"
+	svc.Spec.Selector = map[string]string{"app": "oauth-openshift"}
+	svc.Spec.Type = corev1.ServiceTypeNodePort
+	svc.Spec.Ports = []corev1.ServicePort{
+		{
+			Name:       "https",
+			Port:       443,
+			Protocol:   corev1.ProtocolTCP,
+			TargetPort: intstr.FromInt(6443),
+		},
+	}
+	svc, err := client.CoreV1().Services(namespace).Create(svc)
+	if err != nil {
+		return 0, err
+	}
+	return int(svc.Spec.Ports[0].NodePort), nil
 }
 
 func createPullSecret(client kubeclient.Interface, namespace, data string) error {
@@ -823,8 +943,100 @@ func ensurePrivilegedSCC(client dynamic.Interface, namespace string) error {
 	return err
 }
 
+func generateKubeadminPasswordTargetSecret(password string, fileName string) error {
+	secret := &corev1.Secret{}
+	secret.APIVersion = "v1"
+	secret.Kind = "Secret"
+	secret.Name = "kubeadmin"
+	secret.Namespace = "kube-system"
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	secret.Data = map[string][]byte{"kubeadmin": passwordHash}
+
+	secretBytes, err := runtime.Encode(coreCodecs.LegacyCodec(corev1.SchemeGroupVersion), secret)
+	if err != nil {
+		return err
+	}
+	configMap := &corev1.ConfigMap{}
+	configMap.APIVersion = "v1"
+	configMap.Kind = "ConfigMap"
+	configMap.Name = "user-manifest-kubeadmin-password"
+	configMap.Data = map[string]string{"data": string(secretBytes)}
+	configMapBytes, err := runtime.Encode(coreCodecs.LegacyCodec(corev1.SchemeGroupVersion), configMap)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(fileName, configMapBytes, 0644)
+}
+
+func generateKubeadminPasswordSecret(password string, fileName string) error {
+	secret := &corev1.Secret{}
+	secret.APIVersion = "v1"
+	secret.Kind = "Secret"
+	secret.Name = "kubeadmin-password"
+	secret.Data = map[string][]byte{"password": []byte(password)}
+	secretBytes, err := runtime.Encode(coreCodecs.LegacyCodec(corev1.SchemeGroupVersion), secret)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(fileName, secretBytes, 0644)
+}
+
+func generateKubeconfigSecret(kubeconfigFile, manifestFilename string) error {
+	secret := &corev1.Secret{}
+	secret.APIVersion = "v1"
+	secret.Kind = "Secret"
+	secret.Name = "admin-kubeconfig"
+	kubeconfigBytes, err := ioutil.ReadFile(kubeconfigFile)
+	if err != nil {
+		return err
+	}
+	secret.Data = map[string][]byte{"kubeconfig": kubeconfigBytes}
+	secretBytes, err := runtime.Encode(coreCodecs.LegacyCodec(corev1.SchemeGroupVersion), secret)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(manifestFilename, secretBytes, 0644)
+}
+
 func generateImageRegistrySecret() string {
 	num := make([]byte, 64)
 	rand.Read(num)
 	return hex.EncodeToString(num)
+}
+
+func generateKubeadminPassword() (string, error) {
+	const (
+		lowerLetters = "abcdefghijkmnopqrstuvwxyz"
+		upperLetters = "ABCDEFGHIJKLMNPQRSTUVWXYZ"
+		digits       = "23456789"
+		all          = lowerLetters + upperLetters + digits
+		length       = 23
+	)
+	var password string
+	for i := 0; i < length; i++ {
+		n, err := crand.Int(crand.Reader, big.NewInt(int64(len(all))))
+		if err != nil {
+			return "", err
+		}
+		newchar := string(all[n.Int64()])
+		if password == "" {
+			password = newchar
+		}
+		if i < length-1 {
+			n, err = crand.Int(crand.Reader, big.NewInt(int64(len(password)+1)))
+			if err != nil {
+				return "", err
+			}
+			j := n.Int64()
+			password = password[0:j] + newchar + password[j:]
+		}
+	}
+	pw := []rune(password)
+	for _, replace := range []int{5, 11, 17} {
+		pw[replace] = '-'
+	}
+	return string(pw), nil
 }
