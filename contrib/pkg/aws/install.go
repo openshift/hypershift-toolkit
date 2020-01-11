@@ -44,9 +44,10 @@ import (
 )
 
 const (
-	routerNodePortHTTP  = 31080
-	routerNodePortHTTPS = 31443
-	externalOauthPort   = 8443
+	routerNodePortHTTP    = 31080
+	routerNodePortHTTPS   = 31443
+	externalOauthPort     = 8443
+	workerMachineSetCount = 3
 )
 
 var (
@@ -67,7 +68,7 @@ func init() {
 	}
 }
 
-func InstallCluster(name, releaseImage, dhParamsFile string) error {
+func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) error {
 
 	// First, ensure that we can access the host cluster
 	cfg, err := loadConfig()
@@ -464,6 +465,47 @@ func InstallCluster(name, releaseImage, dhParamsFile string) error {
 		return fmt.Errorf("failed to apply manifests: %v", err)
 	}
 	log.Infof("Cluster resources applied")
+
+	if waitForReady {
+		log.Infof("Waiting up to 10 minutes for API endpoint to be available.")
+		if err = waitForAPIEndpoint(pkiDir, apiDNSName); err != nil {
+			return fmt.Errorf("failed to access API endpoint: %v", err)
+		}
+		log.Infof("API is available at %s", fmt.Sprintf("https://%s:6443", apiDNSName))
+
+		log.Infof("Waiting up to 5 minutes for bootstrap pod to complete.")
+		if err = waitForBootstrapPod(client, name); err != nil {
+			return fmt.Errorf("failed to wait for bootstrap pod to complete: %v", err)
+		}
+		log.Infof("Bootstrap pod has completed.")
+
+		// Force the oauth server to restart so it can pick up the kubeadmin password
+		if err = updateOAuthDeployment(client, name); err != nil {
+			return fmt.Errorf("failed to update OAuth server deployment: %v", err)
+		}
+		log.Infof("OAuth server deployment updated.")
+
+		targetClusterCfg, err := getTargetClusterConfig(pkiDir)
+		if err != nil {
+			return fmt.Errorf("cannot create target cluster client config: %v", err)
+		}
+		targetClient, err := kubeclient.NewForConfig(targetClusterCfg)
+		if err != nil {
+			return fmt.Errorf("cannot create target cluster client: %v", err)
+		}
+
+		log.Infof("Waiting up to 10 minutes for nodes to be ready.")
+		if err = waitForNodesReady(targetClient, workerMachineSetCount); err != nil {
+			return fmt.Errorf("failed to wait for nodes ready: %v", err)
+		}
+		log.Infof("Nodes (%d) are ready", workerMachineSetCount)
+
+		log.Infof("Waiting up to 15 minutes for cluster operators to be ready.")
+		if err = waitForClusterOperators(targetClusterCfg); err != nil {
+			return fmt.Errorf("failed to wait for cluster operators: %v", err)
+		}
+	}
+
 	log.Infof("Cluster API URL: %s", fmt.Sprintf("https://%s:6443", apiDNSName))
 	log.Infof("Kubeconfig is available in secret %q in the %s namespace", "admin-kubeconfig", name)
 	log.Infof("Console URL:  %s", fmt.Sprintf("https://console-openshift-console.%s", params.IngressSubdomain))
@@ -880,7 +922,7 @@ func generateWorkerMachineset(client dynamic.Interface, infraName, zone, namespa
 	unstructured.RemoveNestedField(object, "metadata", "uid")
 	unstructured.RemoveNestedField(object, "spec", "template", "spec", "metadata")
 	unstructured.RemoveNestedField(object, "spec", "template", "spec", "providerSpec", "value", "publicIp")
-	unstructured.SetNestedField(object, int64(3), "spec", "replicas")
+	unstructured.SetNestedField(object, int64(workerMachineSetCount), "spec", "replicas")
 	unstructured.SetNestedField(object, workerName, "metadata", "name")
 	unstructured.SetNestedField(object, workerName, "spec", "selector", "matchLabels", "machine.openshift.io/cluster-api-machineset")
 	unstructured.SetNestedField(object, workerName, "spec", "template", "metadata", "labels", "machine.openshift.io/cluster-api-machineset")
@@ -1026,6 +1068,21 @@ func generateKubeconfigSecret(kubeconfigFile, manifestFilename string) error {
 	return ioutil.WriteFile(manifestFilename, secretBytes, 0644)
 }
 
+func updateOAuthDeployment(client kubeclient.Interface, namespace string) error {
+	d, err := client.AppsV1().Deployments(namespace).Get("oauth-openshift", metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	annotations := d.Spec.Template.ObjectMeta.Annotations
+	if annotations == nil {
+		annotations = map[string]string{}
+	}
+	annotations["deployment-refresh"] = fmt.Sprintf("%v", time.Now())
+	d.Spec.Template.ObjectMeta.Annotations = annotations
+	_, err = client.AppsV1().Deployments(namespace).Update(d)
+	return err
+}
+
 func generateImageRegistrySecret() string {
 	num := make([]byte, 64)
 	rand.Read(num)
@@ -1064,4 +1121,8 @@ func generateKubeadminPassword() (string, error) {
 		pw[replace] = '-'
 	}
 	return string(pw), nil
+}
+
+func getTargetClusterConfig(pkiDir string) (*rest.Config, error) {
+	return clientcmd.BuildConfigFromFlags("", filepath.Join(pkiDir, "admin.kubeconfig"))
 }

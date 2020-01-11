@@ -11,6 +11,8 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/google/uuid v1.1.1
 	github.com/jteeuwen/go-bindata v0.0.0-00010101000000-000000000000
+	github.com/openshift/api v0.0.0-20190916204813-cdbe64fb0c91
+	github.com/openshift/client-go v0.0.0-20190813201236-5a5508328169
 	github.com/openshift/oc v0.0.0-00010101000000-000000000000
 	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.2
