@@ -25,6 +25,7 @@ func newHypershiftAWSCommand() *cobra.Command {
 func newInstallCommand() *cobra.Command {
 	releaseImage := ""
 	dhParamsFile := ""
+	waitForClusterReady := true
 	cmd := &cobra.Command{
 		Use:   "install NAME",
 		Short: "Creates the necessary infrastructure and installs a hypershift instance on an existing OCP 4 cluster running on AWS",
@@ -36,13 +37,14 @@ func newInstallCommand() *cobra.Command {
 			if len(name) == 0 {
 				log.Fatalf("You must specify the name of the cluster you want to install")
 			}
-			if err := aws.InstallCluster(name, releaseImage, dhParamsFile); err != nil {
+			if err := aws.InstallCluster(name, releaseImage, dhParamsFile, waitForClusterReady); err != nil {
 				log.WithError(err).Fatalf("Failed to install cluster")
 			}
 		},
 	}
 	cmd.Flags().StringVar(&releaseImage, "release-image", "", "[optional] Specify the release image to use for the new cluster. Defaults to same as parent cluster.")
 	cmd.Flags().StringVar(&dhParamsFile, "dh-params", "", "[optional][dev-only] Specifies an existing file with DH params for the VPN so it doesn't get re-generated.")
+	cmd.Flags().BoolVar(&waitForClusterReady, "wait-for-cluster-ready", waitForClusterReady, "Waits for cluster to be available before command ends, fails with an error if cluster does not come up within a given amount of time.")
 	return cmd
 }
 
