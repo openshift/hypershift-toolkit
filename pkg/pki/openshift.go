@@ -89,13 +89,15 @@ func GeneratePKI(params *api.ClusterParams, outputDir string) error {
 			[]string{
 				"openvpn-server",
 				fmt.Sprintf("openvpn-server.%s.svc", params.Namespace),
-				fmt.Sprintf("%s:%d", params.ExternalOpenVPNDNSName, params.ExternalOpenVPNPort),
+				params.ExternalOpenVPNDNSName,
 			}, nil),
 		// oauth server
-		cert("oauth-openshift", "root-ca", params.ExternalAPIDNSName, "kubernetes",
-			[]string{}, nil),
+		cert("oauth-openshift", "root-ca", "openshift-oauth", "openshift",
+			[]string{
+				params.ExternalAPIDNSName,
+			}, nil),
 		cert("openvpn-kube-apiserver-client", "openvpn-ca", "kube-apiserver", "kubernetes", nil, nil),
-		cert("openvpn-worker-client", "openvpn-ca", "kube-apiserver", "kubernetes", nil, nil),
+		cert("openvpn-worker-client", "openvpn-ca", "worker", "kubernetes", nil, nil),
 	}
 	caMap, err := generateCAs(cas)
 	if err != nil {
