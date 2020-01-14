@@ -1,7 +1,7 @@
 BINDIR = bin
 SRC_DIRS = cmd pkg
 
-
+ 
 .PHONY: default
 default: build
 
