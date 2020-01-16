@@ -74,25 +74,9 @@ func UninstallCluster(name string) error {
 		return fmt.Errorf("cannot delete OAuth target group: %v", err)
 	}
 
-	log.Infof("Removing API elastic IP")
-	if err = aws.RemoveEIP(apiLBName); err != nil {
-		return fmt.Errorf("cannot delete EIP for API load balancer: %v", err)
-	}
-
-	log.Infof("Removing VPN DNS record")
-	vpnDNSName := fmt.Sprintf("vpn.%s.%s.", name, parentDomain)
-	if err = aws.RemoveCNameRecord(dnsZoneID, vpnDNSName); err != nil {
-		return fmt.Errorf("cannot delete VPN DNS resource record: %v", err)
-	}
-
-	log.Infof("Removing VPN load balancer")
-	vpnLBName := generateLBResourceName(infraName, name, "vpn")
-	if err = aws.RemoveNLB(vpnLBName); err != nil {
-		return fmt.Errorf("cannot delete VPN load balancer: %v", err)
-	}
-
+	vpnTGName := generateLBResourceName(infraName, name, "oauth")
 	log.Infof("Removing VPN target group")
-	if err = aws.RemoveTargetGroup(vpnLBName); err != nil {
+	if err = aws.RemoveTargetGroup(vpnTGName); err != nil {
 		return fmt.Errorf("cannot delete VPN target group: %v", err)
 	}
 
@@ -121,7 +105,7 @@ func UninstallCluster(name string) error {
 	}
 
 	log.Infof("Removing worker machineset")
-	if err = removeWorkerMachineset(dynamicClient, infraName, name); err != nil {
+	if err = removeWorkerMachinesets(dynamicClient, infraName, name); err != nil {
 		return fmt.Errorf("failed to remove worker machineset: %v", err)
 	}
 
@@ -141,14 +125,15 @@ func UninstallCluster(name string) error {
 	return nil
 }
 
-func removeWorkerMachineset(client dynamic.Interface, infraName, namespace string) error {
-	name := generateMachineSetName(infraName, namespace, "worker")
+func removeWorkerMachinesets(client dynamic.Interface, infraName, namespace string) error {
 	machineGV, err := schema.ParseGroupVersion("machine.openshift.io/v1beta1")
 	if err != nil {
 		return err
 	}
 	machineSetGVR := machineGV.WithResource("machinesets")
-	err = client.Resource(machineSetGVR).Namespace("openshift-machine-api").Delete(name, &metav1.DeleteOptions{})
+	err = client.Resource(machineSetGVR).Namespace("openshift-machine-api").DeleteCollection(&metav1.DeleteOptions{}, metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("machine.openshift.io/hypershift-cluster=%s", namespace),
+	})
 	if errors.IsNotFound(err) {
 		return nil
 	}

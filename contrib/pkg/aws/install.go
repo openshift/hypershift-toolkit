@@ -38,6 +38,10 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/retry"
 
+	machinev1 "github.com/openshift/cluster-api/pkg/apis/machine/v1beta1"
+	machineclient "github.com/openshift/cluster-api/pkg/client/clientset_generated/clientset"
+	awsproviderv1 "sigs.k8s.io/cluster-api-provider-aws/pkg/apis/awsproviderconfig/v1beta1"
+
 	"github.com/openshift/hypershift-toolkit/pkg/api"
 	"github.com/openshift/hypershift-toolkit/pkg/ignition"
 	"github.com/openshift/hypershift-toolkit/pkg/pki"
@@ -61,10 +65,22 @@ var (
 	}
 	coreScheme = runtime.NewScheme()
 	coreCodecs = serializer.NewCodecFactory(coreScheme)
+
+	machineAPIScheme = runtime.NewScheme()
+	machineAPICodecs = serializer.NewCodecFactory(machineAPIScheme)
 )
 
 func init() {
 	if err := corev1.AddToScheme(coreScheme); err != nil {
+		panic(err)
+	}
+	if err := corev1.AddToScheme(machineAPIScheme); err != nil {
+		panic(err)
+	}
+	if err := machinev1.AddToScheme(machineAPIScheme); err != nil {
+		panic(err)
+	}
+	if err := awsproviderv1.SchemeBuilder.AddToScheme(machineAPIScheme); err != nil {
 		panic(err)
 	}
 }
@@ -129,9 +145,9 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 	}
 	log.Debugf("Using public DNS Zone: %s and parent suffix: %s", dnsZoneID, parentDomain)
 
-	machineNames, err := getMachineNames(dynamicClient)
+	machineIDs, err := getMastersMachineIDs(dynamicClient)
 	if err != nil {
-		return fmt.Errorf("failed to fetch machine names for cluster: %v", err)
+		return fmt.Errorf("failed to fetch machine IDs for masters on cluster: %v", err)
 	}
 
 	// Start creating resources on management cluster
@@ -195,26 +211,14 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 		return fmt.Errorf("cannot create an AWS client: %v", err)
 	}
 
-	lbInfo, err := aws.LoadBalancerInfo(machineNames)
+	lbInfo, err := aws.LoadBalancerInfo(infraName + "-ext")
 	if err != nil {
 		return fmt.Errorf("cannot get load balancer info: %v", err)
 	}
-	log.Infof("Using VPC: %s, Zone: %s, Subnet: %s", lbInfo.VPC, lbInfo.Zone, lbInfo.Subnet)
-
-	machineID, machineIP, err := getMachineInfo(dynamicClient, machineNames, fmt.Sprintf("%s-worker-%s", infraName, lbInfo.Zone))
-	if err != nil {
-		return fmt.Errorf("cannot get machine info: %v", err)
-	}
-	log.Infof("Using management machine with ID: %s and IP: %s", machineID, machineIP)
+	log.Infof("Using VPC: %s, Subnets: %v, Targets: %v", lbInfo.VPC, lbInfo.Subnets(), lbInfo.Targets)
 
 	apiLBName := generateLBResourceName(infraName, name, "api")
-	apiAllocID, apiPublicIP, err := aws.EnsureEIP(apiLBName)
-	if err != nil {
-		return fmt.Errorf("cannot allocate API load balancer EIP: %v", err)
-	}
-	log.Infof("Allocated EIP with ID: %s, and IP: %s", apiAllocID, apiPublicIP)
-
-	apiLBARN, apiLBDNS, err := aws.EnsureNLB(apiLBName, lbInfo.Subnet, apiAllocID)
+	apiLBARN, apiLBDNS, err := aws.EnsureNLB(apiLBName, lbInfo.Subnets())
 	if err != nil {
 		return fmt.Errorf("cannot create network load balancer: %v", err)
 	}
@@ -231,16 +235,27 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 	if err != nil {
 		return fmt.Errorf("cannot create OAuth target group: %v", err)
 	}
+	vpnTGName := generateLBResourceName(infraName, name, "vpn")
+	vpnTGARN, err := aws.EnsureUDPTargetGroup(lbInfo.VPC, vpnTGName, vpnNodePort, apiNodePort)
+	if err != nil {
+		return fmt.Errorf("cannot create VPN target group: %v", err)
+	}
+	log.Infof("Created VPN target group ARN: %s", vpnTGARN)
 
-	if err = aws.EnsureTarget(apiTGARN, machineIP); err != nil {
+	if err = aws.EnsureTargets(apiTGARN, lbInfo.Targets); err != nil {
 		return fmt.Errorf("cannot create API load balancer target: %v", err)
 	}
-	log.Infof("Created API load balancer target to %s", machineIP)
+	log.Infof("Created API load balancer target to %v", lbInfo.Targets)
 
-	if err = aws.EnsureTarget(oauthTGARN, machineIP); err != nil {
+	if err = aws.EnsureTargets(oauthTGARN, lbInfo.Targets); err != nil {
 		return fmt.Errorf("cannot create OAuth load balancer target: %v", err)
 	}
-	log.Infof("Created OAuth load balancer target to %s", machineIP)
+	log.Infof("Created OAuth load balancer target to %v", lbInfo.Targets)
+
+	if err = aws.EnsureTargets(vpnTGARN, machineIDs); err != nil {
+		return fmt.Errorf("cannot create VPN load balancer target: %v", err)
+	}
+	log.Infof("Created VPN load balancer target to %v", machineIDs)
 
 	err = aws.EnsureListener(apiLBARN, apiTGARN, 6443, false)
 	if err != nil {
@@ -254,6 +269,12 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 	}
 	log.Infof("Created OAuth load balancer listener")
 
+	err = aws.EnsureListener(apiLBARN, vpnTGARN, 1194, true)
+	if err != nil {
+		return fmt.Errorf("cannot create VPN listener: %v", err)
+	}
+	log.Infof("Created VPN load balancer listener")
+
 	apiDNSName := fmt.Sprintf("api.%s.%s", name, parentDomain)
 	err = aws.EnsureCNameRecord(dnsZoneID, apiDNSName, apiLBDNS)
 	if err != nil {
@@ -262,7 +283,7 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 	log.Infof("Created DNS record for API name: %s", apiDNSName)
 
 	routerLBName := generateLBResourceName(infraName, name, "apps")
-	routerLBARN, routerLBDNS, err := aws.EnsureNLB(routerLBName, lbInfo.Subnet, "")
+	routerLBARN, routerLBDNS, err := aws.EnsureNLB(routerLBName, lbInfo.Subnets())
 	if err != nil {
 		return fmt.Errorf("cannot create router load balancer: %v", err)
 	}
@@ -301,42 +322,7 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 	}
 	log.Infof("Created DNS record for router name: %s", routerDNSName)
 
-	vpnLBName := generateLBResourceName(infraName, name, "vpn")
-	vpnLBARN, vpnLBDNS, err := aws.EnsureNLB(vpnLBName, lbInfo.Subnet, "")
-	if err != nil {
-		return fmt.Errorf("cannot create vpn load balancer: %v", err)
-	}
-	log.Infof("Created VPN load balancer with ARN: %s and DNS: %s", vpnLBARN, vpnLBDNS)
-
-	vpnTGARN, err := aws.EnsureUDPTargetGroup(lbInfo.VPC, vpnLBName, vpnNodePort, apiNodePort)
-	if err != nil {
-		return fmt.Errorf("cannot create VPN target group: %v", err)
-	}
-	log.Infof("Created VPN target group ARN: %s", vpnTGARN)
-
-	if err = aws.EnsureTarget(vpnTGARN, machineID); err != nil {
-		return fmt.Errorf("cannot create VPN load balancer target: %v", err)
-	}
-	log.Infof("Created VPN load balancer target to %s", machineID)
-
-	err = aws.EnsureListener(vpnLBARN, vpnTGARN, 1194, true)
-	if err != nil {
-		return fmt.Errorf("cannot create VPN listener: %v", err)
-	}
-	log.Infof("Created VPN load balancer listener")
-
-	vpnDNSName := fmt.Sprintf("vpn.%s.%s", name, parentDomain)
-	err = aws.EnsureCNameRecord(dnsZoneID, vpnDNSName, vpnLBDNS)
-	if err != nil {
-		return fmt.Errorf("cannot create router DNS record: %v", err)
-	}
-	log.Infof("Created DNS record for VPN: %s", vpnDNSName)
-
-	err = aws.EnsureWorkersAllowNodePortAccess()
-	if err != nil {
-		return fmt.Errorf("cannot setup security group for worker nodes: %v", err)
-	}
-	log.Infof("Ensured that node ports on workers are accessible")
+	aws.EnsureMastersAllowNodePortAccess()
 
 	_, serviceCIDRNet, err := net.ParseCIDR(serviceCIDR)
 	if err != nil {
@@ -364,8 +350,8 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 		Namespace:               name,
 		ExternalAPIDNSName:      apiDNSName,
 		ExternalAPIPort:         6443,
-		ExternalAPIIPAddress:    apiPublicIP,
-		ExternalOpenVPNDNSName:  vpnDNSName,
+		ExternalAPIIPAddress:    ignition.APIServerIP(clusterServiceCIDR.String()),
+		ExternalOpenVPNDNSName:  apiDNSName,
 		ExternalOpenVPNPort:     1194,
 		ExternalOauthPort:       externalOauthPort,
 		APINodePort:             uint(apiNodePort),
@@ -436,7 +422,9 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 	}
 
 	// Create a machineset for the new cluster's worker nodes
-	if err = generateWorkerMachineset(dynamicClient, infraName, lbInfo.Zone, name, routerLBName, filepath.Join(manifestsDir, "machineset.json")); err != nil {
+	machineClient, err := machineclient.NewForConfig(cfg)
+	internalLBInfo, err := aws.LoadBalancerInfo(infraName + "-int")
+	if err = generateWorkerMachinesets(machineClient, infraName, name, region, routerLBName, internalLBInfo, manifestsDir); err != nil {
 		return fmt.Errorf("failed to generate worker machineset: %v", err)
 	}
 	if err = generateUserDataSecret(name, bucketName, filepath.Join(manifestsDir, "machine-user-data.json")); err != nil {
@@ -709,69 +697,30 @@ func getAWSCredentials(client kubeclient.Interface) (string, string, error) {
 	return string(key), string(secretKey), nil
 }
 
-func getMachineNames(client dynamic.Interface) ([]string, error) {
+func getMastersMachineIDs(client dynamic.Interface) ([]string, error) {
 	machineGroupVersion, err := schema.ParseGroupVersion("machine.openshift.io/v1beta1")
 	if err != nil {
 		return nil, err
 	}
 	machineGroupVersionResource := machineGroupVersion.WithResource("machines")
-	list, err := client.Resource(machineGroupVersionResource).Namespace("openshift-machine-api").List(metav1.ListOptions{})
+	list, err := client.Resource(machineGroupVersionResource).Namespace("openshift-machine-api").List(metav1.ListOptions{
+		LabelSelector: "machine.openshift.io/cluster-api-machine-role=master",
+	})
 	if err != nil {
 		return nil, err
 	}
-	names := []string{}
+	instanceIDs := []string{}
 	for _, m := range list.Items {
-		names = append(names, m.GetName())
-	}
-	return names, nil
-}
-
-func getMachineInfo(client dynamic.Interface, machineNames []string, prefix string) (string, string, error) {
-	name := ""
-	for _, machineName := range machineNames {
-		if strings.HasPrefix(machineName, prefix) {
-			name = machineName
-			break
-		}
-	}
-	if name == "" {
-		return "", "", fmt.Errorf("did not find machine with prefix %s", prefix)
-	}
-	machineGroupVersion, err := schema.ParseGroupVersion("machine.openshift.io/v1beta1")
-	if err != nil {
-		return "", "", err
-	}
-	machineGroupVersionResource := machineGroupVersion.WithResource("machines")
-	machine, err := client.Resource(machineGroupVersionResource).Namespace("openshift-machine-api").Get(name, metav1.GetOptions{})
-	if err != nil {
-		return "", "", err
-	}
-	instanceID, exists, err := unstructured.NestedString(machine.Object, "status", "providerStatus", "instanceId")
-	if !exists || err != nil {
-		return "", "", fmt.Errorf("did not find instanceId on machine object: %v", err)
-	}
-	addresses, exists, err := unstructured.NestedSlice(machine.Object, "status", "addresses")
-	if !exists || err != nil {
-		return "", "", fmt.Errorf("did not find addresses on machine object: %v", err)
-	}
-	machineIP := ""
-	for _, addr := range addresses {
-		addrType, _, err := unstructured.NestedString(addr.(map[string]interface{}), "type")
+		instanceID, present, err := unstructured.NestedString(m.Object, "status", "providerStatus", "instanceId")
 		if err != nil {
-			return "", "", fmt.Errorf("cannot get address type: %v", err)
+			return nil, err
 		}
-		if addrType != "InternalIP" {
+		if !present {
 			continue
 		}
-		machineIP, _, err = unstructured.NestedString(addr.(map[string]interface{}), "address")
-		if err != nil {
-			return "", "", fmt.Errorf("cannot get machine address: %v", err)
-		}
+		instanceIDs = append(instanceIDs, instanceID)
 	}
-	if machineIP == "" {
-		return "", "", fmt.Errorf("could not find machine internal IP")
-	}
-	return instanceID, machineIP, nil
+	return instanceIDs, nil
 }
 
 func getSSHPublicKey(client dynamic.Interface) ([]byte, error) {
@@ -903,44 +852,95 @@ func getNetworkInfo(client dynamic.Interface) (string, string, error) {
 	return serviceCIDR, podCIDR, nil
 }
 
-func generateWorkerMachineset(client dynamic.Interface, infraName, zone, namespace, lbName, fileName string) error {
-	machineGV, err := schema.ParseGroupVersion("machine.openshift.io/v1beta1")
+func generateWorkerMachinesets(client machineclient.Interface, infraName, namespace, region, routerLBName string, lbInfo *LBInfo, manifestsDir string) error {
+	masterMachine, err := client.MachineV1beta1().Machines("openshift-machine-api").Get(fmt.Sprintf("%s-master-0", infraName), metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	machineSetGVR := machineGV.WithResource("machinesets")
-	obj, err := client.Resource(machineSetGVR).Namespace("openshift-machine-api").Get(fmt.Sprintf("%s-worker-%s", infraName, zone), metav1.GetOptions{})
+	masterProviderSpec := &awsproviderv1.AWSMachineProviderConfig{}
+	codec, err := awsproviderv1.NewCodec()
 	if err != nil {
 		return err
 	}
-
-	workerName := generateMachineSetName(infraName, namespace, "worker")
-	object := obj.Object
-
-	unstructured.RemoveNestedField(object, "status")
-	unstructured.RemoveNestedField(object, "metadata", "creationTimestamp")
-	unstructured.RemoveNestedField(object, "metadata", "generation")
-	unstructured.RemoveNestedField(object, "metadata", "resourceVersion")
-	unstructured.RemoveNestedField(object, "metadata", "selfLink")
-	unstructured.RemoveNestedField(object, "metadata", "uid")
-	unstructured.RemoveNestedField(object, "spec", "template", "spec", "metadata")
-	unstructured.RemoveNestedField(object, "spec", "template", "spec", "providerSpec", "value", "publicIp")
-	unstructured.SetNestedField(object, int64(workerMachineSetCount), "spec", "replicas")
-	unstructured.SetNestedField(object, workerName, "metadata", "name")
-	unstructured.SetNestedField(object, workerName, "spec", "selector", "matchLabels", "machine.openshift.io/cluster-api-machineset")
-	unstructured.SetNestedField(object, workerName, "spec", "template", "metadata", "labels", "machine.openshift.io/cluster-api-machineset")
-	unstructured.SetNestedField(object, fmt.Sprintf("%s-user-data", namespace), "spec", "template", "spec", "providerSpec", "value", "userDataSecret", "name")
-	loadBalancer := map[string]interface{}{}
-	unstructured.SetNestedField(loadBalancer, lbName, "name")
-	unstructured.SetNestedField(loadBalancer, "network", "type")
-	loadBalancers := []interface{}{loadBalancer}
-	unstructured.SetNestedSlice(object, loadBalancers, "spec", "template", "spec", "providerSpec", "value", "loadBalancers")
-
-	machineSetBytes, err := json.Marshal(object)
-	if err != nil {
+	if err := codec.DecodeProviderSpec(&masterMachine.Spec.ProviderSpec, masterProviderSpec); err != nil {
 		return err
 	}
-	return ioutil.WriteFile(fileName, machineSetBytes, 0644)
+
+	machineSets := []*machinev1.MachineSet{}
+
+	for zone, subnetID := range lbInfo.SubnetMap {
+		ms := &machinev1.MachineSet{}
+		ms.APIVersion = "machine.openshift.io/v1beta1"
+		ms.Kind = "MachineSet"
+		ms.Name = generateMachineSetName(infraName, namespace, zone)
+		ms.Namespace = "openshift-machine-api"
+		ms.Labels = map[string]string{
+			"machine.openshift.io/cluster-api-cluster": infraName,
+			"machine.openshift.io/hypershift-cluster":  namespace,
+		}
+
+		ms.Spec.Selector = metav1.LabelSelector{
+			MatchLabels: map[string]string{
+				"machine.openshift.io/cluster-api-cluster":    infraName,
+				"machine.openshift.io/cluster-api-machineset": ms.Name,
+			},
+		}
+
+		ms.Spec.Template.Labels = map[string]string{
+			"machine.openshift.io/cluster-api-cluster":      infraName,
+			"machine.openshift.io/cluster-api-machine-role": "worker",
+			"machine.openshift.io/cluster-api-machine-type": "worker",
+			"machine.openshift.io/cluster-api-machineset":   ms.Name,
+		}
+		pSpec := &awsproviderv1.AWSMachineProviderConfig{}
+		pSpec.APIVersion = masterProviderSpec.APIVersion
+		pSpec.Kind = masterProviderSpec.Kind
+		pSpec.AMI.ID = masterProviderSpec.AMI.ID
+		pSpec.BlockDevices = masterProviderSpec.BlockDevices
+		pSpec.CredentialsSecret = masterProviderSpec.CredentialsSecret
+		pSpec.IAMInstanceProfile = masterProviderSpec.IAMInstanceProfile
+		pSpec.InstanceType = masterProviderSpec.InstanceType
+		pSpec.Placement.AvailabilityZone = zone
+		pSpec.Placement.Region = region
+		pSpec.SecurityGroups = masterProviderSpec.SecurityGroups
+		sid := subnetID
+		pSpec.Subnet.ID = &sid
+		pSpec.Tags = masterProviderSpec.Tags
+		pSpec.UserDataSecret = &corev1.LocalObjectReference{Name: fmt.Sprintf("%s-user-data", namespace)}
+		pSpec.LoadBalancers = []awsproviderv1.LoadBalancerReference{
+			{
+				Name: routerLBName,
+				Type: awsproviderv1.NetworkLoadBalancerType,
+			},
+		}
+		ms.Spec.Template.Spec.ProviderSpec.Value = &runtime.RawExtension{Object: pSpec}
+		machineSets = append(machineSets, ms)
+	}
+
+	increaseCount := func(c *int32) *int32 {
+		var cur int32 = 0
+		if c != nil {
+			cur = *c
+		}
+		cur++
+		return &cur
+	}
+
+	for i := 0; i < workerMachineSetCount; i++ {
+		ms := machineSets[i%len(machineSets)]
+		ms.Spec.Replicas = increaseCount(ms.Spec.Replicas)
+	}
+
+	for _, ms := range machineSets {
+		msBytes, err := runtime.Encode(machineAPICodecs.LegacyCodec(machinev1.SchemeGroupVersion), ms)
+		if err != nil {
+			return err
+		}
+		if err = ioutil.WriteFile(filepath.Join(manifestsDir, fmt.Sprintf("%s.json", ms.Name)), msBytes, 0644); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func generateUserDataSecret(namespace, bucketName, fileName string) error {
@@ -1138,8 +1138,8 @@ func generateBucketName(infraName, clusterName, suffix string) string {
 	return getName(fmt.Sprintf("%s-%s", infraName, clusterName), suffix, 63)
 }
 
-func generateMachineSetName(infraName, clusterName, suffix string) string {
-	return getName(fmt.Sprintf("%s-%s", infraName, clusterName), suffix, 43)
+func generateMachineSetName(infraName, clusterName, zone string) string {
+	return getName(fmt.Sprintf("%s-%s", infraName, clusterName), zone, 43)
 }
 
 // getName returns a name given a base ("deployment-5") and a suffix ("deploy")

@@ -3,9 +3,9 @@ package aws
 import (
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/wait"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -20,9 +20,9 @@ import (
 )
 
 type LBInfo struct {
-	VPC    string
-	Zone   string
-	Subnet string
+	VPC       string
+	SubnetMap map[string]string
+	Targets   []string
 }
 
 type AWSHelper struct {
@@ -54,12 +54,28 @@ func NewAWSHelper(key string, secret string, region string, infraName string) (*
 	}, nil
 }
 
+func (i *LBInfo) ZoneNames() []string {
+	result := []string{}
+	for n, _ := range i.SubnetMap {
+		result = append(result, n)
+	}
+	return result
+}
+
+func (i *LBInfo) Subnets() []string {
+	result := []string{}
+	for _, v := range i.SubnetMap {
+		result = append(result, v)
+	}
+	return result
+}
+
 // LoadBalancerInfo returns load balancer information for one of the zones that
 // contains worker machines
-func (h *AWSHelper) LoadBalancerInfo(machineNames []string) (*LBInfo, error) {
+func (h *AWSHelper) LoadBalancerInfo(name string) (*LBInfo, error) {
 	result := &LBInfo{}
 	output, err := h.elbClient.DescribeLoadBalancers(&elbv2.DescribeLoadBalancersInput{
-		Names: []*string{aws.String(h.infraName + "-ext")},
+		Names: []*string{aws.String(name)},
 	})
 	if err != nil {
 		return nil, err
@@ -70,23 +86,26 @@ func (h *AWSHelper) LoadBalancerInfo(machineNames []string) (*LBInfo, error) {
 	lb := output.LoadBalancers[0]
 	result.VPC = aws.StringValue(lb.VpcId)
 
-	found := false
+	result.SubnetMap = map[string]string{}
 	for _, az := range lb.AvailabilityZones {
-		zoneName := aws.StringValue(az.ZoneName)
-		for _, m := range machineNames {
-			if strings.HasPrefix(m, fmt.Sprintf("%s-worker-%s", h.infraName, zoneName)) {
-				found = true
-				result.Zone = zoneName
-				result.Subnet = aws.StringValue(az.SubnetId)
-				break
-			}
-		}
-		if found {
-			break
-		}
+		result.SubnetMap[aws.StringValue(az.ZoneName)] = aws.StringValue(az.SubnetId)
 	}
-	if !found {
-		return nil, fmt.Errorf("cannot find a suitable zone with workers in it")
+
+	tgOutput, err := h.elbClient.DescribeTargetGroups(&elbv2.DescribeTargetGroupsInput{
+		Names: []*string{aws.String(h.infraName + "-aext")},
+	})
+	if len(tgOutput.TargetGroups) == 0 {
+		return nil, fmt.Errorf("no target groups found")
+	}
+	tgARN := aws.StringValue(tgOutput.TargetGroups[0].TargetGroupArn)
+	tghOutput, err := h.elbClient.DescribeTargetHealth(&elbv2.DescribeTargetHealthInput{
+		TargetGroupArn: aws.String(tgARN),
+	})
+	if err != nil {
+		return nil, err
+	}
+	for _, targetHealth := range tghOutput.TargetHealthDescriptions {
+		result.Targets = append(result.Targets, aws.StringValue(targetHealth.Target.Id))
 	}
 	return result, nil
 }
@@ -177,7 +196,7 @@ func (h *AWSHelper) RemoveEIP(name string) error {
 
 // EnsureNLB ensures that a network load balancer exists with the given subnet. If an EIP allocation
 // ID is passed, it assigns it to the NLB subnet mappings.
-func (h *AWSHelper) EnsureNLB(nlbName, subnet, eipAllocID string) (string, string, error) {
+func (h *AWSHelper) EnsureNLB(nlbName string, subnets []string) (string, string, error) {
 	output, err := h.elbClient.DescribeLoadBalancers(&elbv2.DescribeLoadBalancersInput{
 		Names: []*string{aws.String(nlbName)},
 	})
@@ -205,16 +224,11 @@ func (h *AWSHelper) EnsureNLB(nlbName, subnet, eipAllocID string) (string, strin
 			ownedLBTag(h.infraName),
 		},
 	}
-	if len(eipAllocID) > 0 {
-		input.SubnetMappings = []*elbv2.SubnetMapping{
-			{
-				SubnetId:     aws.String(subnet),
-				AllocationId: aws.String(eipAllocID),
-			},
-		}
-	} else {
-		input.Subnets = []*string{aws.String(subnet)}
+	input.Subnets = []*string{}
+	for _, s := range subnets {
+		input.Subnets = append(input.Subnets, aws.String(s))
 	}
+
 	nlbResult, err := h.elbClient.CreateLoadBalancer(input)
 	if err != nil {
 		return "", "", err
@@ -294,32 +308,37 @@ func (h *AWSHelper) EnsureTargetGroup(vpc, tgName string, port int) (string, err
 	return aws.StringValue(tgResult.TargetGroups[0].TargetGroupArn), nil
 }
 
-func (h *AWSHelper) EnsureTarget(targetGroupARN string, targetID string) error {
+func (h *AWSHelper) EnsureTargets(targetGroupARN string, targets []string) error {
 	output, err := h.elbClient.DescribeTargetHealth(&elbv2.DescribeTargetHealthInput{
 		TargetGroupArn: aws.String(targetGroupARN),
 	})
 	if err != nil {
 		return err
 	}
+	targetsToAdd := sets.NewString(targets...)
 	for _, hd := range output.TargetHealthDescriptions {
-		if aws.StringValue(hd.Target.Id) == targetID {
-			return nil
+		if targetsToAdd.Has(aws.StringValue(hd.Target.Id)) {
+			targetsToAdd.Delete(aws.StringValue(hd.Target.Id))
+		} else {
+			_, err := h.elbClient.DeregisterTargets(&elbv2.DeregisterTargetsInput{
+				TargetGroupArn: aws.String(targetGroupARN),
+				Targets:        []*elbv2.TargetDescription{{Id: hd.Target.Id}},
+			})
+			if err != nil {
+				return err
+			}
 		}
-		_, err := h.elbClient.DeregisterTargets(&elbv2.DeregisterTargetsInput{
-			TargetGroupArn: aws.String(targetGroupARN),
-			Targets:        []*elbv2.TargetDescription{{Id: hd.Target.Id}},
-		})
-		if err != nil {
-			return err
-		}
+	}
+	if len(targetsToAdd.List()) == 0 {
+		return nil
+	}
+	targetDescriptions := []*elbv2.TargetDescription{}
+	for _, t := range targetsToAdd.List() {
+		targetDescriptions = append(targetDescriptions, &elbv2.TargetDescription{Id: aws.String(t)})
 	}
 	_, err = h.elbClient.RegisterTargets(&elbv2.RegisterTargetsInput{
 		TargetGroupArn: aws.String(targetGroupARN),
-		Targets: []*elbv2.TargetDescription{
-			{
-				Id: aws.String(targetID),
-			},
-		},
+		Targets:        targetDescriptions,
 	})
 	return err
 }
@@ -506,12 +525,12 @@ func (h *AWSHelper) RemoveCNameRecord(zoneID, dnsName string) error {
 	return nil
 }
 
-func (h *AWSHelper) EnsureWorkersAllowNodePortAccess() error {
+func (h *AWSHelper) EnsureMastersAllowNodePortAccess() error {
 	result, err := h.ec2Client.DescribeSecurityGroups(&ec2.DescribeSecurityGroupsInput{
 		Filters: []*ec2.Filter{
 			{
 				Name:   aws.String("tag:Name"),
-				Values: []*string{aws.String(fmt.Sprintf("%s-worker-sg", h.infraName))},
+				Values: []*string{aws.String(fmt.Sprintf("%s-master-sg", h.infraName))},
 			},
 		},
 	})
@@ -519,7 +538,7 @@ func (h *AWSHelper) EnsureWorkersAllowNodePortAccess() error {
 		return err
 	}
 	if len(result.SecurityGroups) == 0 {
-		return fmt.Errorf("could not find the workers security group")
+		return fmt.Errorf("could not find the masters security group")
 	}
 	sg := result.SecurityGroups[0]
 	foundTCPRule := false
@@ -544,7 +563,7 @@ func (h *AWSHelper) EnsureWorkersAllowNodePortAccess() error {
 			}
 		}
 		if foundTCPRule && foundUDPRule {
-			break
+			return nil
 		}
 	}
 	if !foundTCPRule {
@@ -571,7 +590,6 @@ func (h *AWSHelper) EnsureWorkersAllowNodePortAccess() error {
 			return err
 		}
 	}
-
 	return nil
 }
 

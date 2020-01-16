@@ -1,0 +1,16 @@
+global
+  maxconn 32000
+
+defaults
+  mode tcp
+  timeout client 30000ms
+  timeout server 30000ms
+  timeout connect 3000ms
+  retries 3
+
+frontend local_apiserver
+  bind {{ apiServerIP .ServiceCIDR }}:6443
+  default_backend remote_apiserver
+
+backend remote_apiserver
+  server controlplane {{ .ExternalAPIDNSName }}:{{ .ExternalAPIPort }}

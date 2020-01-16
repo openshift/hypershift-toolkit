@@ -11,11 +11,13 @@ import (
 	"strings"
 	"text/template"
 
+	// gocidr "github.com/apparentlymart/go-cidr/cidr"
 	igntypes "github.com/coreos/ignition/config/v2_2/types"
 	"github.com/vincent-petithory/dataurl"
 
 	"github.com/openshift/hypershift-toolkit/pkg/api"
 	"github.com/openshift/hypershift-toolkit/pkg/assets"
+	"github.com/openshift/hypershift-toolkit/pkg/release"
 )
 
 func GenerateIgnition(params *api.ClusterParams, sshPublicKey []byte, pullSecretFile, pkiDir, outputDir string) error {
@@ -31,6 +33,11 @@ func GenerateIgnition(params *api.ClusterParams, sshPublicKey []byte, pullSecret
 		igntypes.PasswdUser{Name: "core", SSHAuthorizedKeys: []igntypes.SSHAuthorizedKey{igntypes.SSHAuthorizedKey(sshPublicKey)}},
 	)
 
+	images, err := release.GetReleaseImagePullRefs(params.ReleaseImage, params.OriginReleasePrefix, pullSecretFile)
+	if err != nil {
+		return err
+	}
+
 	if err := addFile(cfg, filepath.Join(pkiDir, "kubelet-bootstrap.kubeconfig"), "/etc/kubernetes/kubeconfig", 0444); err != nil {
 		return err
 	}
@@ -41,7 +48,7 @@ func GenerateIgnition(params *api.ClusterParams, sshPublicKey []byte, pullSecret
 		return err
 	}
 
-	if err := addAssetFiles(cfg, params, "ignition/files", "ignition/files"); err != nil {
+	if err := addAssetFiles(cfg, params, "ignition/files", "ignition/files", images); err != nil {
 		return err
 	}
 
@@ -57,9 +64,11 @@ func GenerateIgnition(params *api.ClusterParams, sshPublicKey []byte, pullSecret
 	return ioutil.WriteFile(filepath.Join(outputDir, "bootstrap.ign"), data, 0644)
 }
 
-func addAssetFiles(cfg *igntypes.Config, params *api.ClusterParams, prefix string, assetPath string) error {
+func addAssetFiles(cfg *igntypes.Config, params *api.ClusterParams, prefix, assetPath string, images map[string]string) error {
 	funcs := template.FuncMap{
-		"cidrPrefix": cidrPrefix,
+		"cidrPrefix":  cidrPrefix,
+		"imageFor":    imageFunc(images),
+		"apiServerIP": APIServerIP,
 	}
 	data, err := assets.Asset(assetPath)
 	if err == nil {
@@ -74,7 +83,12 @@ func addAssetFiles(cfg *igntypes.Config, params *api.ClusterParams, prefix strin
 			data = out.Bytes()
 			destPath = strings.TrimSuffix(destPath, ".template")
 		}
-		addFileBytes(cfg, data, destPath, 0644)
+		isBin := path.Base(path.Dir(destPath)) == "bin"
+		if isBin {
+			addFileBytes(cfg, data, destPath, 0755)
+		} else {
+			addFileBytes(cfg, data, destPath, 0644)
+		}
 		return nil
 	}
 	files, err := assets.AssetDir(assetPath)
@@ -82,7 +96,7 @@ func addAssetFiles(cfg *igntypes.Config, params *api.ClusterParams, prefix strin
 		return fmt.Errorf("cannot get asset directory listing for %s: %v", assetPath, err)
 	}
 	for _, f := range files {
-		if err := addAssetFiles(cfg, params, prefix, path.Join(assetPath, f)); err != nil {
+		if err := addAssetFiles(cfg, params, prefix, path.Join(assetPath, f), images); err != nil {
 			return err
 		}
 	}
@@ -153,4 +167,15 @@ func cidrPrefix(cidr string) string {
 	parts := strings.Split(ip.String(), ".")
 	result := fmt.Sprintf("%s.%s", parts[0], parts[1])
 	return result
+}
+
+func APIServerIP(serviceCIDR string) string {
+	// For now, simply return a fixed IP in the 169.168.0.0/16 network
+	return "192.168.255.254"
+}
+
+func imageFunc(images map[string]string) func(string) string {
+	return func(imageName string) string {
+		return images[imageName]
+	}
 }

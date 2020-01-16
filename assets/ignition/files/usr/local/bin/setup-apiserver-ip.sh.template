@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -x
+ip addr add {{ apiServerIP .ServiceCIDR }}/32 brd {{ apiServerIP .ServiceCIDR }} scope host dev lo
+ip route add {{ apiServerIP .ServiceCIDR }}/32 dev lo scope link src {{ apiServerIP .ServiceCIDR }}

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -x
+ip addr delete {{ apiServerIP .ServiceCIDR }}/32 dev lo
+ip route del {{ apiServerIP .ServiceCIDR }}/32 dev lo scope link src {{ apiServerIP .ServiceCIDR }}

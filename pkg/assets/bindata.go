@@ -46,10 +46,15 @@
 // assets/etcd/etcd-operator.yaml
 // assets/etcd/etcd-secret-template.yaml
 // assets/ignition/files/etc/crio/crio.conf
+// assets/ignition/files/etc/kubernetes/apiserver-proxy-config/haproxy.cfg.template
 // assets/ignition/files/etc/kubernetes/kubelet.conf.template
+// assets/ignition/files/etc/kubernetes/manifests/kube-apiserver-proxy.yaml.template
 // assets/ignition/files/etc/sysctl.d/forward.conf
 // assets/ignition/files/etc/sysctl.d/inotify.conf
 // assets/ignition/files/etc/tmpfiles.d/cleanup-cni.conf
+// assets/ignition/files/usr/local/bin/setup-apiserver-ip.sh.template
+// assets/ignition/files/usr/local/bin/teardown-apiserver-ip.sh.template
+// assets/ignition/units/apiserver-ip.service
 // assets/ignition/units/kubelet.service
 // assets/kube-apiserver/client.conf
 // assets/kube-apiserver/config.yaml
@@ -6041,6 +6046,39 @@ func ignitionFilesEtcCrioCrioConf() (*asset, error) {
 	return a, nil
 }
 
+var _ignitionFilesEtcKubernetesApiserverProxyConfigHaproxyCfgTemplate = []byte(`global
+  maxconn 32000
+
+defaults
+  mode tcp
+  timeout client 30000ms
+  timeout server 30000ms
+  timeout connect 3000ms
+  retries 3
+
+frontend local_apiserver
+  bind {{ apiServerIP .ServiceCIDR }}:6443
+  default_backend remote_apiserver
+
+backend remote_apiserver
+  server controlplane {{ .ExternalAPIDNSName }}:{{ .ExternalAPIPort }}
+`)
+
+func ignitionFilesEtcKubernetesApiserverProxyConfigHaproxyCfgTemplateBytes() ([]byte, error) {
+	return _ignitionFilesEtcKubernetesApiserverProxyConfigHaproxyCfgTemplate, nil
+}
+
+func ignitionFilesEtcKubernetesApiserverProxyConfigHaproxyCfgTemplate() (*asset, error) {
+	bytes, err := ignitionFilesEtcKubernetesApiserverProxyConfigHaproxyCfgTemplateBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "ignition/files/etc/kubernetes/apiserver-proxy-config/haproxy.cfg.template", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _ignitionFilesEtcKubernetesKubeletConfTemplate = []byte(`kind: KubeletConfiguration
 apiVersion: kubelet.config.k8s.io/v1beta1
 authentication:
@@ -6071,6 +6109,46 @@ func ignitionFilesEtcKubernetesKubeletConfTemplate() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "ignition/files/etc/kubernetes/kubelet.conf.template", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _ignitionFilesEtcKubernetesManifestsKubeApiserverProxyYamlTemplate = []byte(`apiVersion: v1
+kind: Pod
+metadata:
+  name: kube-apiserver-proxy
+  namespace: kube-system
+  labels:
+    k8s-app: kube-apiserver-proxy
+spec:
+  hostNetwork: true
+  containers:
+  - name: haproxy
+    image: {{ imageFor "haproxy-router" }}
+    command:
+    - haproxy
+    - -f
+    - /usr/local/etc/haproxy/haproxy.cfg
+    volumeMounts:
+    - name: config
+      mountPath: /usr/local/etc/haproxy
+  volumes:
+  - name: config
+    hostPath:
+      path: /etc/kubernetes/apiserver-proxy-config
+`)
+
+func ignitionFilesEtcKubernetesManifestsKubeApiserverProxyYamlTemplateBytes() ([]byte, error) {
+	return _ignitionFilesEtcKubernetesManifestsKubeApiserverProxyYamlTemplate, nil
+}
+
+func ignitionFilesEtcKubernetesManifestsKubeApiserverProxyYamlTemplate() (*asset, error) {
+	bytes, err := ignitionFilesEtcKubernetesManifestsKubeApiserverProxyYamlTemplateBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "ignition/files/etc/kubernetes/manifests/kube-apiserver-proxy.yaml.template", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -6130,6 +6208,78 @@ func ignitionFilesEtcTmpfilesDCleanupCniConf() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "ignition/files/etc/tmpfiles.d/cleanup-cni.conf", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _ignitionFilesUsrLocalBinSetupApiserverIpShTemplate = []byte(`#!/usr/bin/env bash
+set -x
+ip addr add {{ apiServerIP .ServiceCIDR }}/32 brd {{ apiServerIP .ServiceCIDR }} scope host dev lo
+ip route add {{ apiServerIP .ServiceCIDR }}/32 dev lo scope link src {{ apiServerIP .ServiceCIDR }}
+`)
+
+func ignitionFilesUsrLocalBinSetupApiserverIpShTemplateBytes() ([]byte, error) {
+	return _ignitionFilesUsrLocalBinSetupApiserverIpShTemplate, nil
+}
+
+func ignitionFilesUsrLocalBinSetupApiserverIpShTemplate() (*asset, error) {
+	bytes, err := ignitionFilesUsrLocalBinSetupApiserverIpShTemplateBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "ignition/files/usr/local/bin/setup-apiserver-ip.sh.template", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _ignitionFilesUsrLocalBinTeardownApiserverIpShTemplate = []byte(`#!/usr/bin/env bash
+set -x
+ip addr delete {{ apiServerIP .ServiceCIDR }}/32 dev lo
+ip route del {{ apiServerIP .ServiceCIDR }}/32 dev lo scope link src {{ apiServerIP .ServiceCIDR }}
+`)
+
+func ignitionFilesUsrLocalBinTeardownApiserverIpShTemplateBytes() ([]byte, error) {
+	return _ignitionFilesUsrLocalBinTeardownApiserverIpShTemplate, nil
+}
+
+func ignitionFilesUsrLocalBinTeardownApiserverIpShTemplate() (*asset, error) {
+	bytes, err := ignitionFilesUsrLocalBinTeardownApiserverIpShTemplateBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "ignition/files/usr/local/bin/teardown-apiserver-ip.sh.template", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _ignitionUnitsApiserverIpService = []byte(`[Unit]
+Description=Sets up local IP to proxy API server requests
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/setup-apiserver-ip.sh
+ExecStop=/usr/local/bin/teardown-apiserver-ip.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+`)
+
+func ignitionUnitsApiserverIpServiceBytes() ([]byte, error) {
+	return _ignitionUnitsApiserverIpService, nil
+}
+
+func ignitionUnitsApiserverIpService() (*asset, error) {
+	bytes, err := ignitionUnitsApiserverIpServiceBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "ignition/units/apiserver-ip.service", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -8912,10 +9062,15 @@ var _bindata = map[string]func() (*asset, error){
 	"etcd/etcd-operator.yaml":                                                              etcdEtcdOperatorYaml,
 	"etcd/etcd-secret-template.yaml":                                                       etcdEtcdSecretTemplateYaml,
 	"ignition/files/etc/crio/crio.conf":                                                    ignitionFilesEtcCrioCrioConf,
+	"ignition/files/etc/kubernetes/apiserver-proxy-config/haproxy.cfg.template":            ignitionFilesEtcKubernetesApiserverProxyConfigHaproxyCfgTemplate,
 	"ignition/files/etc/kubernetes/kubelet.conf.template":                                  ignitionFilesEtcKubernetesKubeletConfTemplate,
+	"ignition/files/etc/kubernetes/manifests/kube-apiserver-proxy.yaml.template":           ignitionFilesEtcKubernetesManifestsKubeApiserverProxyYamlTemplate,
 	"ignition/files/etc/sysctl.d/forward.conf":                                             ignitionFilesEtcSysctlDForwardConf,
 	"ignition/files/etc/sysctl.d/inotify.conf":                                             ignitionFilesEtcSysctlDInotifyConf,
 	"ignition/files/etc/tmpfiles.d/cleanup-cni.conf":                                       ignitionFilesEtcTmpfilesDCleanupCniConf,
+	"ignition/files/usr/local/bin/setup-apiserver-ip.sh.template":                          ignitionFilesUsrLocalBinSetupApiserverIpShTemplate,
+	"ignition/files/usr/local/bin/teardown-apiserver-ip.sh.template":                       ignitionFilesUsrLocalBinTeardownApiserverIpShTemplate,
+	"ignition/units/apiserver-ip.service":                                                  ignitionUnitsApiserverIpService,
 	"ignition/units/kubelet.service":                                                       ignitionUnitsKubeletService,
 	"kube-apiserver/client.conf":                                                           kubeApiserverClientConf,
 	"kube-apiserver/config.yaml":                                                           kubeApiserverConfigYaml,
@@ -9087,7 +9242,13 @@ var _bintree = &bintree{nil, map[string]*bintree{
 					"crio.conf": {ignitionFilesEtcCrioCrioConf, map[string]*bintree{}},
 				}},
 				"kubernetes": {nil, map[string]*bintree{
+					"apiserver-proxy-config": {nil, map[string]*bintree{
+						"haproxy.cfg.template": {ignitionFilesEtcKubernetesApiserverProxyConfigHaproxyCfgTemplate, map[string]*bintree{}},
+					}},
 					"kubelet.conf.template": {ignitionFilesEtcKubernetesKubeletConfTemplate, map[string]*bintree{}},
+					"manifests": {nil, map[string]*bintree{
+						"kube-apiserver-proxy.yaml.template": {ignitionFilesEtcKubernetesManifestsKubeApiserverProxyYamlTemplate, map[string]*bintree{}},
+					}},
 				}},
 				"sysctl.d": {nil, map[string]*bintree{
 					"forward.conf": {ignitionFilesEtcSysctlDForwardConf, map[string]*bintree{}},
@@ -9097,9 +9258,18 @@ var _bintree = &bintree{nil, map[string]*bintree{
 					"cleanup-cni.conf": {ignitionFilesEtcTmpfilesDCleanupCniConf, map[string]*bintree{}},
 				}},
 			}},
+			"usr": {nil, map[string]*bintree{
+				"local": {nil, map[string]*bintree{
+					"bin": {nil, map[string]*bintree{
+						"setup-apiserver-ip.sh.template":    {ignitionFilesUsrLocalBinSetupApiserverIpShTemplate, map[string]*bintree{}},
+						"teardown-apiserver-ip.sh.template": {ignitionFilesUsrLocalBinTeardownApiserverIpShTemplate, map[string]*bintree{}},
+					}},
+				}},
+			}},
 		}},
 		"units": {nil, map[string]*bintree{
-			"kubelet.service": {ignitionUnitsKubeletService, map[string]*bintree{}},
+			"apiserver-ip.service": {ignitionUnitsApiserverIpService, map[string]*bintree{}},
+			"kubelet.service":      {ignitionUnitsKubeletService, map[string]*bintree{}},
 		}},
 	}},
 	"kube-apiserver": {nil, map[string]*bintree{
