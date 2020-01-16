@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"hash/fnv"
 	"io"
 	"io/ioutil"
 	"math/big"
@@ -206,7 +207,7 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 	}
 	log.Infof("Using management machine with ID: %s and IP: %s", machineID, machineIP)
 
-	apiLBName := fmt.Sprintf("%s-%s-api", infraName, name)
+	apiLBName := generateLBResourceName(infraName, name, "api")
 	apiAllocID, apiPublicIP, err := aws.EnsureEIP(apiLBName)
 	if err != nil {
 		return fmt.Errorf("cannot allocate API load balancer EIP: %v", err)
@@ -225,7 +226,7 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 	}
 	log.Infof("Created API target group ARN: %s", apiTGARN)
 
-	oauthTGName := fmt.Sprintf("%s-%s-oauth", infraName, name)
+	oauthTGName := generateLBResourceName(infraName, name, "oauth")
 	oauthTGARN, err := aws.EnsureTargetGroup(lbInfo.VPC, oauthTGName, oauthNodePort)
 	if err != nil {
 		return fmt.Errorf("cannot create OAuth target group: %v", err)
@@ -260,14 +261,15 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 	}
 	log.Infof("Created DNS record for API name: %s", apiDNSName)
 
-	routerLBName := fmt.Sprintf("%s-%s-apps", infraName, name)
+	routerLBName := generateLBResourceName(infraName, name, "apps")
 	routerLBARN, routerLBDNS, err := aws.EnsureNLB(routerLBName, lbInfo.Subnet, "")
 	if err != nil {
 		return fmt.Errorf("cannot create router load balancer: %v", err)
 	}
 	log.Infof("Created router load balancer with ARN: %s, DNS: %s", routerLBARN, routerLBDNS)
 
-	routerHTTPARN, err := aws.EnsureTargetGroup(lbInfo.VPC, fmt.Sprintf("%s-%s-h", infraName, name), routerNodePortHTTP)
+	routerHTTPTGName := generateLBResourceName(infraName, name, "http")
+	routerHTTPARN, err := aws.EnsureTargetGroup(lbInfo.VPC, routerHTTPTGName, routerNodePortHTTP)
 	if err != nil {
 		return fmt.Errorf("cannot create router HTTP target group: %v", err)
 	}
@@ -279,7 +281,8 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 	}
 	log.Infof("Created router HTTP load balancer listener")
 
-	routerHTTPSARN, err := aws.EnsureTargetGroup(lbInfo.VPC, fmt.Sprintf("%s-%s-s", infraName, name), routerNodePortHTTPS)
+	routerHTTPSTGName := generateLBResourceName(infraName, name, "https")
+	routerHTTPSARN, err := aws.EnsureTargetGroup(lbInfo.VPC, routerHTTPSTGName, routerNodePortHTTPS)
 	if err != nil {
 		return fmt.Errorf("cannot create router HTTPS target group: %v", err)
 	}
@@ -298,7 +301,7 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 	}
 	log.Infof("Created DNS record for router name: %s", routerDNSName)
 
-	vpnLBName := fmt.Sprintf("%s-%s-vpn", infraName, name)
+	vpnLBName := generateLBResourceName(infraName, name, "vpn")
 	vpnLBARN, vpnLBDNS, err := aws.EnsureNLB(vpnLBName, lbInfo.Subnet, "")
 	if err != nil {
 		return fmt.Errorf("cannot create vpn load balancer: %v", err)
@@ -415,7 +418,7 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 		return fmt.Errorf("cannot generate ignition file for workers: %v", err)
 	}
 	// Ensure that S3 bucket with ignition file in it exists
-	bucketName := fmt.Sprintf("%s-%s-ign", infraName, name)
+	bucketName := generateBucketName(infraName, name, "ign")
 	log.Infof("Ensuring ignition bucket exists")
 	if err = aws.EnsureIgnitionBucket(bucketName, filepath.Join(workingDir, "bootstrap.ign")); err != nil {
 		return fmt.Errorf("failed to ensure ignition bucket exists: %v", err)
@@ -911,7 +914,7 @@ func generateWorkerMachineset(client dynamic.Interface, infraName, zone, namespa
 		return err
 	}
 
-	workerName := fmt.Sprintf("%s-%s-worker", infraName, namespace)
+	workerName := generateMachineSetName(infraName, namespace, "worker")
 	object := obj.Object
 
 	unstructured.RemoveNestedField(object, "status")
@@ -1125,4 +1128,71 @@ func generateKubeadminPassword() (string, error) {
 
 func getTargetClusterConfig(pkiDir string) (*rest.Config, error) {
 	return clientcmd.BuildConfigFromFlags("", filepath.Join(pkiDir, "admin.kubeconfig"))
+}
+
+func generateLBResourceName(infraName, clusterName, suffix string) string {
+	return getName(fmt.Sprintf("%s-%s", infraName, clusterName), suffix, 32)
+}
+
+func generateBucketName(infraName, clusterName, suffix string) string {
+	return getName(fmt.Sprintf("%s-%s", infraName, clusterName), suffix, 63)
+}
+
+func generateMachineSetName(infraName, clusterName, suffix string) string {
+	return getName(fmt.Sprintf("%s-%s", infraName, clusterName), suffix, 43)
+}
+
+// getName returns a name given a base ("deployment-5") and a suffix ("deploy")
+// It will first attempt to join them with a dash. If the resulting name is longer
+// than maxLength: if the suffix is too long, it will truncate the base name and add
+// an 8-character hash of the [base]-[suffix] string.  If the suffix is not too long,
+// it will truncate the base, add the hash of the base and return [base]-[hash]-[suffix]
+func getName(base, suffix string, maxLength int) string {
+	if maxLength <= 0 {
+		return ""
+	}
+	name := fmt.Sprintf("%s-%s", base, suffix)
+	if len(name) <= maxLength {
+		return name
+	}
+
+	baseLength := maxLength - 10 /*length of -hash-*/ - len(suffix)
+
+	// if the suffix is too long, ignore it
+	if baseLength < 0 {
+		prefix := base[0:min(len(base), max(0, maxLength-9))]
+		// Calculate hash on initial base-suffix string
+		shortName := fmt.Sprintf("%s-%s", prefix, hash(name))
+		return shortName[:min(maxLength, len(shortName))]
+	}
+
+	prefix := base[0:baseLength]
+	// Calculate hash on initial base-suffix string
+	return fmt.Sprintf("%s-%s-%s", prefix, hash(base), suffix)
+}
+
+// max returns the greater of its 2 inputs
+func max(a, b int) int {
+	if b > a {
+		return b
+	}
+	return a
+}
+
+// min returns the lesser of its 2 inputs
+func min(a, b int) int {
+	if b < a {
+		return b
+	}
+	return a
+}
+
+// hash calculates the hexadecimal representation (8-chars)
+// of the hash of the passed in string using the FNV-a algorithm
+func hash(s string) string {
+	hash := fnv.New32a()
+	hash.Write([]byte(s))
+	intHash := hash.Sum32()
+	result := fmt.Sprintf("%08x", intHash)
+	return result
 }
