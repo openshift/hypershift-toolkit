@@ -58,7 +58,7 @@ func UninstallCluster(name string) error {
 	}
 
 	log.Infof("Removing API load balancer")
-	apiLBName := fmt.Sprintf("%s-%s-api", infraName, name)
+	apiLBName := generateLBResourceName(infraName, name, "api")
 	if err = aws.RemoveNLB(apiLBName); err != nil {
 		return fmt.Errorf("cannot delete API load balancer: %v", err)
 	}
@@ -66,6 +66,12 @@ func UninstallCluster(name string) error {
 	log.Infof("Removing API target group")
 	if err = aws.RemoveTargetGroup(apiLBName); err != nil {
 		return fmt.Errorf("cannot delete API target group: %v", err)
+	}
+
+	log.Infof("Removing OAuth target group")
+	oauthTGName := generateLBResourceName(infraName, name, "oauth")
+	if err = aws.RemoveTargetGroup(oauthTGName); err != nil {
+		return fmt.Errorf("cannot delete OAuth target group: %v", err)
 	}
 
 	log.Infof("Removing API elastic IP")
@@ -80,7 +86,7 @@ func UninstallCluster(name string) error {
 	}
 
 	log.Infof("Removing VPN load balancer")
-	vpnLBName := fmt.Sprintf("%s-%s-vpn", infraName, name)
+	vpnLBName := generateLBResourceName(infraName, name, "vpn")
 	if err = aws.RemoveNLB(vpnLBName); err != nil {
 		return fmt.Errorf("cannot delete VPN load balancer: %v", err)
 	}
@@ -97,18 +103,20 @@ func UninstallCluster(name string) error {
 	}
 
 	log.Infof("Removing router load balancer")
-	routerLBName := fmt.Sprintf("%s-%s-apps", infraName, name)
+	routerLBName := generateLBResourceName(infraName, name, "apps")
 	if err = aws.RemoveNLB(routerLBName); err != nil {
 		return fmt.Errorf("cannot delete router load balancer: %v", err)
 	}
 
 	log.Infof("Removing router HTTP target group")
-	if err = aws.RemoveTargetGroup(fmt.Sprintf("%s-%s-h", infraName, name)); err != nil {
+	httpTGName := generateLBResourceName(infraName, name, "http")
+	if err = aws.RemoveTargetGroup(httpTGName); err != nil {
 		return fmt.Errorf("cannot delete router HTTP target group: %v", err)
 	}
 
 	log.Infof("Removing router HTTPS target group")
-	if err = aws.RemoveTargetGroup(fmt.Sprintf("%s-%s-s", infraName, name)); err != nil {
+	httpsTGName := generateLBResourceName(infraName, name, "https")
+	if err = aws.RemoveTargetGroup(httpsTGName); err != nil {
 		return fmt.Errorf("cannot delete router HTTPS target group: %v", err)
 	}
 
@@ -118,21 +126,23 @@ func UninstallCluster(name string) error {
 	}
 
 	log.Infof("Removing bootstrap ignition bucket")
-	bucketName := fmt.Sprintf("%s-%s-ign", infraName, name)
+	bucketName := generateBucketName(infraName, name, "ign")
 	if err = aws.RemoveIgnitionBucket(bucketName); err != nil {
 		return fmt.Errorf("cannot delete ignition bucket: %v", err)
 	}
 
 	log.Info("Removing cluster namespace")
 	if err = client.CoreV1().Namespaces().Delete(name, &metav1.DeleteOptions{}); err != nil {
-		return fmt.Errorf("failed to delete namespace %s: %v", name, err)
+		if !errors.IsNotFound(err) {
+			return fmt.Errorf("failed to delete namespace %s: %v", name, err)
+		}
 	}
 
 	return nil
 }
 
 func removeWorkerMachineset(client dynamic.Interface, infraName, namespace string) error {
-	name := fmt.Sprintf("%s-%s-worker", infraName, namespace)
+	name := generateMachineSetName(infraName, namespace, "worker")
 	machineGV, err := schema.ParseGroupVersion("machine.openshift.io/v1beta1")
 	if err != nil {
 		return err

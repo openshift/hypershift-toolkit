@@ -26,13 +26,15 @@ spec:
           #!/bin/bash
           set -eu
           iptables -t nat -A POSTROUTING -s 192.168.255.0/24 -j MASQUERADE
-          exec /usr/sbin/openvpn --config /etc/openvpn/client.conf
+          exec /usr/sbin/openvpn --config /etc/openvpn-config/client.conf
         workingDir: /etc/openvpn
         securityContext:
           privileged: true
         volumeMounts:
         - mountPath: /etc/openvpn
           name: secret
+        - mountPath: /etc/openvpn-config
+          name: config
         - mountPath: /lib/modules
           name: host-modules
           readOnly: true
@@ -40,6 +42,9 @@ spec:
       - secret:
           secretName: openvpn-client
         name: secret
+      - name: config
+        configMap:
+          name: openvpn-client
       - hostPath:
           path: /lib/modules
         name: host-modules

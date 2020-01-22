@@ -64,6 +64,7 @@ func (c *pkiRenderContext) etcd() {
 func (c *pkiRenderContext) oauthOpenshiftServer() {
 	c.addManifestFiles(
 		"oauth-openshift/oauth-server-secret.yaml",
+		"oauth-openshift/oauth-server-configmap.yaml",
 	)
 }
 

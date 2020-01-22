@@ -3,5 +3,5 @@ kind: ConfigMap
 metadata:
   name: ca-operator
 data:
-  initial-ca.crt: |-
+  initial-ca.crt: |
 {{ include_pki "combined-ca.crt"  4 }}

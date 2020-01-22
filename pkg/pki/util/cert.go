@@ -20,8 +20,8 @@ func GenerateCert(commonName, organization string, hostNames, addresses []string
 	cfg := &CertCfg{
 		Subject:      pkix.Name{CommonName: commonName, Organization: []string{organization}},
 		KeyUsages:    x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
-		ExtKeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-		Validity:     ValidityTenYears,
+		ExtKeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
+		Validity:     ValidityOneYear,
 		DNSNames:     hostNames,
 		IPAddresses:  ipAddr,
 	}
