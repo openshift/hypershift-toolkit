@@ -32,7 +32,7 @@ apiServerArguments:
   - '2000'
   kubelet-preferred-address-types:
   - InternalIP
-  minimal-shutdown-duration:
+  shutdown-delay-duration:
   - 70s
   storage-backend:
   - etcd3
