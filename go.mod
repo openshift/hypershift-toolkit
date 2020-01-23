@@ -11,12 +11,15 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/google/uuid v1.1.1
 	github.com/jteeuwen/go-bindata v0.0.0-00010101000000-000000000000
+	github.com/openshift/api v0.0.0-20190916204813-cdbe64fb0c91
+	github.com/openshift/client-go v0.0.0-20190813201236-5a5508328169
 	github.com/openshift/oc v0.0.0-00010101000000-000000000000
 	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
 	github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50
 	go4.org v0.0.0-20191010144846-132d2879e1e9 // indirect
+	golang.org/x/crypto v0.0.0-20190611184440-5c40567a22f8
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
 	k8s.io/cli-runtime v0.0.0

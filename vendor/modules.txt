@@ -282,6 +282,8 @@ github.com/spf13/pflag
 # github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50
 github.com/vincent-petithory/dataurl
 # golang.org/x/crypto v0.0.0-20190611184440-5c40567a22f8
+golang.org/x/crypto/bcrypt
+golang.org/x/crypto/blowfish
 golang.org/x/crypto/cast5
 golang.org/x/crypto/openpgp
 golang.org/x/crypto/openpgp/armor
@@ -446,7 +448,6 @@ k8s.io/cli-runtime/pkg/resource
 # k8s.io/client-go v0.0.0 => github.com/openshift/kubernetes-client-go v0.0.0-20190926190130-2917f17b9089
 k8s.io/client-go/discovery
 k8s.io/client-go/discovery/cached/disk
-k8s.io/client-go/discovery/cached/memory
 k8s.io/client-go/dynamic
 k8s.io/client-go/kubernetes
 k8s.io/client-go/kubernetes/scheme

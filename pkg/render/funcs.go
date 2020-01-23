@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode"
 )
 
 func includeVPNFunc(includeVPN bool) func() bool {
@@ -136,4 +137,8 @@ func indent(spaces int, v string) string {
 
 func base64StringEncode(inputString string) string {
 	return base64.StdEncoding.EncodeToString([]byte(inputString))
+}
+
+func trimTrailingSpace(s string) string {
+	return strings.TrimRightFunc(s, unicode.IsSpace)
 }

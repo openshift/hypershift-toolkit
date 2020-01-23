@@ -34,15 +34,16 @@ func newClusterManifestContext(images map[string]string, params interface{}, out
 		userManifests: make(map[string]string),
 	}
 	ctx.setFuncs(template.FuncMap{
-		"imageFor":     imageFunc(images),
-		"base64String": base64StringEncode,
-		"indent":       indent,
-		"address":      cidrAddress,
-		"mask":         cidrMask,
-		"include":      includeFileFunc(params, ctx.renderContext),
-		"includeVPN":   includeVPNFunc(includeVPN),
-		"randomString": randomString,
-		"includeData":  includeDataFunc(),
+		"imageFor":          imageFunc(images),
+		"base64String":      base64StringEncode,
+		"indent":            indent,
+		"address":           cidrAddress,
+		"mask":              cidrMask,
+		"include":           includeFileFunc(params, ctx.renderContext),
+		"includeVPN":        includeVPNFunc(includeVPN),
+		"randomString":      randomString,
+		"includeData":       includeDataFunc(),
+		"trimTrailingSpace": trimTrailingSpace,
 	})
 	return ctx
 }
@@ -204,6 +205,7 @@ func (c *clusterManifestContext) openVPN() {
 	)
 	c.addUserManifestFiles(
 		"openvpn/openvpn-client-deployment.yaml",
+		"openvpn/openvpn-client-configmap.yaml",
 	)
 }
 
