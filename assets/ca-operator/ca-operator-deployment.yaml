@@ -76,7 +76,6 @@ spec:
             if ! oc get cm -n openshift-config-managed router-ca -o jsonpath='{ .data.ca-bundle\.crt }' > /tmp/router.ca; then
                echo "Router ca is not available. It will not be included in the CA bundle"
                include_router_ca=0
-               continue
             fi
             if [[ include_router_ca == 1 ]]; then
               cat /etc/kubernetes/config/initial-ca.crt /tmp/router.ca /tmp/service.ca > /tmp/kcm.ca
