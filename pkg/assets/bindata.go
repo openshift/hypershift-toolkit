@@ -284,17 +284,22 @@ spec:
                sleep 30
                continue
             fi
-            if ! oc get cm -n openshift-config-managed router-ca -o jsonpath='{ .data.ca-bundle\.crt }' > /tmp/router.ca; then
-               echo "Cannot fetch router-ca yet. Will continue to wait"
-               sleep 30
-               continue
-            fi
             if ! oc get cm -n openshift-config-managed service-ca -o jsonpath='{ .data.ca-bundle\.crt }' > /tmp/service.ca; then
                echo "Cannot fetch service-ca yet. Will continue to wait"
                sleep 30
                continue
             fi
-            cat /etc/kubernetes/config/initial-ca.crt /tmp/router.ca /tmp/service.ca > /tmp/kcm.ca
+            include_router_ca=1
+            if ! oc get cm -n openshift-config-managed router-ca -o jsonpath='{ .data.ca-bundle\.crt }' > /tmp/router.ca; then
+               echo "Router ca is not available. It will not be included in the CA bundle"
+               include_router_ca=0
+               continue
+            fi
+            if [[ include_router_ca == 1 ]]; then
+              cat /etc/kubernetes/config/initial-ca.crt /tmp/router.ca /tmp/service.ca > /tmp/kcm.ca
+            else
+              cat /etc/kubernetes/config/initial-ca.crt /tmp/service.ca > /tmp/kcm.ca
+            fi
             CHECKSUM="$(python -c "import hashlib;print hashlib.md5(open('/tmp/kcm.ca').read()).hexdigest()")"
             # Switch to the management cluster and apply latest CA
             unset KUBECONFIG
