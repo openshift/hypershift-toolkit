@@ -63,6 +63,15 @@ spec:
             path: healthz
           initialDelaySeconds: 10
           timeoutSeconds: 10
+{{ if .KubeAPIServerResources }}
+        resources:{{ range .KubeAPIServerResources }}{{ range .ResourceRequest }}
+          requests:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
+          limits:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
+{{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret/
           name: secret
