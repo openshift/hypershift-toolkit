@@ -52,6 +52,15 @@ spec:
         - "--requestheader-group-headers=X-Remote-Group"
         - "--requestheader-extra-headers-prefix=X-Remote-Extra-"
         - "--client-ca-file=/etc/kubernetes/config/serving-ca.crt"
+{{ if .OpenshiftAPIServerResources }}
+        resources:{{ range .OpenshiftAPIServerResources }}{{ range .ResourceRequest }}
+          requests:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
+          limits:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
+{{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
           name: secret

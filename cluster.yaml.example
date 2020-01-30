@@ -57,3 +57,87 @@ cloudProvider: ''
 cvoSetupImage: "quay.io/csrwng/origin-cluster-version-operator:hosted"
 internalAPIPort: 6443
 routerServiceType: LoadBalancer
+kubeAPIServerResources:
+    - resourceRequest:
+        - cpu: 100m
+          memory: 100Mi
+    - resourceLimit:
+        - cpu: 200m
+          memory: 200Mi
+openshiftControllerManagerResources:
+    - resourceRequest:
+        - cpu: 100m
+          memory: 100Mi
+    - resourceLimit:
+        - cpu: 200m
+          memory: 200Mi
+clusterVersionOperatorResources:
+    - resourceRequest:
+        - cpu: 100m
+          memory: 100Mi
+    - resourceLimit:
+        - cpu: 200m
+          memory: 200Mi
+kubeControllerManagerResources:
+    - resourceRequest:
+        - cpu: 100m
+          memory: 100Mi
+    - resourceLimit:
+        - cpu: 200m
+          memory: 200Mi
+openshiftAPIServerResources:
+    - resourceRequest:
+        - cpu: 100m
+          memory: 100Mi
+    - resourceLimit:
+        - cpu: 200m
+          memory: 200Mi
+kubeSchedulerResources:
+    - resourceRequest:
+        - cpu: 100m
+          memory: 100Mi
+    - resourceLimit:
+        - cpu: 200m
+          memory: 200Mi
+cAOperatorResources:
+    - resourceRequest:
+        - cpu: 100m
+          memory: 100Mi
+    - resourceLimit:
+        - cpu: 200m
+          memory: 200Mi
+oAuthServerResources:
+    - resourceRequest:
+        - cpu: 100m
+          memory: 100Mi
+    - resourceLimit:
+        - cpu: 200m
+          memory: 200Mi
+clusterPolicyControllerResources:
+    - resourceRequest:
+        - cpu: 100m
+          memory: 100Mi
+    - resourceLimit:
+        - cpu: 200m
+          memory: 200Mi
+autoApproverResources:
+    - resourceRequest:
+        - cpu: 100m
+          memory: 100Mi
+    - resourceLimit:
+        - cpu: 200m
+          memory: 200Mi
+openVPNClientResources:
+    - resourceRequest:
+        - cpu: 100m
+          memory: 100Mi
+    - resourceLimit:
+        - cpu: 200m
+          memory: 200Mi
+openVPNServerResources:
+    - resourceRequest:
+        - cpu: 100m
+          memory: 100Mi
+    - resourceLimit:
+        - cpu: 200m
+          memory: 200Mi
