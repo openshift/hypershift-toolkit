@@ -57,3 +57,10 @@ cloudProvider: ''
 cvoSetupImage: "quay.io/csrwng/origin-cluster-version-operator:hosted"
 internalAPIPort: 6443
 routerServiceType: LoadBalancer
+kubeAPIServerResources:
+    - requests:
+        - cpu: 50m
+          memory: 50m
+    - limits:
+        - cpu: 50m
+          memory: 50m
