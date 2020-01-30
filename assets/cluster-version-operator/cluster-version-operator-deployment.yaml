@@ -32,6 +32,15 @@ spec:
             - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
             - "--v=4"
           terminationMessagePolicy: FallbackToLogsOnError
+{{ if .ClusterVersionOperatorResources }}
+        resources:{{ range .ClusterVersionOperatorResources }}{{ range .Requests }}
+          requests:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+          limits:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
+{{ end }}
           volumeMounts:
             - mountPath: /etc/cvo/updatepayloads
               name: etc-cvo-updatepayloads

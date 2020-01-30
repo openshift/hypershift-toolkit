@@ -46,6 +46,15 @@ spec:
         args:
         - "start"
         - "--config=/etc/kubernetes/cmconfig/config.yaml"
+{{ if .OpenshiftControllerManagerResources }}
+        resources:{{ range .OpenshiftControllerManagerResources }}{{ range .Requests }}
+          requests:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+          limits:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
+{{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
           name: secret

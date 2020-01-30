@@ -101,6 +101,15 @@ spec:
             oc patch deployment kube-controller-manager  --type=json --patch "[{\"op\": \"replace\", \"path\": \"/spec/template/metadata/annotations\", \"value\":{\"ca-checksum\":\"${CHECKSUM}\"}}]"
             sleep 30
           done
+{{ if .CAOperatorResources }}
+        resources:{{ range .CAOperatorResources }}{{ range .Requests }}
+          requests:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+          limits:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
+{{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/kubeconfig
           name: kubeconfig

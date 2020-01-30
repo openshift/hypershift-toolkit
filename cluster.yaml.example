@@ -59,8 +59,85 @@ internalAPIPort: 6443
 routerServiceType: LoadBalancer
 kubeAPIServerResources:
     - requests:
-        - cpu: 50m
-          memory: 50m
+        - cpu: 100m
+          memory: 100Mi
     - limits:
-        - cpu: 50m
-          memory: 50m
+        - cpu: 200m
+          memory: 200Mi
+openshiftControllerManagerResources:
+    - requests:
+        - cpu: 100m
+          memory: 100Mi
+    - limits:
+        - cpu: 200m
+          memory: 200Mi
+clusterVersionOperatorResources:
+    - requests:
+        - cpu: 100m
+          memory: 100Mi
+    - limits:
+        - cpu: 200m
+          memory: 200Mi
+kubeControllerManagerResources:
+    - requests:
+        - cpu: 100m
+          memory: 100Mi
+    - limits:
+        - cpu: 200m
+          memory: 200Mi
+openshiftAPIServerResources:
+    - requests:
+        - cpu: 100m
+          memory: 100Mi
+    - limits:
+        - cpu: 200m
+          memory: 200Mi
+kubeSchedulerResources:
+    - requests:
+        - cpu: 100m
+          memory: 100Mi
+    - limits:
+        - cpu: 200m
+          memory: 200Mi
+cAOperatorResources:
+    - requests:
+        - cpu: 100m
+          memory: 100Mi
+    - limits:
+        - cpu: 200m
+          memory: 200Mi
+oAuthServerResources:
+    - requests:
+        - cpu: 100m
+          memory: 100Mi
+    - limits:
+        - cpu: 200m
+          memory: 200Mi
+clusterPolicyControllerResources:
+    - requests:
+        - cpu: 100m
+          memory: 100Mi
+    - limits:
+        - cpu: 200m
+          memory: 200Mi
+autoApproverResources:
+    - requests:
+        - cpu: 100m
+          memory: 100Mi
+    - limits:
+        - cpu: 200m
+          memory: 200Mi
+openVPNClientResources:
+    - requests:
+        - cpu: 100m
+          memory: 100Mi
+    - limits:
+        - cpu: 200m
+          memory: 200Mi
+openVPNServerResources:
+    - requests:
+        - cpu: 100m
+          memory: 100Mi
+    - limits:
+        - cpu: 200m
+          memory: 200Mi
