@@ -45,10 +45,10 @@ spec:
             - "osinserver"
             - "--config=/etc/oauth-openshift-configfile/config.yaml"
 {{ if .OAuthServerResources }}
-        resources:{{ range .OAuthServerResources }}{{ range .Requests }}
+        resources:{{ range .OAuthServerResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}

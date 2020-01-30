@@ -166,10 +166,10 @@ spec:
          sleep 10
       done
 {{ if .AutoApproverResources }}
-        resources:{{ range .AutoApproverResources }}{{ range .Requests }}
+        resources:{{ range .AutoApproverResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}
@@ -328,10 +328,10 @@ spec:
             sleep 30
           done
 {{ if .CAOperatorResources }}
-        resources:{{ range .CAOperatorResources }}{{ range .Requests }}
+        resources:{{ range .CAOperatorResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}
@@ -756,10 +756,10 @@ spec:
             - "--v=4"
           terminationMessagePolicy: FallbackToLogsOnError
 {{ if .ClusterVersionOperatorResources }}
-        resources:{{ range .ClusterVersionOperatorResources }}{{ range .Requests }}
+        resources:{{ range .ClusterVersionOperatorResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}
@@ -1761,10 +1761,10 @@ spec:
           initialDelaySeconds: 10
           timeoutSeconds: 10
 {{ if .KubeAPIServerResources }}
-        resources:{{ range .KubeAPIServerResources }}{{ range .Requests }}
+        resources:{{ range .KubeAPIServerResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}
@@ -2194,10 +2194,10 @@ spec:
         - "--openshift-config=/etc/kubernetes/cmconfig/config.yaml"
         - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
 {{ if .KubeControllerManagerResources }}
-        resources:{{ range .KubeControllerManagerResources }}{{ range .Requests }}
+        resources:{{ range .KubeControllerManagerResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}
@@ -2372,10 +2372,10 @@ spec:
         - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "-v=2"
 {{ if .KubeSchedulerResources }}
-        resources:{{ range .KubeSchedulerResources }}{{ range .Requests }}
+        resources:{{ range .KubeSchedulerResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}
@@ -2687,10 +2687,10 @@ spec:
             - "osinserver"
             - "--config=/etc/oauth-openshift-configfile/config.yaml"
 {{ if .OAuthServerResources }}
-        resources:{{ range .OAuthServerResources }}{{ range .Requests }}
+        resources:{{ range .OAuthServerResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}
@@ -3078,10 +3078,10 @@ spec:
         - "--requestheader-extra-headers-prefix=X-Remote-Extra-"
         - "--client-ca-file=/etc/kubernetes/config/serving-ca.crt"
 {{ if .OpenshiftAPIServerResources }}
-        resources:{{ range .OpenshiftAPIServerResources }}{{ range .Requests }}
+        resources:{{ range .OpenshiftAPIServerResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}
@@ -3340,10 +3340,10 @@ spec:
         - "--config=/etc/kubernetes/cmconfig/config.yaml"
         - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
 {{ if .ClusterPolicyControllerResources }}
-        resources:{{ range .ClusterPolicyControllerResources }}{{ range .Requests }}
+        resources:{{ range .ClusterPolicyControllerResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}
@@ -3516,10 +3516,10 @@ spec:
         - "start"
         - "--config=/etc/kubernetes/cmconfig/config.yaml"
 {{ if .OpenshiftControllerManagerResources }}
-        resources:{{ range .OpenshiftControllerManagerResources }}{{ range .Requests }}
+        resources:{{ range .OpenshiftControllerManagerResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}
@@ -3738,10 +3738,10 @@ spec:
         securityContext:
           privileged: true
 {{ if .OpenVPNClientResources }}
-        resources:{{ range .OpenVPNClientResources }}{{ range .Requests }}
+        resources:{{ range .OpenVPNClientResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}
@@ -3864,10 +3864,10 @@ spec:
         securityContext:
           privileged: true
 {{ if .OpenVPNServerResources }}
-        resources:{{ range .OpenVPNServerResources }}{{ range .Requests }}
+        resources:{{ range .OpenVPNServerResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}

@@ -47,10 +47,10 @@ spec:
         - "start"
         - "--config=/etc/kubernetes/cmconfig/config.yaml"
 {{ if .OpenshiftControllerManagerResources }}
-        resources:{{ range .OpenshiftControllerManagerResources }}{{ range .Requests }}
+        resources:{{ range .OpenshiftControllerManagerResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}

@@ -29,10 +29,10 @@ spec:
          sleep 10
       done
 {{ if .AutoApproverResources }}
-        resources:{{ range .AutoApproverResources }}{{ range .Requests }}
+        resources:{{ range .AutoApproverResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}

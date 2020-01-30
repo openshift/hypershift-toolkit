@@ -102,10 +102,10 @@ spec:
             sleep 30
           done
 {{ if .CAOperatorResources }}
-        resources:{{ range .CAOperatorResources }}{{ range .Requests }}
+        resources:{{ range .CAOperatorResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}

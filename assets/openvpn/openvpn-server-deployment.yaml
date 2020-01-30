@@ -25,10 +25,10 @@ spec:
         securityContext:
           privileged: true
 {{ if .OpenVPNServerResources }}
-        resources:{{ range .OpenVPNServerResources }}{{ range .Requests }}
+        resources:{{ range .OpenVPNServerResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}
