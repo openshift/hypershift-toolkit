@@ -48,10 +48,10 @@ spec:
         - "--config=/etc/kubernetes/cmconfig/config.yaml"
         - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
 {{ if .ClusterPolicyControllerResources }}
-        resources:{{ range .ClusterPolicyControllerResources }}{{ range .Requests }}
+        resources:{{ range .ClusterPolicyControllerResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}

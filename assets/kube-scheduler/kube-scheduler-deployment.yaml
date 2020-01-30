@@ -52,10 +52,10 @@ spec:
         - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "-v=2"
 {{ if .KubeSchedulerResources }}
-        resources:{{ range .KubeSchedulerResources }}{{ range .Requests }}
+        resources:{{ range .KubeSchedulerResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}

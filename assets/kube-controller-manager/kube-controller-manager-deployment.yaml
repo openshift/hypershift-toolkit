@@ -47,10 +47,10 @@ spec:
         - "--openshift-config=/etc/kubernetes/cmconfig/config.yaml"
         - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
 {{ if .KubeControllerManagerResources }}
-        resources:{{ range .KubeControllerManagerResources }}{{ range .Requests }}
+        resources:{{ range .KubeControllerManagerResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}

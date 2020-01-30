@@ -31,10 +31,10 @@ spec:
         securityContext:
           privileged: true
 {{ if .OpenVPNClientResources }}
-        resources:{{ range .OpenVPNClientResources }}{{ range .Requests }}
+        resources:{{ range .OpenVPNClientResources }}{{ range .ResourceRequest }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
           limits:
             cpu: {{ .CPU }}
             memory: {{ .Memory }}{{ end }}{{ end }}

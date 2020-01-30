@@ -58,86 +58,86 @@ cvoSetupImage: "quay.io/csrwng/origin-cluster-version-operator:hosted"
 internalAPIPort: 6443
 routerServiceType: LoadBalancer
 kubeAPIServerResources:
-    - requests:
+    - resourceRequest:
         - cpu: 100m
           memory: 100Mi
-    - limits:
+    - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 openshiftControllerManagerResources:
-    - requests:
+    - resourceRequest:
         - cpu: 100m
           memory: 100Mi
-    - limits:
+    - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 clusterVersionOperatorResources:
-    - requests:
+    - resourceRequest:
         - cpu: 100m
           memory: 100Mi
-    - limits:
+    - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 kubeControllerManagerResources:
-    - requests:
+    - resourceRequest:
         - cpu: 100m
           memory: 100Mi
-    - limits:
+    - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 openshiftAPIServerResources:
-    - requests:
+    - resourceRequest:
         - cpu: 100m
           memory: 100Mi
-    - limits:
+    - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 kubeSchedulerResources:
-    - requests:
+    - resourceRequest:
         - cpu: 100m
           memory: 100Mi
-    - limits:
+    - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 cAOperatorResources:
-    - requests:
+    - resourceRequest:
         - cpu: 100m
           memory: 100Mi
-    - limits:
+    - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 oAuthServerResources:
-    - requests:
+    - resourceRequest:
         - cpu: 100m
           memory: 100Mi
-    - limits:
+    - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 clusterPolicyControllerResources:
-    - requests:
+    - resourceRequest:
         - cpu: 100m
           memory: 100Mi
-    - limits:
+    - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 autoApproverResources:
-    - requests:
+    - resourceRequest:
         - cpu: 100m
           memory: 100Mi
-    - limits:
+    - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 openVPNClientResources:
-    - requests:
+    - resourceRequest:
         - cpu: 100m
           memory: 100Mi
-    - limits:
+    - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 openVPNServerResources:
-    - requests:
+    - resourceRequest:
         - cpu: 100m
           memory: 100Mi
-    - limits:
+    - resourceLimit:
         - cpu: 200m
           memory: 200Mi
