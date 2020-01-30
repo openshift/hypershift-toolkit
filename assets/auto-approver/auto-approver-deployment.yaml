@@ -28,6 +28,15 @@ spec:
          fi
          sleep 10
       done
+{{ if .AutoApproverResources }}
+        resources:{{ range .AutoApproverResources }}{{ range .Requests }}
+          requests:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+          limits:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
+{{ end }}
     volumeMounts:
     - mountPath: /etc/openshift/kubeconfig
       name: kubeconfig

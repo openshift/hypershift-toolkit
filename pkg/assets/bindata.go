@@ -165,6 +165,15 @@ spec:
          fi
          sleep 10
       done
+{{ if .AutoApproverResources }}
+        resources:{{ range .AutoApproverResources }}{{ range .Requests }}
+          requests:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+          limits:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
+{{ end }}
     volumeMounts:
     - mountPath: /etc/openshift/kubeconfig
       name: kubeconfig
@@ -318,6 +327,15 @@ spec:
             oc patch deployment kube-controller-manager  --type=json --patch "[{\"op\": \"replace\", \"path\": \"/spec/template/metadata/annotations\", \"value\":{\"ca-checksum\":\"${CHECKSUM}\"}}]"
             sleep 30
           done
+{{ if .CAOperatorResources }}
+        resources:{{ range .CAOperatorResources }}{{ range .Requests }}
+          requests:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+          limits:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
+{{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/kubeconfig
           name: kubeconfig
@@ -737,6 +755,15 @@ spec:
             - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
             - "--v=4"
           terminationMessagePolicy: FallbackToLogsOnError
+{{ if .ClusterVersionOperatorResources }}
+        resources:{{ range .ClusterVersionOperatorResources }}{{ range .Requests }}
+          requests:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+          limits:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
+{{ end }}
           volumeMounts:
             - mountPath: /etc/cvo/updatepayloads
               name: etc-cvo-updatepayloads
@@ -1731,19 +1758,13 @@ spec:
           initialDelaySeconds: 10
           timeoutSeconds: 10
 {{ if .KubeAPIServerResources }}
-        {{ range .KubeAPIServerResources }}
-        resources:
-          {{ range .Requests }}
+        resources:{{ range .KubeAPIServerResources }}{{ range .Requests }}
           requests:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}
-          {{ end }}
-          {{ range .Limits }}
+            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
           limits:
             cpu: {{ .CPU }}
-            memory: {{ .Memory }}
-          {{ end }}
-        {{ end }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
 {{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret/
@@ -2169,6 +2190,15 @@ spec:
         args:
         - "--openshift-config=/etc/kubernetes/cmconfig/config.yaml"
         - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
+{{ if .KubeControllerManagerResources }}
+        resources:{{ range .KubeControllerManagerResources }}{{ range .Requests }}
+          requests:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+          limits:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
+{{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/cmconfig
           name: cmconfig
@@ -2338,6 +2368,15 @@ spec:
         - "--authentication-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "-v=2"
+{{ if .KubeSchedulerResources }}
+        resources:{{ range .KubeSchedulerResources }}{{ range .Requests }}
+          requests:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+          limits:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
+{{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
           name: secret
@@ -2644,6 +2683,15 @@ spec:
           args:
             - "osinserver"
             - "--config=/etc/oauth-openshift-configfile/config.yaml"
+{{ if .OAuthServerResources }}
+        resources:{{ range .OAuthServerResources }}{{ range .Requests }}
+          requests:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+          limits:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
+{{ end }}
           volumeMounts:
             - mountPath: /etc/oauth-openshift-secrets/
               name: oauth-openshift-secrets
@@ -3026,6 +3074,15 @@ spec:
         - "--requestheader-group-headers=X-Remote-Group"
         - "--requestheader-extra-headers-prefix=X-Remote-Extra-"
         - "--client-ca-file=/etc/kubernetes/config/serving-ca.crt"
+{{ if .OpenshiftAPIServerResources }}
+        resources:{{ range .OpenshiftAPIServerResources }}{{ range .Requests }}
+          requests:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+          limits:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
+{{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
           name: secret
@@ -3279,6 +3336,15 @@ spec:
         - "start"
         - "--config=/etc/kubernetes/cmconfig/config.yaml"
         - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
+{{ if .ClusterPolicyControllerResources }}
+        resources:{{ range .ClusterPolicyControllerResources }}{{ range .Requests }}
+          requests:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+          limits:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
+{{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
           name: secret
@@ -3446,6 +3512,15 @@ spec:
         args:
         - "start"
         - "--config=/etc/kubernetes/cmconfig/config.yaml"
+{{ if .OpenshiftControllerManagerResources }}
+        resources:{{ range .OpenshiftControllerManagerResources }}{{ range .Requests }}
+          requests:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+          limits:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
+{{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
           name: secret
@@ -3659,6 +3734,15 @@ spec:
         workingDir: /etc/openvpn
         securityContext:
           privileged: true
+{{ if .OpenVPNClientResources }}
+        resources:{{ range .OpenVPNClientResources }}{{ range .Requests }}
+          requests:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+          limits:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
+{{ end }}
         volumeMounts:
         - mountPath: /etc/openvpn
           name: secret
@@ -3776,6 +3860,15 @@ spec:
         workingDir: /etc/openvpn/server
         securityContext:
           privileged: true
+{{ if .OpenVPNServerResources }}
+        resources:{{ range .OpenVPNServerResources }}{{ range .Requests }}
+          requests:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+          limits:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
+{{ end }}
         volumeMounts:
         - mountPath: /etc/openvpn/server
           name: server

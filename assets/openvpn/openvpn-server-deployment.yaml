@@ -24,6 +24,15 @@ spec:
         workingDir: /etc/openvpn/server
         securityContext:
           privileged: true
+{{ if .OpenVPNServerResources }}
+        resources:{{ range .OpenVPNServerResources }}{{ range .Requests }}
+          requests:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ range .Limits }}
+          limits:
+            cpu: {{ .CPU }}
+            memory: {{ .Memory }}{{ end }}{{ end }}
+{{ end }}
         volumeMounts:
         - mountPath: /etc/openvpn/server
           name: server
