@@ -30,9 +30,25 @@ type ClusterParams struct {
 	CVOSetupImage              string      `json:"cvoSetupImage"`
 	InternalAPIPort            uint        `json:"internalAPIPort"`
 	RouterServiceType          string      `json:"routerServiceType"`
+	KubeAPIServerResources 	   []ResourceRequests	   `json:"kubeAPIServerResources"`
 }
 
 type NamedCert struct {
 	NamedCertPrefix string `json:"namedCertPrefix"`
 	NamedCertDomain string `json:"namedCertDomain"`
+}
+
+type ResourceRequests struct {
+	Limits []Limits `json:"limits"`
+	Requests []Requests `json:"requests"`
+}
+
+type Limits struct {
+	CPU string `json:"cpu"`
+	Memory string `json:"memory"`
+}
+
+type Requests struct {
+	CPU string `json:"cpu"`
+	Memory string `json:"memory"`
 }
