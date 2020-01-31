@@ -141,3 +141,4 @@ openVPNServerResources:
     - resourceLimit:
         - cpu: 200m
           memory: 200Mi
+apiServerAuditEnabled: true
