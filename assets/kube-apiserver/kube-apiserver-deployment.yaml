@@ -65,12 +65,12 @@ spec:
           timeoutSeconds: 10
 {{ if .KubeAPIServerResources }}
         resources:{{ range .KubeAPIServerResources }}{{ range .ResourceRequest }}
-          requests:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
-          limits:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ end }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret/
