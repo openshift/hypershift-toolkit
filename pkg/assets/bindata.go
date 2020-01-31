@@ -167,12 +167,12 @@ spec:
       done
 {{ if .AutoApproverResources }}
         resources:{{ range .AutoApproverResources }}{{ range .ResourceRequest }}
-          requests:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
-          limits:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ end }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
     volumeMounts:
     - mountPath: /etc/openshift/kubeconfig
@@ -329,12 +329,12 @@ spec:
           done
 {{ if .CAOperatorResources }}
         resources:{{ range .CAOperatorResources }}{{ range .ResourceRequest }}
-          requests:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
-          limits:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ end }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/kubeconfig
@@ -757,12 +757,12 @@ spec:
           terminationMessagePolicy: FallbackToLogsOnError
 {{ if .ClusterVersionOperatorResources }}
         resources:{{ range .ClusterVersionOperatorResources }}{{ range .ResourceRequest }}
-          requests:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
-          limits:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ end }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
           volumeMounts:
             - mountPath: /etc/cvo/updatepayloads
@@ -1759,12 +1759,12 @@ spec:
           timeoutSeconds: 10
 {{ if .KubeAPIServerResources }}
         resources:{{ range .KubeAPIServerResources }}{{ range .ResourceRequest }}
-          requests:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
-          limits:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ end }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret/
@@ -2192,12 +2192,12 @@ spec:
         - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
 {{ if .KubeControllerManagerResources }}
         resources:{{ range .KubeControllerManagerResources }}{{ range .ResourceRequest }}
-          requests:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
-          limits:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ end }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/cmconfig
@@ -2370,12 +2370,12 @@ spec:
         - "-v=2"
 {{ if .KubeSchedulerResources }}
         resources:{{ range .KubeSchedulerResources }}{{ range .ResourceRequest }}
-          requests:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
-          limits:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ end }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
@@ -2685,12 +2685,12 @@ spec:
             - "--config=/etc/oauth-openshift-configfile/config.yaml"
 {{ if .OAuthServerResources }}
         resources:{{ range .OAuthServerResources }}{{ range .ResourceRequest }}
-          requests:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
-          limits:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ end }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
           volumeMounts:
             - mountPath: /etc/oauth-openshift-secrets/
@@ -3076,12 +3076,12 @@ spec:
         - "--client-ca-file=/etc/kubernetes/config/serving-ca.crt"
 {{ if .OpenshiftAPIServerResources }}
         resources:{{ range .OpenshiftAPIServerResources }}{{ range .ResourceRequest }}
-          requests:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
-          limits:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ end }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
@@ -3338,12 +3338,12 @@ spec:
         - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
 {{ if .ClusterPolicyControllerResources }}
         resources:{{ range .ClusterPolicyControllerResources }}{{ range .ResourceRequest }}
-          requests:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
-          limits:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ end }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
@@ -3514,12 +3514,12 @@ spec:
         - "--config=/etc/kubernetes/cmconfig/config.yaml"
 {{ if .OpenshiftControllerManagerResources }}
         resources:{{ range .OpenshiftControllerManagerResources }}{{ range .ResourceRequest }}
-          requests:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
-          limits:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ end }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
@@ -3736,12 +3736,12 @@ spec:
           privileged: true
 {{ if .OpenVPNClientResources }}
         resources:{{ range .OpenVPNClientResources }}{{ range .ResourceRequest }}
-          requests:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
-          limits:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ end }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
         volumeMounts:
         - mountPath: /etc/openvpn
@@ -3862,12 +3862,12 @@ spec:
           privileged: true
 {{ if .OpenVPNServerResources }}
         resources:{{ range .OpenVPNServerResources }}{{ range .ResourceRequest }}
-          requests:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ range .ResourceLimit }}
-          limits:
-            cpu: {{ .CPU }}
-            memory: {{ .Memory }}{{ end }}{{ end }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
         volumeMounts:
         - mountPath: /etc/openvpn/server
