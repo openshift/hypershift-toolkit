@@ -14,6 +14,10 @@ spec:
     metadata:
       labels:
         name: etcd-operator
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
     spec:
       serviceAccountName: etcd-operator
       containers:

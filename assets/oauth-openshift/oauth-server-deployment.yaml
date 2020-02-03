@@ -16,6 +16,10 @@ spec:
     metadata:
       labels:
         app: oauth-openshift
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
     spec:
       tolerations:
       - key: "multi-az-worker"

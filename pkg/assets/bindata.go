@@ -255,6 +255,10 @@ spec:
     metadata:
       labels:
         app: ca-operator
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
     spec:
       tolerations:
         - key: "multi-az-worker"
@@ -735,6 +739,10 @@ spec:
       name: cluster-version-operator
       labels:
         k8s-app: cluster-version-operator
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
     spec:
       tolerations:
         - key: "multi-az-worker"
@@ -998,6 +1006,10 @@ spec:
     metadata:
       labels:
         name: etcd-operator
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
     spec:
       serviceAccountName: etcd-operator
       containers:
@@ -1712,6 +1724,10 @@ spec:
     metadata:
       labels:
         app: kube-apiserver
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
     spec:
       tolerations:
         - key: "multi-az-worker"
@@ -2160,6 +2176,10 @@ spec:
     metadata:
       labels:
         app: kube-controller-manager
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
     spec:
       tolerations:
         - key: "multi-az-worker"
@@ -2333,6 +2353,10 @@ spec:
     metadata:
       labels:
         app: kube-scheduler
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
     spec:
       tolerations:
         - key: "multi-az-worker"
@@ -2655,6 +2679,10 @@ spec:
     metadata:
       labels:
         app: oauth-openshift
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
     spec:
       tolerations:
       - key: "multi-az-worker"
@@ -3038,6 +3066,10 @@ spec:
     metadata:
       labels:
         app: openshift-apiserver
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
     spec:
       tolerations:
         - key: "multi-az-worker"
@@ -3305,6 +3337,10 @@ spec:
     metadata:
       labels:
         app: cluster-policy-controller
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
     spec:
       tolerations:
         - key: "multi-az-worker"
@@ -3482,6 +3518,10 @@ spec:
     metadata:
       labels:
         app: openshift-controller-manager
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
     spec:
       tolerations:
         - key: "multi-az-worker"
@@ -3847,6 +3887,10 @@ spec:
     metadata:
       labels:
         app: openvpn-server
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
     spec:
       automountServiceAccountToken: false
       containers:
@@ -4104,7 +4148,7 @@ var _userManifestsBootstrapperUserManifestsBootstrapperPodYaml = []byte(`---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-    name: user-manifests-bootstrapper
+  name: user-manifests-bootstrapper
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -4115,8 +4159,8 @@ roleRef:
   kind: ClusterRole
   name: edit
 subjects:
-- kind: ServiceAccount
-  name: user-manifests-bootstrapper
+  - kind: ServiceAccount
+    name: user-manifests-bootstrapper
 ---
 apiVersion: v1
 kind: Pod
@@ -4129,55 +4173,56 @@ spec:
       value: "true"
       effect: NoSchedule
   initContainers:
-  - image: {{ imageFor "cluster-config-operator" }}
-    imagePullPolicy: IfNotPresent
-    name: config-operator
-    workingDir: /tmp
-    command:
-    - /bin/bash
-    args:
-    - -c
-    - |-
-      cd /tmp
-      mkdir input output
-      /usr/bin/cluster-config-operator render --config-output-file config --asset-input-dir /tmp/input --asset-output-dir /tmp/output
-      cp /tmp/output/manifests/* /work
-    volumeMounts:
-    - mountPath: /work
-      name: work
+    - image: {{ imageFor "cluster-config-operator" }}
+      imagePullPolicy: IfNotPresent
+      name: config-operator
+      workingDir: /tmp
+      command:
+        - /bin/bash
+      args:
+        - -c
+        - |-
+          cd /tmp
+          mkdir input output
+          /usr/bin/cluster-config-operator render --config-output-file config --asset-input-dir /tmp/input --asset-output-dir /tmp/output
+          cp /tmp/output/manifests/* /work
+      volumeMounts:
+        - mountPath: /work
+          name: work
   containers:
-  - image: {{ imageFor "cli" }}
-    imagePullPolicy: IfNotPresent
-    name: bootstrapper
-    workingDir: /work
-    command:
-    - /bin/bash
-    args:
-    - -c
-    - |-
-      #!/bin/bash
-      set -eu
-      for name in $(oc get cm | grep '^user-manifest-' | awk '{ print $1 }'); do
-         oc get cm ${name} -o jsonpath='{ .data.data }' > "${name}.yaml"
-      done
-      export KUBECONFIG=/etc/openshift/kubeconfig
-      oc apply -f $(pwd)
-      # Create the global certs configmap here because it's too large to oc apply
-      oc create configmap -n openshift-controller-manager openshift-global-ca --from-file ca-bundle.crt=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
-    volumeMounts:
-    - mountPath: /etc/openshift
-      name: kubeconfig
-      readOnly: true
-    - mountPath: /work
-      name: work
+    - image: {{ imageFor "cli" }}
+      imagePullPolicy: IfNotPresent
+      name: bootstrapper
+      workingDir: /work
+      command:
+        - /bin/bash
+      args:
+        - -c
+        - |-
+          #!/bin/bash
+          set -eu
+          for name in $(oc get cm | grep '^user-manifest-' | awk '{ print $1 }'); do
+             oc get cm ${name} -o jsonpath='{ .data.data }' > "${name}.yaml"
+          done
+          export KUBECONFIG=/etc/openshift/kubeconfig
+          oc apply -f $(pwd)
+          # Replace the global certs configmap here because it's too large to oc apply
+          oc create configmap -n openshift-controller-manager openshift-global-ca --from-file ca-bundle.crt=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem --dry-run -o yaml > /tmp/openshift-global-ca
+          oc replace -n openshift-controller-manager -f /tmp/openshift-global-ca --force
+      volumeMounts:
+        - mountPath: /etc/openshift
+          name: kubeconfig
+          readOnly: true
+        - mountPath: /work
+          name: work
   restartPolicy: OnFailure
   serviceAccountName: user-manifests-bootstrapper
   volumes:
-  - name: kubeconfig
-    secret:
-      secretName: service-network-admin-kubeconfig
-  - name: work
-    emptyDir: {}
+    - name: kubeconfig
+      secret:
+        secretName: service-network-admin-kubeconfig
+    - name: work
+      emptyDir: {}
 `)
 
 func userManifestsBootstrapperUserManifestsBootstrapperPodYamlBytes() ([]byte, error) {

@@ -42,6 +42,8 @@ type ClusterParams struct {
 	AutoApproverResources               []ResourceRequirements `json:"autoApproverResources"`
 	OpenVPNClientResources              []ResourceRequirements `json:"openVPNClientResources"`
 	OpenVPNServerResources              []ResourceRequirements `json:"openVPNServerResources"`
+	APIServerAuditEnabled               string                 `json:"apiServerAuditEnabled"`
+	RestartDate                         string                 `json:"restartDate"`
 }
 
 type NamedCert struct {
