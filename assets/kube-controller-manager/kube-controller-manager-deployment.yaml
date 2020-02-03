@@ -16,6 +16,10 @@ spec:
     metadata:
       labels:
         app: kube-controller-manager
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
     spec:
       tolerations:
         - key: "multi-az-worker"
