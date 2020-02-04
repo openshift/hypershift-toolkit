@@ -166,13 +166,13 @@ spec:
          sleep 10
       done
 {{ if .AutoApproverResources }}
-        resources:{{ range .AutoApproverResources }}{{ range .ResourceRequest }}
-          requests: {{ if .CPU }}
-            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
-            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
-          limits: {{ if .CPU }}
-            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
-            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+    resources:{{ range .AutoApproverResources }}{{ range .ResourceRequest }}
+      requests: {{ if .CPU }}
+        cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+        memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+      limits: {{ if .CPU }}
+        cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+        memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
     volumeMounts:
     - mountPath: /etc/openshift/kubeconfig
@@ -764,13 +764,13 @@ spec:
             - "--v=4"
           terminationMessagePolicy: FallbackToLogsOnError
 {{ if .ClusterVersionOperatorResources }}
-        resources:{{ range .ClusterVersionOperatorResources }}{{ range .ResourceRequest }}
-          requests: {{ if .CPU }}
-            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
-            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
-          limits: {{ if .CPU }}
-            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
-            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+          resources:{{ range .ClusterVersionOperatorResources }}{{ range .ResourceRequest }}
+            requests: {{ if .CPU }}
+              cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+              memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+            limits: {{ if .CPU }}
+              cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+              memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
           volumeMounts:
             - mountPath: /etc/cvo/updatepayloads
@@ -2727,13 +2727,13 @@ spec:
             - "osinserver"
             - "--config=/etc/oauth-openshift-configfile/config.yaml"
 {{ if .OAuthServerResources }}
-        resources:{{ range .OAuthServerResources }}{{ range .ResourceRequest }}
-          requests: {{ if .CPU }}
-            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
-            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
-          limits: {{ if .CPU }}
-            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
-            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+          resources:{{ range .OAuthServerResources }}{{ range .ResourceRequest }}
+            requests: {{ if .CPU }}
+              cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+              memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+            limits: {{ if .CPU }}
+              cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+              memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
           volumeMounts:
             - mountPath: /etc/oauth-openshift-secrets/
