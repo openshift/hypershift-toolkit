@@ -29,6 +29,10 @@ spec:
     metadata:
       labels:
         app: ca-operator
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
     spec:
       tolerations:
         - key: "multi-az-worker"

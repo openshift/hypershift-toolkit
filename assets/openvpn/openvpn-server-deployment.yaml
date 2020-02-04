@@ -11,6 +11,10 @@ spec:
     metadata:
       labels:
         app: openvpn-server
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
     spec:
       automountServiceAccountToken: false
       containers:
