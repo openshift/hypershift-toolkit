@@ -1543,6 +1543,11 @@ auditConfig:
   logFormat: json
   maximumFileSizeMegabytes: 100
   maximumRetainedFiles: 10
+{{ if .APIServerAuditEnabled }}
+  policyFile: /etc/kubernetes/audit/policy.yaml
+  webHookKubeConfig: /etc/kubernetes/audit/webhook-kubeconfig
+  webHookMode: batch
+{{ else }}
   policyConfiguration:
     apiVersion: audit.k8s.io/v1beta1
     kind: Policy
@@ -1572,6 +1577,7 @@ auditConfig:
     - level: Metadata
       omitStages:
       - RequestReceived
+{{ end }}
 authConfig:
   oauthMetadataFile: "/etc/kubernetes/oauth/oauthMetadata.json"
   requestHeader:
@@ -1793,6 +1799,10 @@ spec:
           name: oauth
         - mountPath: /var/log/kube-apiserver/
           name: logs
+{{ if .APIServerAuditEnabled }}
+        - name: apiserver-cm
+          mountPath: /etc/kubernetes/audit/
+{{ end }}
 {{ if includeVPN }}
       - name: openvpn-client
         image: quay.io/sjenning/poc:openvpn
@@ -1825,6 +1835,11 @@ spec:
       - configMap:
           name: kube-apiserver-oauth-metadata
         name: oauth
+{{ if .APIServerAuditEnabled }}
+      - name: apiserver-cm
+        configMap:
+          name: apiserver-audit-cm
+{{ end }}
 {{ if includeVPN }}
       - configMap:
           name: kube-apiserver-vpnclient-config
