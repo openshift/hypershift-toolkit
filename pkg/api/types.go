@@ -44,6 +44,7 @@ type ClusterParams struct {
 	OpenVPNServerResources              []ResourceRequirements `json:"openVPNServerResources"`
 	APIServerAuditEnabled               bool                   `json:"apiServerAuditEnabled"`
 	RestartDate                         string                 `json:"restartDate"`
+	ExtraFeatureGates                   []string               `json:"extraFeatureGates"`
 }
 
 type NamedCert struct {
