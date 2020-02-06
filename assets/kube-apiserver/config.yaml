@@ -28,6 +28,11 @@ apiServerArguments:
   - ExperimentalCriticalPodAnnotation=true
   - SupportPodPidsLimit=true
   - LocalStorageCapacityIsolation=false
+{{if .ExtraFeatureGates }}
+{{ range $featureGate := .ExtraFeatureGates }}
+  - {{ $featureGate }}
+{{ end }}
+{{ end }}
   http2-max-streams-per-connection:
   - '2000'
   kubelet-preferred-address-types:
