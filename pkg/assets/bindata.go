@@ -692,7 +692,6 @@ metadata:
   name: router-default
   namespace: openshift-ingress
 spec:
-  externalTrafficPolicy: Local
   ports:
   - name: http
     nodePort: {{ .RouterNodePortHTTP }}
@@ -1526,6 +1525,11 @@ apiServerArguments:
   - ExperimentalCriticalPodAnnotation=true
   - SupportPodPidsLimit=true
   - LocalStorageCapacityIsolation=false
+{{if .ExtraFeatureGates }}
+{{ range $featureGate := .ExtraFeatureGates }}
+  - {{ $featureGate }}
+{{ end }}
+{{ end }}
   http2-max-streams-per-connection:
   - '2000'
   kubelet-preferred-address-types:
@@ -2081,6 +2085,11 @@ extendedArguments:
   - RotateKubeletServerCertificate=true
   - SupportPodPidsLimit=true
   - LocalStorageCapacityIsolation=false
+{{if .ExtraFeatureGates }}
+{{ range $featureGate := .ExtraFeatureGates }}
+  - {{ $featureGate }}
+{{ end }}
+{{ end }}
   flex-volume-plugin-dir:
   - "/etc/kubernetes/kubelet-plugins/volume/exec"
   kube-api-burst:
