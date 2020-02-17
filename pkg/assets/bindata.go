@@ -2596,7 +2596,7 @@ oauthConfig:
   alwaysShowProviderSelection: false
   assetPublicURL: https://console-openshift-console.{{ .BaseDomain }}
   grantConfig:
-    method: deny
+    method: auto
     serviceAccountMethod: prompt
 {{ if .IdentityProviders }}  identityProviders:
 {{ trimTrailingSpace .IdentityProviders | indent 2 }}{{- else }}  identityProviders: []{{- end }}
