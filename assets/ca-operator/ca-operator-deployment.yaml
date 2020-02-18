@@ -5,16 +5,31 @@ metadata:
     name: ca-operator
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ca-operator
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - deployment
+  - configmaps
+  verbs:
+  - get
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: ca-operator
+  namespace:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: edit
-subjects:
-- kind: ServiceAccount
+  kind: Role
   name: ca-operator
+subjects:
+  - kind: ServiceAccount
+    name: ca-operator
 ---
 apiVersion: apps/v1
 kind: Deployment
