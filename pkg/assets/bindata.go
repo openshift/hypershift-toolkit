@@ -1539,9 +1539,9 @@ apiServerArguments:
   enable-aggregator-routing:
   - 'true'
   feature-gates:
-  - ExperimentalCriticalPodAnnotation=true
-  - SupportPodPidsLimit=true
-  - LocalStorageCapacityIsolation=false
+{{ range $featureGate := .DefaultFeatureGates }}
+  - {{ $featureGate }}
+{{ end }}
 {{if .ExtraFeatureGates }}
 {{ range $featureGate := .ExtraFeatureGates }}
   - {{ $featureGate }}
@@ -2098,10 +2098,9 @@ extendedArguments:
   experimental-cluster-signing-duration:
   - 720h
   feature-gates:
-  - ExperimentalCriticalPodAnnotation=true
-  - RotateKubeletServerCertificate=true
-  - SupportPodPidsLimit=true
-  - LocalStorageCapacityIsolation=false
+{{ range $featureGate := .DefaultFeatureGates }}
+  - {{ $featureGate }}
+{{ end }}
 {{if .ExtraFeatureGates }}
 {{ range $featureGate := .ExtraFeatureGates }}
   - {{ $featureGate }}
@@ -2437,6 +2436,9 @@ spec:
         - "--authentication-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "-v=2"
+{{if .DefaultFeatureGates }}{{ range $featureGate := .DefaultFeatureGates }}
+        - "--feature-gates={{ $featureGate }}"
+{{ end }}{{ end }}
 {{if .ExtraFeatureGates }}{{ range $featureGate := .ExtraFeatureGates }}
         - "--feature-gates={{ $featureGate }}"
 {{ end }}{{ end }}

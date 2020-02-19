@@ -25,9 +25,9 @@ apiServerArguments:
   enable-aggregator-routing:
   - 'true'
   feature-gates:
-  - ExperimentalCriticalPodAnnotation=true
-  - SupportPodPidsLimit=true
-  - LocalStorageCapacityIsolation=false
+{{ range $featureGate := .DefaultFeatureGates }}
+  - {{ $featureGate }}
+{{ end }}
 {{if .ExtraFeatureGates }}
 {{ range $featureGate := .ExtraFeatureGates }}
   - {{ $featureGate }}
