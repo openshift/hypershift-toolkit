@@ -18,16 +18,15 @@ rules:
   - patch
 - apiGroups: ["extensions", "apps"]
   resources:
-    - configmaps
+  - deployment
   verbs:
-    - get
-    - patch
+  - get
+  - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: ca-operator
-  namespace:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
