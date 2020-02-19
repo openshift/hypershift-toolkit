@@ -12,11 +12,16 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - deployment
   - configmaps
   verbs:
   - get
   - patch
+- apiGroups: ["extensions", "apps"]
+  resources:
+    - configmaps
+  verbs:
+    - get
+    - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
