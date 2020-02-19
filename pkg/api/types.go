@@ -45,6 +45,7 @@ type ClusterParams struct {
 	APIServerAuditEnabled               bool                   `json:"apiServerAuditEnabled"`
 	RestartDate                         string                 `json:"restartDate"`
 	ExtraFeatureGates                   []string               `json:"extraFeatureGates"`
+	DefaultFeatureGates					[]string
 }
 
 type NamedCert struct {
