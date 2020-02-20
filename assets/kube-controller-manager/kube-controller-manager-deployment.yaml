@@ -41,6 +41,7 @@ spec:
                     operator: In
                     values: ["kube-controller-manager"]
               topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      automountServiceAccountToken: false
       containers:
       - name: kube-controller-manager
         image: {{ imageFor "hyperkube" }}

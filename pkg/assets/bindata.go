@@ -231,16 +231,35 @@ metadata:
     name: ca-operator
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ca-operator
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - patch
+- apiGroups: ["extensions", "apps"]
+  resources:
+  - deployments
+  verbs:
+  - get
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: ca-operator
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: edit
-subjects:
-- kind: ServiceAccount
+  kind: Role
   name: ca-operator
+subjects:
+  - kind: ServiceAccount
+    name: ca-operator
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -748,6 +767,7 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
+      automountServiceAccountToken: false
       containers:
         - name: cluster-version-operator
           image: {{ .ReleaseImage }}
@@ -2225,6 +2245,7 @@ spec:
                     operator: In
                     values: ["kube-controller-manager"]
               topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      automountServiceAccountToken: false
       containers:
       - name: kube-controller-manager
         image: {{ imageFor "hyperkube" }}

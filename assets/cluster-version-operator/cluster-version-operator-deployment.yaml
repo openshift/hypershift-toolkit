@@ -22,6 +22,7 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
+      automountServiceAccountToken: false
       containers:
         - name: cluster-version-operator
           image: {{ .ReleaseImage }}
