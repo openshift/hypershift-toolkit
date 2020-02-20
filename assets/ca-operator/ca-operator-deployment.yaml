@@ -18,7 +18,7 @@ rules:
   - patch
 - apiGroups: ["extensions", "apps"]
   resources:
-  - deployment
+  - deployments
   verbs:
   - get
   - patch
