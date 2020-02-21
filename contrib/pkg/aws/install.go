@@ -360,32 +360,31 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 		return fmt.Errorf("cluster pod CIDR exceeds max address space")
 	}
 
-	params := &api.ClusterParams{
-		Namespace:               name,
-		ExternalAPIDNSName:      apiDNSName,
-		ExternalAPIPort:         6443,
-		ExternalAPIIPAddress:    apiPublicIP,
-		ExternalOpenVPNDNSName:  vpnDNSName,
-		ExternalOpenVPNPort:     1194,
-		ExternalOauthPort:       externalOauthPort,
-		APINodePort:             uint(apiNodePort),
-		ServiceCIDR:             clusterServiceCIDR.String(),
-		PodCIDR:                 clusterPodCIDR.String(),
-		ReleaseImage:            releaseImage,
-		IngressSubdomain:        fmt.Sprintf("apps.%s.%s", name, parentDomain),
-		OpenShiftAPIClusterIP:   openshiftClusterIP,
-		OpenVPNNodePort:         fmt.Sprintf("%d", vpnNodePort),
-		BaseDomain:              fmt.Sprintf("%s.%s", name, parentDomain),
-		CloudProvider:           "AWS",
-		InternalAPIPort:         6443,
-		EtcdClientName:          "etcd-client",
-		NetworkType:             "OpenShiftSDN",
-		ImageRegistryHTTPSecret: generateImageRegistrySecret(),
-		RouterNodePortHTTP:      fmt.Sprintf("%d", routerNodePortHTTP),
-		RouterNodePortHTTPS:     fmt.Sprintf("%d", routerNodePortHTTPS),
-		RouterServiceType:       "NodePort",
-		Replicas:                "1",
-	}
+	params := api.NewClusterParams()
+	params.Namespace = name
+	params.ExternalAPIDNSName = apiDNSName
+	params.ExternalAPIPort = 6443
+	params.ExternalAPIIPAddress = apiPublicIP
+	params.ExternalOpenVPNDNSName = vpnDNSName
+	params.ExternalOpenVPNPort = 1194
+	params.ExternalOauthPort = externalOauthPort
+	params.APINodePort = uint(apiNodePort)
+	params.ServiceCIDR = clusterServiceCIDR.String()
+	params.PodCIDR = clusterPodCIDR.String()
+	params.ReleaseImage = releaseImage
+	params.IngressSubdomain = fmt.Sprintf("apps.%s.%s", name, parentDomain)
+	params.OpenShiftAPIClusterIP = openshiftClusterIP
+	params.OpenVPNNodePort = fmt.Sprintf("%d", vpnNodePort)
+	params.BaseDomain = fmt.Sprintf("%s.%s", name, parentDomain)
+	params.CloudProvider = "AWS"
+	params.InternalAPIPort = 6443
+	params.EtcdClientName = "etcd-client"
+	params.NetworkType = "OpenShiftSDN"
+	params.ImageRegistryHTTPSecret = generateImageRegistrySecret()
+	params.RouterNodePortHTTP = fmt.Sprintf("%d", routerNodePortHTTP)
+	params.RouterNodePortHTTPS = fmt.Sprintf("%d", routerNodePortHTTPS)
+	params.RouterServiceType = "NodePort"
+	params.Replicas = "1"
 
 	workingDir, err := ioutil.TempDir("", "")
 	if err != nil {
