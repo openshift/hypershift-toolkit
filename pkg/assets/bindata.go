@@ -1015,12 +1015,15 @@ kind: ServiceAccount
 metadata:
   name: etcd-operator
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: etcd-operator
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      name: etcd-operator
   template:
     metadata:
       labels:
