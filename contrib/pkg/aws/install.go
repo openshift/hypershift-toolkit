@@ -463,8 +463,17 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 		return fmt.Errorf("failed to create oauth branding secret: %v", err)
 	}
 
-	if err = applyManifests(cfg, name, manifestsDir, excludeManifests); err != nil {
+	excludedDir, err := ioutil.TempDir("", "")
+	if err != nil {
+		return fmt.Errorf("failed to create a temporary directory for excluded manifests")
+	}
+	initialExclude := append(excludeManifests, "etcd-cluster.yaml")
+	if err = applyManifests(cfg, name, manifestsDir, initialExclude, excludedDir); err != nil {
 		return fmt.Errorf("failed to apply manifests: %v", err)
+	}
+	time.Sleep(30 * time.Second)
+	if err = applyManifests(cfg, name, excludedDir, excludeManifests, manifestsDir); err != nil {
+		return fmt.Errorf("failed to apply etcd cluster manifest")
 	}
 	log.Infof("Cluster resources applied")
 
@@ -515,11 +524,12 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 	return nil
 }
 
-func applyManifests(cfg *rest.Config, namespace, directory string, exclude []string) error {
+func applyManifests(cfg *rest.Config, namespace, directory string, exclude []string, excludedDir string) error {
 	for _, f := range exclude {
 		name := filepath.Join(directory, f)
-		if err := os.Remove(name); err != nil {
-			return fmt.Errorf("cannot delete %s: %v", name, err)
+		targetName := filepath.Join(excludedDir, f)
+		if err := os.Rename(name, targetName); err != nil {
+			return fmt.Errorf("cannot move %s: %v", name, err)
 		}
 	}
 	backoff := wait.Backoff{
