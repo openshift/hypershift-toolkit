@@ -54,12 +54,6 @@ func (o *RenderManifestsOptions) Run() error {
 	if err != nil {
 		log.WithError(err).Fatalf("Error occurred reading configuration")
 	}
-	params.DefaultFeatureGates = []string{
-		"ExperimentalCriticalPodAnnotation=true",
-		"SupportPodPidsLimit=true",
-		"LocalStorageCapacityIsolation=false",
-		"RotateKubeletServerCertificate=true",
-	}
 	externalOauth := params.ExternalOauthPort != 0
 	if o.IncludeSecrets {
 		render.RenderPKISecrets(o.PKIDir, o.OutputDir, o.IncludeEtcd, o.IncludeVPN, externalOauth)
