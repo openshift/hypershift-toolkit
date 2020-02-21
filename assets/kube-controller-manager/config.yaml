@@ -27,14 +27,9 @@ extendedArguments:
   experimental-cluster-signing-duration:
   - 720h
   feature-gates:
-{{ range $featureGate := .DefaultFeatureGates }}
-  - {{ $featureGate }}
-{{ end }}
-{{if .ExtraFeatureGates }}
-{{ range $featureGate := .ExtraFeatureGates }}
-  - {{ $featureGate }}
-{{ end }}
-{{ end }}
+  {{ range $featureGate := .DefaultFeatureGates }}- {{ $featureGate }}
+  {{ end }}{{ range $featureGate := .ExtraFeatureGates }}- {{ $featureGate }}
+  {{ end }}
   flex-volume-plugin-dir:
   - "/etc/kubernetes/kubelet-plugins/volume/exec"
   kube-api-burst:

@@ -1539,14 +1539,9 @@ apiServerArguments:
   enable-aggregator-routing:
   - 'true'
   feature-gates:
-{{ range $featureGate := .DefaultFeatureGates }}
-  - {{ $featureGate }}
-{{ end }}
-{{if .ExtraFeatureGates }}
-{{ range $featureGate := .ExtraFeatureGates }}
-  - {{ $featureGate }}
-{{ end }}
-{{ end }}
+  {{ range $featureGate := .DefaultFeatureGates }}- {{ $featureGate }}
+  {{ end }}{{ range $featureGate := .ExtraFeatureGates }}- {{ $featureGate }}
+  {{ end }}
   http2-max-streams-per-connection:
   - '2000'
   kubelet-preferred-address-types:
@@ -2098,14 +2093,9 @@ extendedArguments:
   experimental-cluster-signing-duration:
   - 720h
   feature-gates:
-{{ range $featureGate := .DefaultFeatureGates }}
-  - {{ $featureGate }}
-{{ end }}
-{{if .ExtraFeatureGates }}
-{{ range $featureGate := .ExtraFeatureGates }}
-  - {{ $featureGate }}
-{{ end }}
-{{ end }}
+  {{ range $featureGate := .DefaultFeatureGates }}- {{ $featureGate }}
+  {{ end }}{{ range $featureGate := .ExtraFeatureGates }}- {{ $featureGate }}
+  {{ end }}
   flex-volume-plugin-dir:
   - "/etc/kubernetes/kubelet-plugins/volume/exec"
   kube-api-burst:
@@ -2436,12 +2426,9 @@ spec:
         - "--authentication-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "-v=2"
-{{if .DefaultFeatureGates }}{{ range $featureGate := .DefaultFeatureGates }}
-        - "--feature-gates={{ $featureGate }}"
-{{ end }}{{ end }}
-{{if .ExtraFeatureGates }}{{ range $featureGate := .ExtraFeatureGates }}
-        - "--feature-gates={{ $featureGate }}"
-{{ end }}{{ end }}
+        {{ range $featureGate := .DefaultFeatureGates }}- "--feature-gates={{ $featureGate }}"
+        {{ end }}{{ range $featureGate := .ExtraFeatureGates }}- "--feature-gates={{ $featureGate }}"
+        {{ end }}
 {{ if .KubeSchedulerResources }}
         resources:{{ range .KubeSchedulerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
