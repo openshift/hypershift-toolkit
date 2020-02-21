@@ -25,14 +25,9 @@ apiServerArguments:
   enable-aggregator-routing:
   - 'true'
   feature-gates:
-{{ range $featureGate := .DefaultFeatureGates }}
-  - {{ $featureGate }}
-{{ end }}
-{{if .ExtraFeatureGates }}
-{{ range $featureGate := .ExtraFeatureGates }}
-  - {{ $featureGate }}
-{{ end }}
-{{ end }}
+  {{ range $featureGate := .DefaultFeatureGates }}- {{ $featureGate }}
+  {{ end }}{{ range $featureGate := .ExtraFeatureGates }}- {{ $featureGate }}
+  {{ end }}
   http2-max-streams-per-connection:
   - '2000'
   kubelet-preferred-address-types:
