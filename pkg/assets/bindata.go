@@ -8,6 +8,7 @@
 // assets/cluster-bootstrap/cluster-dns-02-config.yaml
 // assets/cluster-bootstrap/cluster-infrastructure-02-config.yaml
 // assets/cluster-bootstrap/cluster-ingress-02-config.yaml
+// assets/cluster-bootstrap/cluster-ingresscontrollers-02-config.yaml
 // assets/cluster-bootstrap/cluster-network-01-crd.yaml
 // assets/cluster-bootstrap/cluster-network-02-config.yaml
 // assets/cluster-bootstrap/cluster-proxy-01-config.yaml
@@ -553,6 +554,36 @@ func clusterBootstrapClusterIngress02ConfigYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "cluster-bootstrap/cluster-ingress-02-config.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _clusterBootstrapClusterIngresscontrollers02ConfigYaml = []byte(`apiVersion: config.openshift.io/v1
+kind: IngressControllers
+metadata:
+  creationTimestamp: null
+  name: cluster
+spec:
+  nodePlacement:
+    tolerations:
+      - key: "dedicated"
+        operator: "Equal"
+        value: "edge"
+        effect: NoSchedule
+status: {}
+`)
+
+func clusterBootstrapClusterIngresscontrollers02ConfigYamlBytes() ([]byte, error) {
+	return _clusterBootstrapClusterIngresscontrollers02ConfigYaml, nil
+}
+
+func clusterBootstrapClusterIngresscontrollers02ConfigYaml() (*asset, error) {
+	bytes, err := clusterBootstrapClusterIngresscontrollers02ConfigYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-bootstrap/cluster-ingresscontrollers-02-config.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -4340,6 +4371,7 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/cluster-dns-02-config.yaml":                                    clusterBootstrapClusterDns02ConfigYaml,
 	"cluster-bootstrap/cluster-infrastructure-02-config.yaml":                         clusterBootstrapClusterInfrastructure02ConfigYaml,
 	"cluster-bootstrap/cluster-ingress-02-config.yaml":                                clusterBootstrapClusterIngress02ConfigYaml,
+	"cluster-bootstrap/cluster-ingresscontrollers-02-config.yaml":                     clusterBootstrapClusterIngresscontrollers02ConfigYaml,
 	"cluster-bootstrap/cluster-network-01-crd.yaml":                                   clusterBootstrapClusterNetwork01CrdYaml,
 	"cluster-bootstrap/cluster-network-02-config.yaml":                                clusterBootstrapClusterNetwork02ConfigYaml,
 	"cluster-bootstrap/cluster-proxy-01-config.yaml":                                  clusterBootstrapClusterProxy01ConfigYaml,
@@ -4479,6 +4511,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"cluster-dns-02-config.yaml":                  {clusterBootstrapClusterDns02ConfigYaml, map[string]*bintree{}},
 		"cluster-infrastructure-02-config.yaml":       {clusterBootstrapClusterInfrastructure02ConfigYaml, map[string]*bintree{}},
 		"cluster-ingress-02-config.yaml":              {clusterBootstrapClusterIngress02ConfigYaml, map[string]*bintree{}},
+		"cluster-ingresscontrollers-02-config.yaml":   {clusterBootstrapClusterIngresscontrollers02ConfigYaml, map[string]*bintree{}},
 		"cluster-network-01-crd.yaml":                 {clusterBootstrapClusterNetwork01CrdYaml, map[string]*bintree{}},
 		"cluster-network-02-config.yaml":              {clusterBootstrapClusterNetwork02ConfigYaml, map[string]*bintree{}},
 		"cluster-proxy-01-config.yaml":                {clusterBootstrapClusterProxy01ConfigYaml, map[string]*bintree{}},
