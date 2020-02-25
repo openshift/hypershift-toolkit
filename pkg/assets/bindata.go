@@ -558,11 +558,11 @@ func clusterBootstrapClusterIngress02ConfigYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapClusterIngresscontrollers02ConfigYaml = []byte(`apiVersion: config.openshift.io/v1
-kind: IngressControllers
+var _clusterBootstrapClusterIngresscontrollers02ConfigYaml = []byte(`apiVersion: operator.openshift.io/v1
+kind: IngressController
 metadata:
-  creationTimestamp: null
-  name: cluster
+  name: default
+  namespace: openshift-ingress-operator
 spec:
   nodePlacement:
     tolerations:
