@@ -55,6 +55,9 @@ spec:
         - "--authentication-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "-v=2"
+        {{ range $featureGate := .DefaultFeatureGates }}- "--feature-gates={{ $featureGate }}"
+        {{ end }}{{ range $featureGate := .ExtraFeatureGates }}- "--feature-gates={{ $featureGate }}"
+        {{ end }}
 {{ if .KubeSchedulerResources }}
         resources:{{ range .KubeSchedulerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
