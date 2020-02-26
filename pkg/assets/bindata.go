@@ -1822,14 +1822,14 @@ spec:
           httpGet:
             scheme: HTTPS
             port: {{ .InternalAPIPort }}
-            path: healthz
+            path: livez
           initialDelaySeconds: 45
           timeoutSeconds: 10
         readinessProbe:
           httpGet:
             scheme: HTTPS
             port: {{ .InternalAPIPort }}
-            path: healthz
+            path: readyz
           initialDelaySeconds: 10
           timeoutSeconds: 10
 {{ if .KubeAPIServerResources }}
