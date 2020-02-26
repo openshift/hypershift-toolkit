@@ -144,3 +144,4 @@ openVPNServerResources:
 apiServerAuditEnabled: true
 restartDate: "2017-07-27T16:39:00Z"
 extraFeatureGates: [ExpandInUsePersistentVolumes=true]
+apiserverLivenessPath: livez?exclude=etcd
