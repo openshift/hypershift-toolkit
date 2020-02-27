@@ -927,7 +927,7 @@ kind: EtcdCluster
 metadata:
   name: etcd
 spec:
-  size: 3
+  size: 1
   version: "3.2.13"
   TLS:
     static:
