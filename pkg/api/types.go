@@ -45,6 +45,7 @@ type ClusterParams struct {
 	APIServerAuditEnabled               bool                   `json:"apiServerAuditEnabled"`
 	RestartDate                         string                 `json:"restartDate"`
 	ExtraFeatureGates                   []string               `json:"extraFeatureGates"`
+	ApiserverLivenessPath               string                 `json:"apiserverLivenessPath"`
 	DefaultFeatureGates                 []string
 }
 
