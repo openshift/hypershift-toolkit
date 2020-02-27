@@ -9,6 +9,7 @@ require (
 	github.com/aws/aws-sdk-go v1.16.26
 	github.com/coreos/ignition v0.34.0
 	github.com/ghodss/yaml v1.0.0
+	github.com/go-logr/logr v0.1.0
 	github.com/google/uuid v1.1.1
 	github.com/jteeuwen/go-bindata v0.0.0-00010101000000-000000000000
 	github.com/openshift/api v0.0.0-20190916204813-cdbe64fb0c91
@@ -25,6 +26,7 @@ require (
 	k8s.io/cli-runtime v0.0.0
 	k8s.io/client-go v0.0.0
 	k8s.io/kubectl v0.0.0
+	sigs.k8s.io/controller-runtime v0.4.0
 )
 
 replace (
