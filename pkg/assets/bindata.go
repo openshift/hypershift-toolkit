@@ -1820,7 +1820,11 @@ spec:
           httpGet:
             scheme: HTTPS
             port: {{ .InternalAPIPort }}
+{{ if .ApiserverLivenessPath }}
+            path: "{{ .ApiserverLivenessPath }}"
+{{ else }}
             path: livez
+{{ end }}
           initialDelaySeconds: 45
           timeoutSeconds: 10
         readinessProbe:
