@@ -467,13 +467,9 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 	if err != nil {
 		return fmt.Errorf("failed to create a temporary directory for excluded manifests")
 	}
-	initialExclude := append(excludeManifests, "etcd-cluster.yaml")
-	if err = applyManifests(cfg, name, manifestsDir, initialExclude, excludedDir); err != nil {
+	log.Infof("Excluded manifests directory: %s", excludedDir)
+	if err = applyManifests(cfg, name, manifestsDir, excludeManifests, excludedDir); err != nil {
 		return fmt.Errorf("failed to apply manifests: %v", err)
-	}
-	time.Sleep(30 * time.Second)
-	if err = applyManifests(cfg, name, excludedDir, excludeManifests, manifestsDir); err != nil {
-		return fmt.Errorf("failed to apply etcd cluster manifest")
 	}
 	log.Infof("Cluster resources applied")
 
