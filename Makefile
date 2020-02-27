@@ -1,4 +1,3 @@
-BINDIR = bin
 SRC_DIRS = cmd pkg
 
 
@@ -6,7 +5,7 @@ SRC_DIRS = cmd pkg
 default: build
 
 .PHONY: build
-build:  bindata
+build:  bindata control-plane-operator
 	go build -o bin/hypershift github.com/openshift/hypershift-toolkit/cmd/hypershift
 
 .PHONY: hypershift-aws
@@ -32,3 +31,8 @@ verify-gofmt:
 
 .PHONY: verify
 verify: verify-gofmt verify-bindata
+
+# Build manager binary
+.PHONY: control-plane-operator
+control-plane-operator:
+	go build -o bin/control-plane-operator github.com/openshift/hypershift-toolkit/cmd/control-plane-operator
