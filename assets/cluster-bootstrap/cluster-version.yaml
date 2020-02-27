@@ -4,3 +4,4 @@ metadata:
   name: version
   spec:
     channel: stable-4.3
+
