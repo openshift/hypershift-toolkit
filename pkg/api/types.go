@@ -47,6 +47,7 @@ type ClusterParams struct {
 	ExtraFeatureGates                   []string               `json:"extraFeatureGates"`
 	ApiserverLivenessPath               string                 `json:"apiserverLivenessPath"`
 	DefaultFeatureGates                 []string
+	PlatformType                        string `json:"platformType"`
 }
 
 type NamedCert struct {
