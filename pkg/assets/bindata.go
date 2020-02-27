@@ -566,10 +566,8 @@ metadata:
 spec:
   nodePlacement:
     tolerations:
-      - key: "dedicated"
-        operator: "Equal"
-        value: "edge"
-        effect: NoSchedule
+    - key: dedicated
+      value: edge
 status: {}
 `)
 
