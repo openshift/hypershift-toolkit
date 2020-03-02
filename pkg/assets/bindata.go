@@ -289,6 +289,8 @@ spec:
       - image: {{ imageFor "cli" }}
         imagePullPolicy: IfNotPresent
         name: ca-operator
+        securityContext:
+          runAsUser: 1001
         command:
         - /bin/bash
         args:
