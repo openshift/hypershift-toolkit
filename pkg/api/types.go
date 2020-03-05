@@ -36,7 +36,7 @@ type ClusterParams struct {
 	KubeControllerManagerResources      []ResourceRequirements `json:"kubeControllerManagerResources"`
 	OpenshiftAPIServerResources         []ResourceRequirements `json:"openshiftAPIServerResources"`
 	KubeSchedulerResources              []ResourceRequirements `json:"kubeSchedulerResources"`
-	CAOperatorResources                 []ResourceRequirements `json:"cAOperatorResources"`
+	ControlPlaneOperatorResources       []ResourceRequirements `json:"controlPlaneOperatorResources"`
 	OAuthServerResources                []ResourceRequirements `json:"oAuthServerResources"`
 	ClusterPolicyControllerResources    []ResourceRequirements `json:"clusterPolicyControllerResources"`
 	AutoApproverResources               []ResourceRequirements `json:"autoApproverResources"`
@@ -44,6 +44,8 @@ type ClusterParams struct {
 	OpenVPNServerResources              []ResourceRequirements `json:"openVPNServerResources"`
 	APIServerAuditEnabled               bool                   `json:"apiServerAuditEnabled"`
 	RestartDate                         string                 `json:"restartDate"`
+	ControlPlaneOperatorImage           string                 `json:"controlPlaneOperatorImage"`
+	ControlPlaneOperatorControllers     []string               `json:"controlPlaneOperatorControllers"`
 	ExtraFeatureGates                   []string               `json:"extraFeatureGates"`
 	ApiserverLivenessPath               string                 `json:"apiserverLivenessPath"`
 	DefaultFeatureGates                 []string
