@@ -13,6 +13,7 @@
 // assets/cluster-bootstrap/cluster-network-02-config.yaml
 // assets/cluster-bootstrap/cluster-proxy-01-config.yaml
 // assets/cluster-bootstrap/cluster-version-namespace.yaml
+// assets/cluster-bootstrap/cluster-version.yaml
 // assets/cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml
 // assets/cluster-bootstrap/router-default-svc-config.yaml
 // assets/cluster-version-operator/cluster-version-operator-deployment.yaml
@@ -699,6 +700,29 @@ func clusterBootstrapClusterVersionNamespaceYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "cluster-bootstrap/cluster-version-namespace.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _clusterBootstrapClusterVersionYaml = []byte(`apiVersion: config.openshift.io/v1
+kind: ClusterVersion
+metadata:
+  name: version
+spec:
+  channel: stable-4.3
+`)
+
+func clusterBootstrapClusterVersionYamlBytes() ([]byte, error) {
+	return _clusterBootstrapClusterVersionYaml, nil
+}
+
+func clusterBootstrapClusterVersionYaml() (*asset, error) {
+	bytes, err := clusterBootstrapClusterVersionYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-bootstrap/cluster-version.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -4379,6 +4403,7 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/cluster-network-02-config.yaml":                                clusterBootstrapClusterNetwork02ConfigYaml,
 	"cluster-bootstrap/cluster-proxy-01-config.yaml":                                  clusterBootstrapClusterProxy01ConfigYaml,
 	"cluster-bootstrap/cluster-version-namespace.yaml":                                clusterBootstrapClusterVersionNamespaceYaml,
+	"cluster-bootstrap/cluster-version.yaml":                                          clusterBootstrapClusterVersionYaml,
 	"cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml":                     clusterBootstrapNodeBootstrapperClusterrolebindingYaml,
 	"cluster-bootstrap/router-default-svc-config.yaml":                                clusterBootstrapRouterDefaultSvcConfigYaml,
 	"cluster-version-operator/cluster-version-operator-deployment.yaml":               clusterVersionOperatorClusterVersionOperatorDeploymentYaml,
@@ -4519,6 +4544,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"cluster-network-02-config.yaml":              {clusterBootstrapClusterNetwork02ConfigYaml, map[string]*bintree{}},
 		"cluster-proxy-01-config.yaml":                {clusterBootstrapClusterProxy01ConfigYaml, map[string]*bintree{}},
 		"cluster-version-namespace.yaml":              {clusterBootstrapClusterVersionNamespaceYaml, map[string]*bintree{}},
+		"cluster-version.yaml":                        {clusterBootstrapClusterVersionYaml, map[string]*bintree{}},
 		"node-bootstrapper-clusterrolebinding.yaml":   {clusterBootstrapNodeBootstrapperClusterrolebindingYaml, map[string]*bintree{}},
 		"router-default-svc-config.yaml":              {clusterBootstrapRouterDefaultSvcConfigYaml, map[string]*bintree{}},
 	}},
