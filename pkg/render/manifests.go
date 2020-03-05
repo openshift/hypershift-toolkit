@@ -13,11 +13,11 @@ import (
 
 // RenderClusterManifests renders manifests for a hosted control plane cluster
 func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, etcd bool, vpn bool, externalOauth bool, includeRegistry bool) error {
-	images, err := release.GetReleaseImagePullRefs(params.ReleaseImage, params.OriginReleasePrefix, pullSecretFile)
+	releaseInfo, err := release.GetReleaseInfo(params.ReleaseImage, params.OriginReleasePrefix, pullSecretFile)
 	if err != nil {
 		return err
 	}
-	ctx := newClusterManifestContext(images, params, outputDir, vpn)
+	ctx := newClusterManifestContext(releaseInfo.Images, releaseInfo.Versions, params, outputDir, vpn)
 	ctx.setupManifests(etcd, vpn, externalOauth, includeRegistry)
 	return ctx.renderManifests()
 }
@@ -28,12 +28,13 @@ type clusterManifestContext struct {
 	userManifests     map[string]string
 }
 
-func newClusterManifestContext(images map[string]string, params interface{}, outputDir string, includeVPN bool) *clusterManifestContext {
+func newClusterManifestContext(images, versions map[string]string, params interface{}, outputDir string, includeVPN bool) *clusterManifestContext {
 	ctx := &clusterManifestContext{
 		renderContext: newRenderContext(params, outputDir),
 		userManifests: make(map[string]string),
 	}
 	ctx.setFuncs(template.FuncMap{
+		"version":           versionFunc(versions),
 		"imageFor":          imageFunc(images),
 		"base64String":      base64StringEncode,
 		"indent":            indent,

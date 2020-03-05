@@ -16,13 +16,14 @@ import (
 
 type ControllerSetupFunc func(*ControlPlaneOperatorConfig) error
 
-func NewControlPlaneOperatorConfig(targetKubeconfig, namespace string, initialCA []byte, controllers []string, controllerFuncs map[string]ControllerSetupFunc) *ControlPlaneOperatorConfig {
+func NewControlPlaneOperatorConfig(targetKubeconfig, namespace string, initialCA []byte, versions map[string]string, controllers []string, controllerFuncs map[string]ControllerSetupFunc) *ControlPlaneOperatorConfig {
 	return &ControlPlaneOperatorConfig{
 		targetKubeconfig: targetKubeconfig,
 		namespace:        namespace,
 		initialCA:        initialCA,
 		controllers:      controllers,
 		controllerFuncs:  controllerFuncs,
+		versions:         versions,
 	}
 }
 
@@ -34,6 +35,7 @@ type ControlPlaneOperatorConfig struct {
 	logger           logr.Logger
 	scheme           *runtime.Scheme
 
+	versions         map[string]string
 	targetKubeconfig string
 	namespace        string
 	initialCA        []byte
@@ -106,6 +108,10 @@ func (c *ControlPlaneOperatorConfig) TargetKubeClient() kubeclient.Interface {
 		}
 	}
 	return c.targetKubeClient
+}
+
+func (c *ControlPlaneOperatorConfig) Versions() map[string]string {
+	return c.versions
 }
 
 func (c *ControlPlaneOperatorConfig) Fatal(err error, msg string) {
