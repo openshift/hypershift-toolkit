@@ -709,8 +709,8 @@ var _clusterBootstrapClusterVersionYaml = []byte(`apiVersion: config.openshift.i
 kind: ClusterVersion
 metadata:
   name: version
-  spec:
-    channel: stable-4.4
+spec:
+  channel: stable-4.3
 `)
 
 func clusterBootstrapClusterVersionYamlBytes() ([]byte, error) {
