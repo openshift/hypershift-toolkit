@@ -41,7 +41,7 @@ func (a *AutoApprover) approveCSR(csr *certsv1beta1.CertificateSigningRequest) e
 		Message:        "This CSR was automatically approved.",
 		LastUpdateTime: metav1.Now(),
 	})
-	_, err := a.KubeClient.CertificatesV1beta1().CertificateSigningRequests().Update(csr)
+	_, err := a.KubeClient.CertificatesV1beta1().CertificateSigningRequests().UpdateApproval(csr)
 	return err
 }
 
