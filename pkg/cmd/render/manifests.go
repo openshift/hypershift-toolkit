@@ -19,11 +19,10 @@ type RenderManifestsOptions struct {
 	PullSecretFile string
 	PKIDir         string
 
-	IncludeSecrets      bool
-	IncludeEtcd         bool
-	IncludeAutoApprover bool
-	IncludeVPN          bool
-	IncludeRegistry     bool
+	IncludeSecrets  bool
+	IncludeEtcd     bool
+	IncludeVPN      bool
+	IncludeRegistry bool
 }
 
 func NewRenderManifestsCommand() *cobra.Command {
@@ -42,7 +41,6 @@ func NewRenderManifestsCommand() *cobra.Command {
 	cmd.Flags().StringVar(&opt.PKIDir, "pki-dir", defaultPKIDir(), "Specify the directory where the input PKI files have been placed")
 	cmd.Flags().BoolVar(&opt.IncludeSecrets, "include-secrets", false, "If true, PKI secrets will be included in rendered manifests")
 	cmd.Flags().BoolVar(&opt.IncludeEtcd, "include-etcd", false, "If true, Etcd manifests will be included in rendered manifests")
-	cmd.Flags().BoolVar(&opt.IncludeAutoApprover, "include-autoapprover", false, "If true, includes a simple autoapprover pod in manifests")
 	cmd.Flags().BoolVar(&opt.IncludeVPN, "include-vpn", false, "If true, includes a VPN server, sidecar and client")
 	cmd.Flags().BoolVar(&opt.IncludeRegistry, "include-registry", false, "If true, includes a default registry config to deploy into the user cluster")
 	return cmd
@@ -63,7 +61,7 @@ func (o *RenderManifestsOptions) Run() error {
 		}
 		params.OpenshiftAPIServerCABundle = base64.StdEncoding.EncodeToString(caBytes)
 	}
-	err = render.RenderClusterManifests(params, o.PullSecretFile, o.OutputDir, o.IncludeEtcd, o.IncludeAutoApprover, o.IncludeVPN, externalOauth, o.IncludeRegistry)
+	err = render.RenderClusterManifests(params, o.PullSecretFile, o.OutputDir, o.IncludeEtcd, o.IncludeVPN, externalOauth, o.IncludeRegistry)
 	if err != nil {
 		return err
 	}

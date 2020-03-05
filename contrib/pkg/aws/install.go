@@ -49,6 +49,8 @@ const (
 	routerNodePortHTTPS   = 31443
 	externalOauthPort     = 8443
 	workerMachineSetCount = 3
+
+	defaultControlPlaneOperatorImage = "registry.svc.ci.openshift.org/hypershift-toolkit/hypershift-4.4:control-plane-operator"
 )
 
 var (
@@ -385,6 +387,17 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 	params.RouterNodePortHTTPS = fmt.Sprintf("%d", routerNodePortHTTPS)
 	params.RouterServiceType = "NodePort"
 	params.Replicas = "1"
+	params.ControlPlaneOperatorControllers = []string{
+		"controller-manager-ca",
+		"auto-approver",
+		"kubeadmin-password",
+	}
+	cpOperatorImage := os.Getenv("CONTROL_PLANE_OPERATOR_IMAGE_OVERRIDE")
+	if cpOperatorImage == "" {
+		params.ControlPlaneOperatorImage = defaultControlPlaneOperatorImage
+	} else {
+		params.ControlPlaneOperatorImage = cpOperatorImage
+	}
 
 	workingDir, err := ioutil.TempDir("", "")
 	if err != nil {
@@ -430,7 +443,7 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 		return fmt.Errorf("failed to render PKI secrets: %v", err)
 	}
 	params.OpenshiftAPIServerCABundle = base64.StdEncoding.EncodeToString(caBytes)
-	if err = render.RenderClusterManifests(params, pullSecretFile, manifestsDir, true, true, true, true, true); err != nil {
+	if err = render.RenderClusterManifests(params, pullSecretFile, manifestsDir, true, true, true, true); err != nil {
 		return fmt.Errorf("failed to render manifests for cluster: %v", err)
 	}
 
@@ -485,12 +498,6 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 			return fmt.Errorf("failed to wait for bootstrap pod to complete: %v", err)
 		}
 		log.Infof("Bootstrap pod has completed.")
-
-		// Force the oauth server to restart so it can pick up the kubeadmin password
-		if err = updateOAuthDeployment(client, name); err != nil {
-			return fmt.Errorf("failed to update OAuth server deployment: %v", err)
-		}
-		log.Infof("OAuth server deployment updated.")
 
 		targetClusterCfg, err := getTargetClusterConfig(pkiDir)
 		if err != nil {

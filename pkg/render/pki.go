@@ -37,7 +37,7 @@ func (c *pkiRenderContext) setupManifests(etcd bool, vpn bool, externalOauth boo
 	c.kubeControllerManager()
 	c.openshiftAPIServer()
 	c.openshiftControllerManager()
-	c.caOperator()
+	c.controlPlaneOperator()
 	if vpn {
 		c.openVPN()
 	}
@@ -107,9 +107,9 @@ func (c *pkiRenderContext) openshiftControllerManager() {
 	)
 }
 
-func (c *pkiRenderContext) caOperator() {
+func (c *pkiRenderContext) controlPlaneOperator() {
 	c.addManifestFiles(
-		"ca-operator/ca-operator-configmap.yaml",
+		"control-plane-operator/cp-operator-configmap.yaml",
 	)
 }
 
