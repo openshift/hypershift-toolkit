@@ -709,7 +709,7 @@ kind: ClusterVersion
 metadata:
   name: version
 spec:
-  channel: stable-4.3
+  channel: fast-4.3
 `)
 
 func clusterBootstrapClusterVersionYamlBytes() ([]byte, error) {
