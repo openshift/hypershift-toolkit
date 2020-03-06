@@ -12,13 +12,13 @@ import (
 )
 
 // RenderClusterManifests renders manifests for a hosted control plane cluster
-func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, etcd bool, autoApprover bool, vpn bool, externalOauth bool, includeRegistry bool) error {
+func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, etcd bool, vpn bool, externalOauth bool, includeRegistry bool) error {
 	images, err := release.GetReleaseImagePullRefs(params.ReleaseImage, params.OriginReleasePrefix, pullSecretFile)
 	if err != nil {
 		return err
 	}
 	ctx := newClusterManifestContext(images, params, outputDir, vpn)
-	ctx.setupManifests(etcd, autoApprover, vpn, externalOauth, includeRegistry)
+	ctx.setupManifests(etcd, vpn, externalOauth, includeRegistry)
 	return ctx.renderManifests()
 }
 
@@ -48,7 +48,7 @@ func newClusterManifestContext(images map[string]string, params interface{}, out
 	return ctx
 }
 
-func (c *clusterManifestContext) setupManifests(etcd bool, autoApprover bool, vpn bool, externalOauth bool, includeRegistry bool) {
+func (c *clusterManifestContext) setupManifests(etcd bool, vpn bool, externalOauth bool, includeRegistry bool) {
 	if etcd {
 		c.etcd()
 	}
@@ -65,14 +65,11 @@ func (c *clusterManifestContext) setupManifests(etcd bool, autoApprover bool, vp
 		c.openVPN()
 	}
 	c.clusterVersionOperator()
-	if autoApprover {
-		c.autoApprover()
-	}
 	if includeRegistry {
 		c.registry()
 	}
 	c.userManifestsBootstrapper()
-	c.caOperator()
+	c.controlPlaneOperator()
 }
 
 func (c *clusterManifestContext) etcd() {
@@ -190,9 +187,9 @@ func (c *clusterManifestContext) openshiftControllerManager() {
 	)
 }
 
-func (c *clusterManifestContext) caOperator() {
+func (c *clusterManifestContext) controlPlaneOperator() {
 	c.addManifestFiles(
-		"ca-operator/ca-operator-deployment.yaml",
+		"control-plane-operator/cp-operator-deployment.yaml",
 	)
 }
 
@@ -212,12 +209,6 @@ func (c *clusterManifestContext) openVPN() {
 func (c *clusterManifestContext) clusterVersionOperator() {
 	c.addManifestFiles(
 		"cluster-version-operator/cluster-version-operator-deployment.yaml",
-	)
-}
-
-func (c *clusterManifestContext) autoApprover() {
-	c.addManifestFiles(
-		"auto-approver/auto-approver-deployment.yaml",
 	)
 }
 
