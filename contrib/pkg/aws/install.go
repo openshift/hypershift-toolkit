@@ -391,6 +391,7 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 		"controller-manager-ca",
 		"auto-approver",
 		"kubeadmin-password",
+		"cluster-operator",
 	}
 	cpOperatorImage := os.Getenv("CONTROL_PLANE_OPERATOR_IMAGE_OVERRIDE")
 	if cpOperatorImage == "" {

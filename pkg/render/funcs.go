@@ -26,6 +26,12 @@ func imageFunc(images map[string]string) func(string) string {
 	}
 }
 
+func versionFunc(versions map[string]string) func(string) string {
+	return func(component string) string {
+		return versions[component]
+	}
+}
+
 func pkiFunc(pkiDir string) func(string) string {
 	return func(fileName string) string {
 		file := filepath.Join(pkiDir, fileName)

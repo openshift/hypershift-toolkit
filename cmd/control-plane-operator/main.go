@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -13,8 +14,14 @@ import (
 
 	"github.com/openshift/hypershift-toolkit/pkg/cmd/cpoperator"
 	"github.com/openshift/hypershift-toolkit/pkg/controllers/autoapprover"
+	"github.com/openshift/hypershift-toolkit/pkg/controllers/clusteroperator"
 	"github.com/openshift/hypershift-toolkit/pkg/controllers/cmca"
 	"github.com/openshift/hypershift-toolkit/pkg/controllers/kubeadminpwd"
+)
+
+const (
+	defaultReleaseVersion    = "0.0.1-snapshot"
+	defaultKubernetesVersion = "0.0.1-snapshot-kubernetes"
 )
 
 func main() {
@@ -27,6 +34,7 @@ func main() {
 
 var controllerFuncs = map[string]cpoperator.ControllerSetupFunc{
 	"controller-manager-ca": cmca.Setup,
+	"cluster-operator":      clusteroperator.Setup,
 	"auto-approver":         autoapprover.Setup,
 	"kubeadmin-password":    kubeadminpwd.Setup,
 }
@@ -43,6 +51,12 @@ type ControlPlaneOperator struct {
 
 	// Controllers is the list of controllers that the operator should start
 	Controllers []string
+
+	// ReleaseVersion is the OpenShift version for the release
+	ReleaseVersion string
+
+	// KubernetesVersion is the kubernetes version included in the release
+	KubernetesVersion string
 
 	initialCA []byte
 }
@@ -75,6 +89,7 @@ func newControlPlaneOperator() *ControlPlaneOperator {
 	return &ControlPlaneOperator{
 		Controllers: []string{
 			"controller-manager-ca",
+			"cluster-operator",
 		},
 	}
 }
@@ -97,14 +112,27 @@ func (o *ControlPlaneOperator) Complete() error {
 			return err
 		}
 	}
+	o.ReleaseVersion = os.Getenv("OPENSHIFT_RELEASE_VERSION")
+	if o.ReleaseVersion == "" {
+		o.ReleaseVersion = defaultReleaseVersion
+	}
+	o.KubernetesVersion = os.Getenv("KUBERNETES_VERSION")
+	if o.KubernetesVersion == "" {
+		o.KubernetesVersion = defaultKubernetesVersion
+	}
 	return nil
 }
 
 func (o *ControlPlaneOperator) Run() error {
+	versions := map[string]string{
+		"release":    o.ReleaseVersion,
+		"kubernetes": o.KubernetesVersion,
+	}
 	cfg := cpoperator.NewControlPlaneOperatorConfig(
 		o.TargetKubeconfig,
 		o.Namespace,
 		o.initialCA,
+		versions,
 		o.Controllers,
 		controllerFuncs,
 	)
