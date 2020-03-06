@@ -50,7 +50,7 @@ const (
 	externalOauthPort     = 8443
 	workerMachineSetCount = 3
 
-	defaultControlPlaneOperatorImage = "registry.svc.ci.openshift.org/hypershift-toolkit/hypershift-4.4:control-plane-operator"
+	defaultControlPlaneOperatorImage = "registry.svc.ci.openshift.org/hypershift-toolkit/hypershift-4.3:control-plane-operator"
 )
 
 var (
