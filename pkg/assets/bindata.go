@@ -11,7 +11,6 @@
 // assets/cluster-bootstrap/cluster-proxy-01-config.yaml
 // assets/cluster-bootstrap/cluster-version-namespace.yaml
 // assets/cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml
-// assets/cluster-bootstrap/router-default-svc-config.yaml
 // assets/cluster-version-operator/cluster-version-operator-deployment.yaml
 // assets/common/service-network-admin-kubeconfig-secret.yaml
 // assets/control-plane-operator/cp-operator-configmap.yaml
@@ -472,47 +471,6 @@ func clusterBootstrapNodeBootstrapperClusterrolebindingYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _clusterBootstrapRouterDefaultSvcConfigYaml = []byte(`apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: router
-    router: router-default
-  name: router-default
-  namespace: openshift-ingress
-spec:
-  ports:
-  - name: http
-    nodePort: {{ .RouterNodePortHTTP }}
-    port: 80
-    protocol: TCP
-    targetPort: http
-  - name: https
-    nodePort: {{ .RouterNodePortHTTPS }}
-    port: 443
-    protocol: TCP
-    targetPort: https
-  selector:
-    ingresscontroller.operator.openshift.io/deployment-ingresscontroller: default
-  sessionAffinity: None
-  type: {{ .RouterServiceType }}
-`)
-
-func clusterBootstrapRouterDefaultSvcConfigYamlBytes() ([]byte, error) {
-	return _clusterBootstrapRouterDefaultSvcConfigYaml, nil
-}
-
-func clusterBootstrapRouterDefaultSvcConfigYaml() (*asset, error) {
-	bytes, err := clusterBootstrapRouterDefaultSvcConfigYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "cluster-bootstrap/router-default-svc-config.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -4269,7 +4227,6 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/cluster-proxy-01-config.yaml":                                  clusterBootstrapClusterProxy01ConfigYaml,
 	"cluster-bootstrap/cluster-version-namespace.yaml":                                clusterBootstrapClusterVersionNamespaceYaml,
 	"cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml":                     clusterBootstrapNodeBootstrapperClusterrolebindingYaml,
-	"cluster-bootstrap/router-default-svc-config.yaml":                                clusterBootstrapRouterDefaultSvcConfigYaml,
 	"cluster-version-operator/cluster-version-operator-deployment.yaml":               clusterVersionOperatorClusterVersionOperatorDeploymentYaml,
 	"common/service-network-admin-kubeconfig-secret.yaml":                             commonServiceNetworkAdminKubeconfigSecretYaml,
 	"control-plane-operator/cp-operator-configmap.yaml":                               controlPlaneOperatorCpOperatorConfigmapYaml,
@@ -4404,7 +4361,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"cluster-proxy-01-config.yaml":                {clusterBootstrapClusterProxy01ConfigYaml, map[string]*bintree{}},
 		"cluster-version-namespace.yaml":              {clusterBootstrapClusterVersionNamespaceYaml, map[string]*bintree{}},
 		"node-bootstrapper-clusterrolebinding.yaml":   {clusterBootstrapNodeBootstrapperClusterrolebindingYaml, map[string]*bintree{}},
-		"router-default-svc-config.yaml":              {clusterBootstrapRouterDefaultSvcConfigYaml, map[string]*bintree{}},
 	}},
 	"cluster-version-operator": {nil, map[string]*bintree{
 		"cluster-version-operator-deployment.yaml": {clusterVersionOperatorClusterVersionOperatorDeploymentYaml, map[string]*bintree{}},
