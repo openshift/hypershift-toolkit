@@ -56,6 +56,7 @@ func setupControllerManagerCAUpdater(cfg *cpoperator.ControlPlaneOperatorConfig)
 		Client:    cfg.Manager().GetClient(),
 		Namespace: cfg.Namespace(),
 		Log:       cfg.Logger().WithName("ControllerManagerCAUpdater"),
+		InitialCA: cfg.InitialCA(),
 	}
 	c, err := controller.New("controller-manager-ca-updater", cfg.Manager(), controller.Options{Reconciler: reconciler})
 	if err != nil {
