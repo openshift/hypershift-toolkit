@@ -80,7 +80,7 @@ func newControlPlaneOperatorCommand() *cobra.Command {
 	flags.AddGoFlagSet(flag.CommandLine)
 	flags.StringVar(&cpo.Namespace, "namespace", cpo.Namespace, "Namespace for control plane components on management cluster")
 	flags.StringVar(&cpo.TargetKubeconfig, "target-kubeconfig", cpo.TargetKubeconfig, "Kubeconfig for target cluster")
-	flags.StringVar(&cpo.TargetKubeconfig, "initial-ca-file", cpo.TargetKubeconfig, "Path to controller manager initial CA file")
+	flags.StringVar(&cpo.InitialCAFile, "initial-ca-file", cpo.InitialCAFile, "Path to controller manager initial CA file")
 	flags.StringSliceVar(&cpo.Controllers, "controllers", cpo.Controllers, "Controllers to run with this operator")
 	return cmd
 }
