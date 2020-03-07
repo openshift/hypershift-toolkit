@@ -114,6 +114,10 @@ func (c *ControlPlaneOperatorConfig) Versions() map[string]string {
 	return c.versions
 }
 
+func (c *ControlPlaneOperatorConfig) InitialCA() string {
+	return string(c.initialCA)
+}
+
 func (c *ControlPlaneOperatorConfig) Fatal(err error, msg string) {
 	c.Logger().Error(err, msg)
 	os.Exit(1)
