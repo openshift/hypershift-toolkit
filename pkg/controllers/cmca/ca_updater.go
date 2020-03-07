@@ -100,6 +100,10 @@ func (r *ControllerManagerCAUpdater) Reconcile(req ctrl.Request) (ctrl.Result, e
 		return ctrl.Result{}, err
 	}
 	r.Log.Info("Updating controller manager deployment checksum annotation")
+
+	if cmDeployment.Spec.Template.ObjectMeta.Annotations == nil {
+		cmDeployment.Spec.Template.ObjectMeta.Annotations = map[string]string{}
+	}
 	cmDeployment.Spec.Template.ObjectMeta.Annotations["ca-checksum"] = hash
 	if err = r.Update(ctx, cmDeployment); err != nil {
 		return ctrl.Result{}, err
