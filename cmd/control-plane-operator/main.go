@@ -18,6 +18,7 @@ import (
 	"github.com/openshift/hypershift-toolkit/pkg/controllers/clusterversion"
 	"github.com/openshift/hypershift-toolkit/pkg/controllers/cmca"
 	"github.com/openshift/hypershift-toolkit/pkg/controllers/kubeadminpwd"
+	"github.com/openshift/hypershift-toolkit/pkg/controllers/kubelet_serving_ca"
 )
 
 const (
@@ -39,6 +40,7 @@ var controllerFuncs = map[string]cpoperator.ControllerSetupFunc{
 	"auto-approver":         autoapprover.Setup,
 	"kubeadmin-password":    kubeadminpwd.Setup,
 	"cluster-version":       clusterversion.Setup,
+	"kubelet-serving-ca":    kubelet_serving_ca.Setup,
 }
 
 type ControlPlaneOperator struct {
@@ -93,6 +95,7 @@ func newControlPlaneOperator() *ControlPlaneOperator {
 			"controller-manager-ca",
 			"cluster-operator",
 			"cluster-version",
+			"kubelet-serving-ca",
 		},
 	}
 }
