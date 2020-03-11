@@ -10,23 +10,43 @@ require (
 	github.com/coreos/ignition v0.34.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-logr/logr v0.1.0
+	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
+	github.com/golang/protobuf v1.3.4 // indirect
+	github.com/google/go-cmp v0.4.0 // indirect
 	github.com/google/uuid v1.1.1
-	github.com/jteeuwen/go-bindata v0.0.0-00010101000000-000000000000
-	github.com/openshift/api v0.0.0-20190916204813-cdbe64fb0c91
-	github.com/openshift/client-go v0.0.0-20190813201236-5a5508328169
+	github.com/googleapis/gnostic v0.4.1 // indirect
+	github.com/hashicorp/golang-lru v0.5.4 // indirect
+	github.com/imdario/mergo v0.3.8 // indirect
+	github.com/json-iterator/go v1.1.9 // indirect
+	github.com/jteeuwen/go-bindata v3.0.8-0.20151023091102-a0ff2567cfb7+incompatible
+	github.com/openshift/api v0.0.0-20200210091934-a0e53e94816b
+	github.com/openshift/client-go v0.0.0-20200116152001-92a2713fa240
+	github.com/openshift/cluster-openshift-apiserver-operator v0.0.0-alpha.0.0.20200306204134-7d51dd65fcdb
+	github.com/openshift/library-go v0.0.0-20200311103712-5283c018e9f5
 	github.com/openshift/oc v0.0.0-00010101000000-000000000000
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
 	github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50
 	go4.org v0.0.0-20191010144846-132d2879e1e9 // indirect
-	golang.org/x/crypto v0.0.0-20190611184440-5c40567a22f8
-	k8s.io/api v0.0.0
-	k8s.io/apimachinery v0.0.0
+	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
+	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
+	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527 // indirect
+	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
+	google.golang.org/appengine v1.6.5 // indirect
+	k8s.io/api v0.17.3
+	k8s.io/apiextensions-apiserver v0.17.3 // indirect
+	k8s.io/apimachinery v0.17.3
+	k8s.io/apiserver v0.17.3 // indirect
 	k8s.io/cli-runtime v0.0.0
-	k8s.io/client-go v0.0.0
+	k8s.io/client-go v11.0.0+incompatible
+	k8s.io/kube-aggregator v0.17.3 // indirect
+	k8s.io/kube-openapi v0.0.0-20200204173128-addea2498afe // indirect
 	k8s.io/kubectl v0.0.0
+	k8s.io/utils v0.0.0-20200229041039-0a110f9eb7ab // indirect
 	sigs.k8s.io/controller-runtime v0.4.0
+	sigs.k8s.io/yaml v1.2.0
 )
 
 replace (
@@ -38,7 +58,6 @@ replace (
 	github.com/golang/glog => github.com/openshift/golang-glog v0.0.0-20190322123450-3c92600d7533
 	github.com/jteeuwen/go-bindata => github.com/jteeuwen/go-bindata v3.0.8-0.20151023091102-a0ff2567cfb7+incompatible
 	github.com/onsi/ginkgo => github.com/openshift/onsi-ginkgo v1.2.1-0.20190125161613-53ca7dc85f60
-	github.com/openshift/api => github.com/openshift/api v3.9.1-0.20190927132434-86c3b775619d+incompatible
 	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20190923180330-3b6373338c9b
 	github.com/openshift/oc => github.com/openshift/oc v0.0.0-alpha.0.0.20191024120018-118066a57f62
 	github.com/prometheus/client_golang => github.com/prometheus/client_golang v0.9.2
