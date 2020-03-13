@@ -1,20 +1,24 @@
 package cmca
 
 import (
+	"bytes"
 	"context"
+	"crypto/md5"
+	"fmt"
 
 	"github.com/go-logr/logr"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kubeclient "k8s.io/client-go/kubernetes"
 	corev1listers "k8s.io/client-go/listers/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
-	RouterCAConfigMap  = "router-ca"
-	ServiceCAConfigMap = "service-ca"
+	RouterCAConfigMap               = "router-ca"
+	ServiceCAConfigMap              = "service-ca"
+	destConfigMap                   = "kube-controller-manager"
+	kubeControllerManagerDeployment = "kube-controller-manager"
 )
 
 // ManagedCAObserver watches 2 CA configmaps in the target cluster:
@@ -26,7 +30,7 @@ const (
 type ManagedCAObserver struct {
 
 	// Client is a client that allows access to the management cluster
-	client.Client
+	Client kubeclient.Interface
 
 	// TargetCMLister is a lister for configmaps in the target cluster
 	TargetCMLister corev1listers.ConfigMapLister
@@ -34,6 +38,9 @@ type ManagedCAObserver struct {
 	// Namespace is the namespace where the control plane of the cluster
 	// lives on the management server
 	Namespace string
+
+	// InitialCA is the initial CA for the controller manager
+	InitialCA string
 
 	// Log is the logger for this controller
 	Log logr.Logger
@@ -50,52 +57,78 @@ func (r *ManagedCAObserver) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, nil
 	}
 
-	var err error
-	switch req.Name {
-	case RouterCAConfigMap:
-		err = r.syncConfigMap(ctx, controllerLog, req.NamespacedName, "ca-bundle.crt", "router-ca")
-	case ServiceCAConfigMap:
-		err = r.syncConfigMap(ctx, controllerLog, req.NamespacedName, "ca-bundle.crt", "service-ca")
+	controllerLog.Info("syncing configmap")
+
+	additionalCAs, err := r.getAdditionalCAs(ctx, controllerLog)
+	if err != nil {
+		return ctrl.Result{}, err
 	}
 
-	return ctrl.Result{}, err
+	ca := &bytes.Buffer{}
+	if _, err = fmt.Fprintf(ca, "%s", r.InitialCA); err != nil {
+		return ctrl.Result{}, err
+	}
+	for _, additionalCA := range additionalCAs {
+		ca.Write(additionalCA)
+	}
+
+	hash := calculateHash(ca.Bytes())
+	controllerLog.Info("Calculated controller manager hash", "hash", hash)
+
+	destinationCM, err := r.Client.CoreV1().ConfigMaps(r.Namespace).Get(destConfigMap, metav1.GetOptions{})
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	if destinationCM.Data["service-ca.crt"] != ca.String() {
+		destinationCM.Data["service-ca.crt"] = ca.String()
+		r.Log.Info("Updating controller manager configmap")
+		if _, err = r.Client.CoreV1().ConfigMaps(r.Namespace).Update(destinationCM); err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
+	cmDeployment, err := r.Client.AppsV1().Deployments(r.Namespace).Get(kubeControllerManagerDeployment, metav1.GetOptions{})
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	if cmDeployment.Spec.Template.ObjectMeta.Annotations != nil &&
+		cmDeployment.Spec.Template.ObjectMeta.Annotations["ca-checksum"] == hash {
+		return ctrl.Result{}, nil
+	}
+
+	r.Log.Info("Updating controller manager deployment checksum annotation")
+	if cmDeployment.Spec.Template.ObjectMeta.Annotations == nil {
+		cmDeployment.Spec.Template.ObjectMeta.Annotations = map[string]string{}
+	}
+	cmDeployment.Spec.Template.ObjectMeta.Annotations["ca-checksum"] = hash
+	if _, err = r.Client.AppsV1().Deployments(r.Namespace).Update(cmDeployment); err != nil {
+		return ctrl.Result{}, err
+	}
+	return ctrl.Result{}, nil
 }
 
-func (r *ManagedCAObserver) syncConfigMap(ctx context.Context, logger logr.Logger, configMapName types.NamespacedName, sourceKey, destKey string) error {
-	logger.Info("Syncing configmap")
-	caData := ""
-	sourceCM, err := r.TargetCMLister.ConfigMaps(configMapName.Namespace).Get(configMapName.Name)
-	if err != nil {
-		if !errors.IsNotFound(err) {
-			logger.Error(err, "Error fetching configmap")
-			return err
-		}
-	} else {
-		if !sourceCM.DeletionTimestamp.IsZero() {
-			caData = ""
-		} else {
-			caData = sourceCM.Data[sourceKey]
-		}
+func (r *ManagedCAObserver) getAdditionalCAs(ctx context.Context, logger logr.Logger) ([][]byte, error) {
+
+	additionalCAs := [][]byte{}
+
+	cm, err := r.TargetCMLister.ConfigMaps(ManagedConfigNamespace).Get(RouterCAConfigMap)
+	if err != nil && !errors.IsNotFound(err) {
+		return nil, fmt.Errorf("failed to fetch router ca configmap: %v", err)
 	}
-	targetCM := &corev1.ConfigMap{}
-	createCM := false
-	targetCMName := types.NamespacedName{Namespace: r.Namespace, Name: ControllerManagerAdditionalCAConfigMap}
-	err = r.Get(ctx, targetCMName, targetCM)
-	if err != nil {
-		if !errors.IsNotFound(err) {
-			logger.Error(err, "Error fetching target configmap")
-			return err
-		}
-		targetCM.Namespace = r.Namespace
-		targetCM.Name = ControllerManagerAdditionalCAConfigMap
-		targetCM.Data = map[string]string{}
-		createCM = true
+	if err == nil {
+		additionalCAs = append(additionalCAs, []byte(cm.Data["ca-bundle.crt"]))
 	}
-	targetCM.Data[destKey] = caData
-	if createCM {
-		logger.Info("creating configmap in management cluster", "targetconfigmap", targetCMName.String())
-		return r.Create(ctx, targetCM)
+	cm, err = r.TargetCMLister.ConfigMaps(ManagedConfigNamespace).Get(ServiceCAConfigMap)
+	if err != nil && !errors.IsNotFound(err) {
+		return nil, fmt.Errorf("failed to fetch service ca configmap: %v", err)
 	}
-	logger.Info("updating configmap in management cluster", "targetconfigmap", targetCMName.String())
-	return r.Update(ctx, targetCM)
+	if err == nil {
+		additionalCAs = append(additionalCAs, []byte(cm.Data["ca-bundle.crt"]))
+	}
+
+	return additionalCAs, nil
+}
+
+func calculateHash(b []byte) string {
+	return fmt.Sprintf("%x", md5.Sum(b))
 }
