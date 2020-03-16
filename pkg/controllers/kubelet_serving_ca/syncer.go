@@ -20,7 +20,6 @@ const controlPlaneOperatorConfig = "control-plane-operator"
 
 type KubeletServingCASyncer struct {
 	TargetClient kubeclient.Interface
-	Client       kubeclient.Interface
 	Log          logr.Logger
 	InitialCA    string
 }
@@ -33,7 +32,7 @@ func (s *KubeletServingCASyncer) Reconcile(req ctrl.Request) (ctrl.Result, error
 	expectedConfigMap := s.expectedConfigMap()
 	if err != nil {
 		s.Log.Info("target configmap not found, creating it")
-		_, err = s.Client.CoreV1().ConfigMaps("openshift-config-managed").Create(expectedConfigMap)
+		_, err = s.TargetClient.CoreV1().ConfigMaps("openshift-config-managed").Create(expectedConfigMap)
 		return result(err)
 	}
 	if targetConfigMap.Data["ca-bundle.crt"] != expectedConfigMap.Data["ca-bundle.crt"] {

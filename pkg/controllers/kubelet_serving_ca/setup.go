@@ -20,7 +20,6 @@ func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 	reconciler := &KubeletServingCASyncer{
 		InitialCA:    cfg.InitialCA(),
 		TargetClient: cfg.TargetKubeClient(),
-		Client:       cfg.KubeClient(),
 		Log:          cfg.Logger().WithName("KubeletServingCA"),
 	}
 	c, err := controller.New("kubelet-serving-ca", cfg.Manager(), controller.Options{Reconciler: reconciler})
