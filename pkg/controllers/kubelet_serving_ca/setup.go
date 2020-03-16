@@ -8,26 +8,20 @@ import (
 	"github.com/openshift/hypershift-toolkit/pkg/cmd/cpoperator"
 )
 
-const (
-	ManagedConfigNamespace = "openshift-config-managed"
-)
-
 func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 
-	informerFactory := cfg.TargetKubeInformersForNamespace(ManagedConfigNamespace)
-	configMaps := informerFactory.Core().V1().ConfigMaps()
+	clusterVersions := cfg.TargetConfigInformers().Config().V1().ClusterVersions()
 
 	reconciler := &KubeletServingCASyncer{
 		InitialCA:    cfg.InitialCA(),
 		TargetClient: cfg.TargetKubeClient(),
-		Client:       cfg.KubeClient(),
 		Log:          cfg.Logger().WithName("KubeletServingCA"),
 	}
 	c, err := controller.New("kubelet-serving-ca", cfg.Manager(), controller.Options{Reconciler: reconciler})
 	if err != nil {
 		return err
 	}
-	if err := c.Watch(&source.Informer{Informer: configMaps.Informer()}, &handler.EnqueueRequestForObject{}); err != nil {
+	if err := c.Watch(&source.Informer{Informer: clusterVersions.Informer()}, &handler.EnqueueRequestForObject{}); err != nil {
 		return err
 	}
 	return nil
