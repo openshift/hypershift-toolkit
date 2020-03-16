@@ -63,12 +63,12 @@ func (c *ControlPlaneOperatorConfig) Scheme() *runtime.Scheme {
 func (c *ControlPlaneOperatorConfig) Manager() ctrl.Manager {
 	if c.manager == nil {
 		var err error
-		c.manager, err = ctrl.NewManager(c.Config(), ctrl.Options{
+		c.manager, err = ctrl.NewManager(c.TargetConfig(), ctrl.Options{
 			Scheme:                  c.Scheme(),
 			LeaderElection:          true,
-			LeaderElectionNamespace: c.Namespace(),
+			LeaderElectionNamespace: c.TargetNamespace(),
 			LeaderElectionID:        "control-plane-operator",
-			Namespace:               c.Namespace(),
+			Namespace:               c.TargetNamespace(),
 		})
 		if err != nil {
 			c.Fatal(err, "failed to create controller manager")
@@ -79,6 +79,10 @@ func (c *ControlPlaneOperatorConfig) Manager() ctrl.Manager {
 
 func (c *ControlPlaneOperatorConfig) Namespace() string {
 	return c.namespace
+}
+
+func (c *ControlPlaneOperatorConfig) TargetNamespace() string {
+	return "openshift-config-managed"
 }
 
 func (c *ControlPlaneOperatorConfig) Config() *rest.Config {
