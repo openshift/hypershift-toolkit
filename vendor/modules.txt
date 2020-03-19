@@ -168,7 +168,7 @@ github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
-# github.com/google/btree v0.0.0-20190910154209-be84af90a1f7
+# github.com/google/btree v1.0.0
 github.com/google/btree
 # github.com/google/go-cmp v0.4.0
 github.com/google/go-cmp/cmp
@@ -227,7 +227,7 @@ github.com/opencontainers/image-spec/specs-go/v1
 # github.com/opencontainers/runc v1.0.0-rc8
 github.com/opencontainers/runc/libcontainer/system
 github.com/opencontainers/runc/libcontainer/user
-# github.com/openshift/api v0.0.0-20200210091934-a0e53e94816b
+# github.com/openshift/api v3.9.1-0.20191111211345-a27ff30ebf09+incompatible
 github.com/openshift/api
 github.com/openshift/api/apps
 github.com/openshift/api/apps/v1
@@ -241,8 +241,6 @@ github.com/openshift/api/image
 github.com/openshift/api/image/docker10
 github.com/openshift/api/image/dockerpre012
 github.com/openshift/api/image/v1
-github.com/openshift/api/imageregistry
-github.com/openshift/api/imageregistry/v1
 github.com/openshift/api/kubecontrolplane
 github.com/openshift/api/kubecontrolplane/v1
 github.com/openshift/api/legacyconfig/v1
@@ -264,8 +262,6 @@ github.com/openshift/api/quota
 github.com/openshift/api/quota/v1
 github.com/openshift/api/route
 github.com/openshift/api/route/v1
-github.com/openshift/api/samples
-github.com/openshift/api/samples/v1
 github.com/openshift/api/security
 github.com/openshift/api/security/v1
 github.com/openshift/api/servicecertsigner
@@ -303,6 +299,13 @@ github.com/openshift/cluster-openshift-apiserver-operator/pkg/operator/configobs
 github.com/openshift/cluster-openshift-apiserver-operator/pkg/operator/configobservation/ingresses
 github.com/openshift/cluster-openshift-apiserver-operator/pkg/operator/configobservation/project
 github.com/openshift/cluster-openshift-apiserver-operator/pkg/operator/operatorclient
+# github.com/openshift/cluster-openshift-controller-manager-operator v0.0.0-alpha.0.0.20191118200250-10fc162e4f4c
+github.com/openshift/cluster-openshift-controller-manager-operator/pkg/operator/configobservation
+github.com/openshift/cluster-openshift-controller-manager-operator/pkg/operator/configobservation/builds
+github.com/openshift/cluster-openshift-controller-manager-operator/pkg/operator/configobservation/deployimages
+github.com/openshift/cluster-openshift-controller-manager-operator/pkg/operator/configobservation/images
+github.com/openshift/cluster-openshift-controller-manager-operator/pkg/operator/configobservation/network
+github.com/openshift/cluster-openshift-controller-manager-operator/pkg/util
 # github.com/openshift/library-go v0.0.0-20200311103712-5283c018e9f5
 github.com/openshift/library-go/pkg/controller/factory
 github.com/openshift/library-go/pkg/crypto
@@ -313,6 +316,7 @@ github.com/openshift/library-go/pkg/image/reference
 github.com/openshift/library-go/pkg/image/registryclient
 github.com/openshift/library-go/pkg/operator/condition
 github.com/openshift/library-go/pkg/operator/configobserver
+github.com/openshift/library-go/pkg/operator/configobserver/network
 github.com/openshift/library-go/pkg/operator/events
 github.com/openshift/library-go/pkg/operator/management
 github.com/openshift/library-go/pkg/operator/resource/resourceapply
@@ -365,7 +369,7 @@ github.com/vincent-petithory/dataurl
 go.uber.org/atomic
 # go.uber.org/multierr v1.1.0
 go.uber.org/multierr
-# go.uber.org/zap v1.10.0
+# go.uber.org/zap v1.11.0
 go.uber.org/zap
 go.uber.org/zap/buffer
 go.uber.org/zap/internal/bufferpool

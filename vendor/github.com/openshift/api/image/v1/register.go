@@ -45,8 +45,6 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&ImageStreamImage{},
 		&ImageStreamLayers{},
 		&ImageStreamImport{},
-		&ImageTag{},
-		&ImageTagList{},
 		&corev1.SecretList{},
 	)
 	metav1.AddToGroupVersion(scheme, GroupVersion)

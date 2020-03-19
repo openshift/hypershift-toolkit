@@ -19,9 +19,10 @@ require (
 	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/jteeuwen/go-bindata v3.0.8-0.20151023091102-a0ff2567cfb7+incompatible
-	github.com/openshift/api v0.0.0-20200210091934-a0e53e94816b
+	github.com/openshift/api v3.9.1-0.20191111211345-a27ff30ebf09+incompatible
 	github.com/openshift/client-go v0.0.0-20200116152001-92a2713fa240
 	github.com/openshift/cluster-openshift-apiserver-operator v0.0.0-alpha.0.0.20200306204134-7d51dd65fcdb
+	github.com/openshift/cluster-openshift-controller-manager-operator v0.0.0-alpha.0.0.20191118200250-10fc162e4f4c
 	github.com/openshift/library-go v0.0.0-20200311103712-5283c018e9f5
 	github.com/openshift/oc v0.0.0-00010101000000-000000000000
 	github.com/pkg/errors v0.9.1
