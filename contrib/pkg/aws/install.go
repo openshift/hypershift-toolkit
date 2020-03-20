@@ -393,6 +393,9 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 		"kubeadmin-password",
 		"cluster-operator",
 		"cluster-version",
+		"kubelet-serving-ca",
+		"openshift-apiserver",
+		"openshift-controller-manager",
 	}
 	cpOperatorImage := os.Getenv("CONTROL_PLANE_OPERATOR_IMAGE_OVERRIDE")
 	if cpOperatorImage == "" {
