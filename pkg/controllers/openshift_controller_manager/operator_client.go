@@ -114,7 +114,7 @@ func mergeConfig(existingYAML, updateJSON []byte) (updatedYAML []byte, err error
 	}
 	for key := range updateConfig {
 		switch key {
-		case "dockerPullSecret", "build", "ingress", "deployer":
+		case "dockerPullSecret", "build", "deployer":
 			existingConfig[key] = updateConfig[key]
 		}
 	}
@@ -138,7 +138,7 @@ func filterManagedConfigKeys(in []byte) (out []byte, err error) {
 	outputConfig := map[string]interface{}{}
 	for key := range inputConfig {
 		switch key {
-		case "dockerPullSecret", "build", "ingress", "deployer":
+		case "dockerPullSecret", "build", "deployer":
 			outputConfig[key] = inputConfig[key]
 		}
 	}

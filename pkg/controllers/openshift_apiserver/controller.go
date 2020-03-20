@@ -23,7 +23,6 @@ import (
 	configinformers "github.com/openshift/client-go/config/informers/externalversions"
 	"github.com/openshift/cluster-openshift-apiserver-operator/pkg/operator/configobservation"
 	"github.com/openshift/cluster-openshift-apiserver-operator/pkg/operator/configobservation/images"
-	"github.com/openshift/cluster-openshift-apiserver-operator/pkg/operator/configobservation/ingresses"
 	"github.com/openshift/cluster-openshift-apiserver-operator/pkg/operator/configobservation/project"
 	"github.com/openshift/library-go/pkg/operator/configobserver"
 	"github.com/openshift/library-go/pkg/operator/events"
@@ -67,9 +66,7 @@ func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 			},
 		},
 		images.ObserveInternalRegistryHostname,
-		images.ObserveExternalRegistryHostnames,
 		images.ObserveAllowedRegistriesForImport,
-		ingresses.ObserveIngressDomain,
 		project.ObserveProjectRequestMessage,
 		project.ObserveProjectRequestTemplateName,
 	)
@@ -189,8 +186,19 @@ func mergeConfig(existingYAML, updateJSON []byte) (updatedYAML []byte, err error
 	}
 	for key := range updateConfig {
 		switch key {
-		case "imagePolicyConfig", "projectConfig", "routingConfig":
+		case "projectConfig":
 			existingConfig[key] = updateConfig[key]
+		case "imagePolicyConfig":
+			resultValue := existingConfig[key].(map[string]interface{})
+			if mapValue, ok := updateConfig[key].(map[string]interface{}); ok {
+				for key2 := range mapValue {
+					switch key2 {
+					case "internalRegistryHostname", "allowedRegistriesForImport":
+						resultValue[key2] = mapValue[key2]
+					}
+				}
+			}
+			existingConfig[key] = resultValue
 		}
 	}
 	var mergedConfig []byte
@@ -213,8 +221,19 @@ func filterManagedConfigKeys(in []byte) (out []byte, err error) {
 	outputConfig := map[string]interface{}{}
 	for key := range inputConfig {
 		switch key {
-		case "routingConfig", "imagePolicyConfig", "projectConfig":
+		case "projectConfig":
 			outputConfig[key] = inputConfig[key]
+		case "imagePolicyConfig":
+			resultValue := map[string]interface{}{}
+			if mapValue, ok := inputConfig[key].(map[string]interface{}); ok {
+				for key2 := range mapValue {
+					switch key2 {
+					case "internalRegistryHostname", "allowedRegistriesForImport":
+						resultValue[key2] = mapValue[key2]
+					}
+				}
+			}
+			outputConfig[key] = resultValue
 		}
 	}
 	out, err = json.Marshal(outputConfig)
