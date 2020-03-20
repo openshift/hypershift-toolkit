@@ -2636,6 +2636,16 @@ spec:
       containers:
         - name: openshift-oauthserver
           image: {{ imageFor "oauth-server" }}
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: healthz
+              port: 6443
+              scheme: HTTPS
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 10
           args:
             - "osinserver"
             - "--config=/etc/oauth-openshift-configfile/config.yaml"
