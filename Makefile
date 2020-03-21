@@ -6,11 +6,11 @@ default: build
 
 .PHONY: build
 build:  bindata control-plane-operator
-	go build -o bin/hypershift github.com/openshift/hypershift-toolkit/cmd/hypershift
+	go build -mod=vendor -o bin/hypershift github.com/openshift/hypershift-toolkit/cmd/hypershift
 
 .PHONY: hypershift-aws
 hypershift-aws: bindata
-	go build -o bin/hypershift-aws github.com/openshift/hypershift-toolkit/contrib/cmd/hypershift-aws
+	go build -mod=vendor -o bin/hypershift-aws github.com/openshift/hypershift-toolkit/contrib/cmd/hypershift-aws
 
 .PHONY: bindata
 bindata:
@@ -35,4 +35,4 @@ verify: verify-gofmt verify-bindata
 # Build manager binary
 .PHONY: control-plane-operator
 control-plane-operator:
-	go build -o bin/control-plane-operator github.com/openshift/hypershift-toolkit/cmd/control-plane-operator
+	go build -mod=vendor -o ./bin/control-plane-operator ./cmd/control-plane-operator/main.go
