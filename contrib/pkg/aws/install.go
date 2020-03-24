@@ -452,6 +452,11 @@ func InstallCluster(name, releaseImage, dhParamsFile string, waitForReady bool) 
 		return fmt.Errorf("failed to render manifests for cluster: %v", err)
 	}
 
+	// Create a nodeport service for the router
+	if err = generateRouterService(filepath.Join(manifestsDir, "router-service.json")); err != nil {
+		return fmt.Errorf("failed to generate router service: %v", err)
+	}
+
 	// Create a machineset for the new cluster's worker nodes
 	if err = generateWorkerMachineset(dynamicClient, infraName, lbInfo.Zone, name, routerLBName, filepath.Join(manifestsDir, "machineset.json")); err != nil {
 		return fmt.Errorf("failed to generate worker machineset: %v", err)
@@ -1051,6 +1056,55 @@ func generateKubeadminPasswordTargetSecret(password string, fileName string) err
 	configMap.Kind = "ConfigMap"
 	configMap.Name = "user-manifest-kubeadmin-password"
 	configMap.Data = map[string]string{"data": string(secretBytes)}
+	configMapBytes, err := runtime.Encode(coreCodecs.LegacyCodec(corev1.SchemeGroupVersion), configMap)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(fileName, configMapBytes, 0644)
+}
+
+func generateRouterService(fileName string) error {
+	svc := &corev1.Service{}
+	svc.APIVersion = "v1"
+	svc.Kind = "Service"
+	svc.Name = "router-default"
+	svc.Namespace = "openshift-ingress"
+	svc.Labels = map[string]string{
+		"app":    "router",
+		"router": "router-default",
+	}
+	svc.Spec.Ports = []corev1.ServicePort{
+		{
+			Name:       "http",
+			NodePort:   routerNodePortHTTP,
+			Port:       80,
+			Protocol:   corev1.ProtocolTCP,
+			TargetPort: intstr.FromString("http"),
+		},
+		{
+			Name:       "https",
+			NodePort:   routerNodePortHTTPS,
+			Port:       443,
+			Protocol:   corev1.ProtocolTCP,
+			TargetPort: intstr.FromString("https"),
+		},
+	}
+	svc.Spec.Selector = map[string]string{
+		"ingresscontroller.operator.openshift.io/deployment-ingresscontroller": "default",
+	}
+	svc.Spec.SessionAffinity = corev1.ServiceAffinityNone
+	svc.Spec.Type = corev1.ServiceTypeNodePort
+
+	svcBytes, err := runtime.Encode(coreCodecs.LegacyCodec(corev1.SchemeGroupVersion), svc)
+	if err != nil {
+		return err
+	}
+
+	configMap := &corev1.ConfigMap{}
+	configMap.APIVersion = "v1"
+	configMap.Kind = "ConfigMap"
+	configMap.Name = "user-manifest-router-service"
+	configMap.Data = map[string]string{"data": string(svcBytes)}
 	configMapBytes, err := runtime.Encode(coreCodecs.LegacyCodec(corev1.SchemeGroupVersion), configMap)
 	if err != nil {
 		return err
