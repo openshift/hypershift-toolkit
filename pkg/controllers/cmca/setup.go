@@ -24,6 +24,7 @@ func setupConfigMapObserver(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 	informerFactory := cfg.TargetKubeInformersForNamespace(ManagedConfigNamespace)
 	configMaps := informerFactory.Core().V1().ConfigMaps()
 	reconciler := &ManagedCAObserver{
+		InitialCA:      cfg.InitialCA(),
 		Client:         cfg.KubeClient(),
 		TargetCMLister: configMaps.Lister(),
 		Namespace:      cfg.Namespace(),
