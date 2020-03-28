@@ -681,6 +681,10 @@ spec:
       - image: {{ .ControlPlaneOperatorImage }}
         imagePullPolicy: IfNotPresent
         name: control-plane-operator
+{{ if .ControlPlaneOperatorSecurity }}
+        securityContext:
+          runAsUser: {{ .ControlPlaneOperatorSecurity }}
+{{ end }}
         env:
         - name: POD_NAMESPACE
           valueFrom:
