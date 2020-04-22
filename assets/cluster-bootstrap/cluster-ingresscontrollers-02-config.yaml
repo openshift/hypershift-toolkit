@@ -4,6 +4,10 @@ metadata:
   name: default
   namespace: openshift-ingress-operator
 spec:
+  endpointPublishingStrategy:
+    loadBalancer:
+      scope: {{ .EndpointPublishingStrategyScope }}
+    type: LoadBalancerService
   nodePlacement:
     tolerations:
     - key: dedicated
