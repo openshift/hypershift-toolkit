@@ -51,6 +51,7 @@ type ClusterParams struct {
 	ApiserverLivenessPath               string                 `json:"apiserverLivenessPath"`
 	DefaultFeatureGates                 []string
 	PlatformType                        string `json:"platformType"`
+	EndpointPublishingStrategyScope     string `json:"endpointPublishingStrategyScope"`
 }
 
 type NamedCert struct {
