@@ -1470,7 +1470,7 @@ auditConfig:
   webHookMode: batch
 {{ else }}
   policyConfiguration:
-    apiVersion: audit.k8s.io/v1beta1
+    apiVersion: audit.k8s.io/v1
     kind: Policy
     omitStages:
     - RequestReceived
@@ -2887,7 +2887,7 @@ auditConfig:
   maximumFileSizeMegabytes: 100
   maximumRetainedFiles: 10
   policyConfiguration:
-    apiVersion: audit.k8s.io/v1beta1
+    apiVersion: audit.k8s.io/v1
     kind: Policy
     omitStages:
     - RequestReceived
